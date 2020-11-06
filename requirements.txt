@@ -1,0 +1,6 @@
+requests
+browser_cookie3
+BeautifulSoup4
+colorama
+bs4
+argparse
