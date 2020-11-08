@@ -1,4 +1,4 @@
-# Udemy-Paid-Courses-Grabber
+# Udemy-Course-Grabber
 Script to add all udemy paid/free courses having coupons automatically to your udemy account
 
 ## ***Requirements***
@@ -58,3 +58,7 @@ Script to add all udemy paid/free courses having coupons automatically to your u
 
 
 <img src='images/image6.jpg' width='600' height='400'>
+
+
+# Note: 
+This script was originally made by https://github.com/AmmeySaini/Udemy-Paid-Courses-Grabber since there aren't any updates I decided to takeover.
