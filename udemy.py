@@ -1,19 +1,22 @@
-import browser_cookie3
-import urllib3
-import requests
-import re
-import time
-import random
-import sys
 import argparse
-import colorama
-from bs4 import BeautifulSoup
+import random
+import re
+import sys
+import time
 from pathlib import Path
-from __banner.banner import banner
-from __colors__.colors import *
-from __functions.functions import *
-from __constants.constants import CHECKOUT, total_sites, site_range
-from urllib.parse import urlsplit, parse_qs
+from urllib.parse import parse_qs, urlsplit
+
+import browser_cookie3
+import colorama
+import requests
+import urllib3
+from bs4 import BeautifulSoup
+
+from pack.banner import banner
+from pack.colors import *
+from pack.constants import CHECKOUT, site_range, total_sites
+from pack.functions import *
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 func_list = [
@@ -303,106 +306,14 @@ def main():
             for site in total_sites:
                 print(random.choice(colors) + site)
             
-            try:
-                if args.cron:
-                    input_1 = 'y'
-                else:
-                    print('\n' + fc + sd + '----' + fm + sb + '>>' + fb + ' Want to see available coupons (INPUT "n") OR subscribe to all available courses automatically (input "y"): ', end='')
-                    input_1 = input()
-                    more = ''
-            except:
-                pass
-
-            if input_1 == 'n':
-                global d
-                d = 1
-                for site_index, site in enumerate(total_sites):
-                    if site == 'Learn Viral':
-                        limit = 10
-                        print('\n' + fc + sd + '-------' + fm + sb + '>>' + fb +' Learn Viral ' + fm + sb + '<<' + fc + sd + '-------\n')
-                        while d <= limit:
-                            list_st = learnviral(d)
-                            site = process(list_st, d, limit, site_index, cookies, access_token, csrftoken, head)
-                            d += 1
-                    if site == 'Discudemy':
-                        limit = 4
-                        print('\n' + fc + sd + '-------' + fm + sb + '>>' + fb +' Discudemy ' + fm + sb + '<<' + fc + sd + '-------\n')
-                        while d <= limit:
-                            list_st = discudemy(d)
-                            site = process(list_st, d, limit, site_index, cookies, access_token, csrftoken, head)
-                            d += 1
-                    if site == 'Udemy Freebies':
-                        limit = 4
-                        print('\n' + fc + sd + '-------' + fm + sb + '>>' + fb +' Udemy Freebies ' + fm + sb + '<<' + fc + sd + '-------\n')
-                        while d <= limit:
-                            list_st = udemy_freebies(d)
-                            site = process(list_st, d, limit, site_index, cookies, access_token, csrftoken, head)
-                            d += 1
-                    if site == 'Udemy Coupons':
-                        limit = 4
-                        print('\n' + fc + sd + '-------' + fm + sb + '>>' + fb +' Udemy Coupons ' + fm + sb + '<<' + fc + sd + '-------\n')
-                        while d <= limit:
-                            list_st = udemy_coupons_me(d)
-                            site = process(list_st, d, limit, site_index, cookies, access_token, csrftoken, head)
-                            d += 1
-                    if site == 'Real Discount':
-                        limit = 4
-                        print('\n' + fc + sd + '-------' + fm + sb + '>>' + fb +' Real Discount ' + fm + sb + '<<' + fc + sd + '-------\n')
-                        while d <= limit:
-                            list_st = real_disc(d)
-                            site = process(list_st, d, limit, site_index, cookies, access_token, csrftoken, head)
-                            d += 1
-                    if site == 'Tricks Info':
-                        limit = 6
-                        print('\n' + fc + sd + '-------' + fm + sb + '>>' + fb +' Tricks Info ' + fm + sb + '<<' + fc + sd + '-------\n')
-                        while d <= limit:
-                            list_st = tricksinfo(d)
-                            site = process(list_st, d, limit, site_index, cookies, access_token, csrftoken, head)
-                            d += 1
-                    if site == 'Free Web Cart':
-                        limit = 7
-                        print('\n' + fc + sd + '-------' + fm + sb + '>>' + fb +' Free Web Cart ' + fm + sb + '<<' + fc + sd + '-------\n')
-                        while d <= limit:
-                            list_st = freewebcart(d)
-                            site = process(list_st, d, limit, site_index, cookies, access_token, csrftoken, head)
-                            d += 1
-                    if site == 'Course Mania':
-                        limit = 1
-                        print('\n' + fc + sd + '-------' + fm + sb + '>>' + fb +' Course Mania ' + fm + sb + '<<' + fc + sd + '-------\n')
-                        while d <= limit:
-                            list_st = course_mania(d)
-                            site = process(list_st, d, limit, site_index, cookies, access_token, csrftoken, head)
-                            d += 1
-                    if site == 'Help Covid':
-                        limit = 1
-                        print('\n' + fc + sd + '-------' + fm + sb + '>>' + fb +' Help Covid ' + fm + sb + '<<' + fc + sd + '-------\n')
-                        while d <= limit:
-                            list_st = helpcovid(d)
-                            site = process(list_st, d, limit, site_index, cookies, access_token, csrftoken, head)
-                            d += 1
-                    if site == 'Jojo Coupons':
-                        limit = 4
-                        print('\n' + fc + sd + '-------' + fm + sb + '>>' + fb +' Jojo Coupons ' + fm + sb + '<<' + fc + sd + '-------\n')
-                        while d <= limit:
-                            list_st = jojocoupons(d)
-                            site = process(list_st, d, limit, site_index, cookies, access_token, csrftoken, head)
-                            d += 1
-                    if site == 'Online Tutorials':
-                        limit = 4
-                        print('\n' + fc + sd + '-------' + fm + sb + '>>' + fb +' Online Tutorials ' + fm + sb + '<<' + fc + sd + '-------\n')
-                        while d <= limit:
-                            list_st = onlinetutorials(d)
-                            site = process(list_st, d, limit, site_index, cookies, access_token, csrftoken, head)
-                            d += 1
-            elif input_1 == 'y':
-                global count
-                count = 0
-                for index, items in enumerate(func_list):
-                    print('\n' + fc + sd + '-------' + fm + sb + '>> ' + fb + total_sites[index] + fm + sb + ' <<' + fc + sd + '-------\n')
-                    limit = site_range[index]
-                    for d in range(1, limit):
-                        list_st = items(d)
-                        auto_add(list_st, cookies, access_token, csrftoken, head)
+            global count
+            count = 0
+            for index, items in enumerate(func_list):
+                print('\n' + fc + sd + '-------' + fm + sb + '>> ' + fb + total_sites[index] + fm + sb + ' <<' + fc + sd + '-------\n')
+                limit = site_range[index]
+                for d in range(1, limit):
+                    list_st = items(d)
+                    auto_add(list_st, cookies, access_token, csrftoken, head)
         else:
             print('Make sure you are logged in to udemy.com in chrome browser')
     except Exception as e :

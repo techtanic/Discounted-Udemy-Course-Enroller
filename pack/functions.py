@@ -1,12 +1,13 @@
-import requests
-from bs4 import BeautifulSoup
-import urllib3
-import sys
-import time
 import random
+import sys
 from urllib.parse import urlparse
-import json
-from __constants.constants import *
+
+import requests
+import urllib3
+from bs4 import BeautifulSoup
+
+from .constants import *
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def random_col():
