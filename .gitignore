@@ -1,7 +1,7 @@
 t.py
 r.py
 cookie.txt
-__banner/__pycache__/banner.cpython-38.pyc
-__colors__/__pycache__/colors.cpython-38.pyc
-__constants/__pycache__/constants.cpython-38.pyc
-__functions/__pycache__/functions.cpython-38.pyc
+functions/__pycache__/functions.cpython-38.pyc
+constants/__pycache__/constants.cpython-38.pyc
+colors/__pycache__/colors.cpython-38.pyc
+banner/__pycache__/banner.cpython-38.pyc
