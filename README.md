@@ -22,7 +22,7 @@ Script to add all udemy paid/free courses having coupons automatically to your u
 - Many popular sites added to grab fresh/new courses (coupons).
 - Many more features
 
-## ***Usage**
+## ***Usage***
 `py udemy.py` 
 OR
 `python udemy.py`
@@ -36,3 +36,4 @@ OR
 
 # Note: 
 This script was originally made by https://github.com/AmmeySaini/Udemy-Paid-Courses-Grabber since there aren't any updates I decided to takeover.
+And modify it for users who dont know python
