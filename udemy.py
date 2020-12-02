@@ -3,6 +3,7 @@ import random
 import re
 import sys
 import time
+import json
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
@@ -30,6 +31,12 @@ func_list = [
     lambda page : course_mania(page),
     lambda page : jojocoupons(page),
 ]
+
+
+with open("config.json") as f:
+    global currency
+    currency = json.load(f)
+    currency = currency["currency"]
 
 def cookiejar(client_id, access_token):
     cookies = dict(client_id=client_id, access_token=access_token)
@@ -72,7 +79,7 @@ def get_course_coupon(url):
         return ''
 
 def free_checkout(CHECKOUT, access_token, csrftoken, coupon, courseID, cookies, head):
-    payload = '{"shopping_cart":{"items":[{"buyableType":"course","buyableId":' + str(courseID) + ',"discountInfo":{"code":"' + coupon + '"},"purchasePrice":{"currency":"USD","currency_symbol":"$","amount":0,"price_string":"Free"},"buyableContext":{"contentLocaleId":null}}]},"payment_info":{"payment_vendor":"Free","payment_method":"free-method"}}'
+    payload = '{"shopping_cart":{"items":[{"buyableType":"course","buyableId":' + str(courseID) + ',"discountInfo":{"code":"' + coupon + '"},"purchasePrice":{"currency":"' + currency + '","currency_symbol":"","amount":0,"price_string":"Free"},"buyableContext":{"contentLocaleId":null}}]},"payment_info":{"payment_vendor":"Free","payment_method":"free-method"}}'
 
     r = requests.post(CHECKOUT, headers=head, data=payload, cookies=cookies, verify=False)
     return r.json()
