@@ -2,12 +2,12 @@
 animation = ["[■□□□□□□□□□]","[■■□□□□□□□□]", "[■■■□□□□□□□]", "[■■■■□□□□□□]", "[■■■■□□□□□□]", "[■■■■■□□□□□]", "[■■■■■■□□□□]", "[■■■■■■■□□□]", "[■■■■■■■■□□]", "[■■■■■■■■■□]", "[■■■■■■■■■□]", "[■■■■■■■■■■]"]
 
 LEARNVIR = 'https://udemycoupon.learnviral.com/coupon-category/free100-discount/page/'
-REALDISC = 'https://www.real.discount/new/page/'
+REALDISC = 'https://www.real.discount/new/page/' # NOTE Broken
 UDEMYFREEBIES = 'https://www.udemyfreebies.com/free-udemy-courses/'
-UDEMYCOUPONS = 'https://udemycoupons.me/page/'
-DISCUD = 'https://www.discudemy.com/all/'
-TRICKSINF = 'https://tricksinfo.net/page/'
-WEBCART = 'https://www.freewebcart.com/page/'
+UDEMYCOUPONS = 'https://udemycoupons.me/page/' # NOTE Broken
+DISCUD = 'https://www.discudemy.com/all/' 
+TRICKSINF = 'https://tricksinfo.net/page/' # NOTE Broken
+WEBCART = 'https://www.freewebcart.com/page/' # NOTE Broken
 COURSEMANIA = 'https://api.coursemania.xyz/api/get_courses'
 JOJOCP = 'https://jojocoupons.com/category/udemy/page/'
 COMIDOC = 'https://comidoc.net/beta'
