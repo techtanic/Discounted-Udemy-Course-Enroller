@@ -20,6 +20,7 @@ from pack.functions import *
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 func_list = [
+    lambda page : comidoc(page),
     lambda page : discudemy(page),
     lambda page : udemy_freebies(page),
     lambda page : udemy_coupons_me(page),
@@ -28,7 +29,6 @@ func_list = [
     lambda page : freewebcart(page),
     lambda page : course_mania(page),
     lambda page : jojocoupons(page),
-    lambda page : onlinetutorials(page),
 ]
 
 def cookiejar(client_id, access_token):

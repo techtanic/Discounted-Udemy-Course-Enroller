@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 import requests
 import urllib3
 from bs4 import BeautifulSoup
-
+import json
 from .constants import *
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -141,7 +141,6 @@ def discudemy(page):
             links_ls.append(title + '||' + soup3.find('div', 'ui segment').a['href'])
     return links_ls
 
-########### NEW WEBSITES #############
 def tricksinfo(page):
     links_ls = []
     head = {
@@ -201,21 +200,6 @@ def course_mania(page):
         links_ls.append(title + '||' + link)
     return links_ls
 
-def helpcovid(page):
-    links_ls = []
-    head = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
-    }
-
-    r = requests.get(HELPCOV, headers=head, verify=False)
-    js = r.json()
-    for items in js['courses']:
-        title = items['title']
-        link = items['url']
-        links_ls.append(title + '||' + link)
-    return links_ls
-
 def jojocoupons(page):
     links_ls = []
     head = {
@@ -265,4 +249,22 @@ def onlinetutorials(page):
         links_ls.append(title + '||' + link)
     return links_ls
 
-# print(onlinetutorials(1))
+def comidoc(page):
+    links_ls = []
+    head = {
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.67 Safari/537.36 Edg/87.0.664.47',
+        'accept': '*/*'
+    }
+    data = {"query":"\nquery ALL_COUPONS_COURSES($skip: Int = 0, $first: Int = 50) {\n  coupons(\n    first: $first\n    skip: $skip\n    orderBy: createdAt_DESC\n    where: { isValid: true }\n  ) {\n    createdAt\n    code\n    isValid\n    discountValue\n    discountPrice\n    maxUses\n    remainingUses\n    endTime\n    course {\n      udemyId\n      cleanUrl\n      updatedAt\n      detail(last: 1) {\n        title\n        image_240\n        lenghtTxt\n        rating\n        isPaid\n        updated\n        subscribers\n        locale {\n          locale\n        }\n      }\n      instructor {\n        id\n        name\n        url\n        image\n        course {\n          udemyId\n        }\n      }\n    }\n  }\n}\n",
+            "variables":{"skip":0}}
+    r = requests.post(COMIDOC, headers=head, json=data, verify=False).json()
+    for index, items in enumerate(r['data']['coupons']):
+        if items['discountValue'] == '100% OFF':
+            sys.stdout.write("\rLOADING URLS: " + animation[index % len(animation)])
+            sys.stdout.flush()
+            title = items['course']['detail'][0]['title']
+            link = 'https:/www.udemy.com/course' + items['course']['cleanUrl'] + '?couponCode=' + items['code']
+            links_ls.append(title + '||' + link)
+        else:
+            pass
+    return links_ls
