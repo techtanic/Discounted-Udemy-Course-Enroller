@@ -227,24 +227,3 @@ def jojocoupons(page):
             except:
                 r = ''           
     return links_ls
-
-def onlinetutorials(page):
-    links_ls = []
-    head = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
-    }
-
-    r = requests.get(ONLINETUT + str(page), headers=head, verify=False)
-    soup = BeautifulSoup(r.content, 'html.parser')
-    all = soup.find_all('h3', class_ = 'entry-title')
-    for index, items in enumerate(all):
-        title = items.text
-        url2 = items.a['href']
-        r2 = requests.get(url2, headers=head, verify=False)
-        sys.stdout.write("\rLOADING URLS: " + animation[index % len(animation)])
-        sys.stdout.flush()
-        soup1 = BeautifulSoup(r2.content, 'html.parser')
-        link = soup1.find('div', class_ = 'link-holder').a['href']
-        links_ls.append(title + '||' + link)
-    return links_ls
