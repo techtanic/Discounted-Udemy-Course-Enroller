@@ -248,23 +248,3 @@ def onlinetutorials(page):
         link = soup1.find('div', class_ = 'link-holder').a['href']
         links_ls.append(title + '||' + link)
     return links_ls
-
-def comidoc(page):
-    links_ls = []
-    head = {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.67 Safari/537.36 Edg/87.0.664.47',
-        'accept': '*/*'
-    }
-    data = {"query":"\nquery ALL_COUPONS_COURSES($skip: Int = 0, $first: Int = 50) {\n  coupons(\n    first: $first\n    skip: $skip\n    orderBy: createdAt_DESC\n    where: { isValid: true }\n  ) {\n    createdAt\n    code\n    isValid\n    discountValue\n    discountPrice\n    maxUses\n    remainingUses\n    endTime\n    course {\n      udemyId\n      cleanUrl\n      updatedAt\n      detail(last: 1) {\n        title\n        image_240\n        lenghtTxt\n        rating\n        isPaid\n        updated\n        subscribers\n        locale {\n          locale\n        }\n      }\n      instructor {\n        id\n        name\n        url\n        image\n        course {\n          udemyId\n        }\n      }\n    }\n  }\n}\n",
-            "variables":{"skip":0}}
-    r = requests.post(COMIDOC, headers=head, json=data, verify=False).json()
-    for index, items in enumerate(r['data']['coupons']):
-        if items['discountValue'] == '100% OFF':
-            sys.stdout.write("\rLOADING URLS: " + animation[index % len(animation)])
-            sys.stdout.flush()
-            title = items['course']['detail'][0]['title']
-            link = 'https:/www.udemy.com/course' + items['course']['cleanUrl'] + '?couponCode=' + items['code']
-            links_ls.append(title + '||' + link)
-        else:
-            pass
-    return links_ls
