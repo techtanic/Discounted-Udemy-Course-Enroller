@@ -10,10 +10,6 @@ from .constants import *
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-def random_col():
-    listt = ['green', 'yellow', 'white']
-    return random.choice(listt)
-
 def learnviral(page):
     links_ls = []
     head = {
@@ -24,7 +20,7 @@ def learnviral(page):
         'sec-fetch-user': '?1',
         'sec-fetch-dest': 'document',
     }
-
+    
     r = requests.get(LEARNVIR + str(page), headers=head, verify=False)
     soup = BeautifulSoup(r.content, 'html.parser')
     first = soup.find_all('div', class_ = 'content-box')
@@ -33,6 +29,7 @@ def learnviral(page):
     links = soup1.find_all('div', class_ = 'link-holder')
 
     for index, lk in enumerate(links):
+        
         title = title_all[index].text
         links_ls.append(title + '||' + lk.a['href'])
     return links_ls
@@ -42,8 +39,8 @@ def real_disc(page):
     head = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
-    }
-
+        }
+    
     r = requests.get(REALDISC + str(page), headers=head, verify=False)
     soup = BeautifulSoup(r.content, 'html.parser')
     udd = soup.find_all('div', attrs = {'style': 'margin-top:-274px;z-index:9;position: absolute; left: 0; margin-left: 15px; color: #fff; background: rgba(0,0,0,0.5); padding: 2px 4px; font-weight: 700;'})
@@ -51,8 +48,6 @@ def real_disc(page):
     # print(len(content))
     # exit()
     for index, i in enumerate(content):
-        sys.stdout.write("\rLOADING URLS: " + animation[index % len(animation)])
-        sys.stdout.flush()
         # print(udd[index].text)
         if udd[index].text.replace('\n', '') == 'Udemy':
             url2 = i.a['href']
@@ -69,16 +64,13 @@ def udemy_freebies(page):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
     }
-
+    
     r = requests.get(UDEMYFREEBIES + str(page), headers=head, verify=False)
     soup = BeautifulSoup(r.content, 'html.parser')
     all = soup.find_all('div', 'theme-block')
     for index, items in enumerate(all):
         title = items.img['title']
         url2 = items.a['href']
-        sys.stdout.write("\rLOADING URLS: " + animation[index % len(animation)])
-        sys.stdout.flush()
-
         r2 = requests.get(url2, headers=head, verify=False)
         soup1 = BeautifulSoup(r2.content, 'html.parser')
         url3 = soup1.find('a', class_ = 'button-icon')['href']
@@ -92,7 +84,7 @@ def udemy_coupons_me(page):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
     }
-
+    
     r = requests.get(UDEMYCOUPONS + str(page), headers=head, verify=False)
     soup = BeautifulSoup(r.content, 'html.parser')
     all = soup.find_all('div', 'td_module_1 td_module_wrap td-animation-stack')
@@ -101,8 +93,6 @@ def udemy_coupons_me(page):
     for index, items in enumerate(all):
         title = items.a['title']
         url2 = items.a['href']
-        sys.stdout.write("\rLOADING URLS: " + animation[index % len(animation)])
-        sys.stdout.flush()
         r2 = requests.get(url2, headers=head, verify=False)
         soup1 = BeautifulSoup(r2.content, 'html.parser')
         try:
@@ -118,7 +108,7 @@ def discudemy(page):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
     }
-
+    
     r = requests.get(DISCUD + str(page), headers=head, verify=False)
     soup = BeautifulSoup(r.content, 'html.parser')
     all = soup.find_all('section', 'card')
@@ -135,8 +125,6 @@ def discudemy(page):
             next = soup1.find('div', 'ui center aligned basic segment')
             url3 = next.a['href']
             r3 = requests.get(url3, headers=head, verify=False)
-            sys.stdout.write("\rLOADING URLS: " + animation[index % len(animation)])
-            sys.stdout.flush()
             soup3 = BeautifulSoup(r3.content, 'html.parser')
             links_ls.append(title + '||' + soup3.find('div', 'ui segment').a['href'])
     return links_ls
@@ -147,7 +135,7 @@ def tricksinfo(page):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
     }
-
+    
     r = requests.get(TRICKSINF + str(page), headers=head, verify=False)
     soup = BeautifulSoup(r.content, 'html.parser')
     all = soup.find_all('a', class_ = 'post-thumb')
@@ -155,8 +143,6 @@ def tricksinfo(page):
         title = items['aria-label']
         url2 = items['href']
         r2 = requests.get(url2, headers=head, verify=False)
-        sys.stdout.write("\rLOADING URLS: " + animation[index % len(animation)])
-        sys.stdout.flush()
         soup1 = BeautifulSoup(r2.content, 'html.parser')
         link = soup1.find('div', 'wp-block-button').a['href']
         links_ls.append(title + '||' + link)
@@ -172,12 +158,13 @@ def freewebcart(page):
     r = requests.get(WEBCART + str(page), headers=head, verify=False)
     soup = BeautifulSoup(r.content, 'html.parser')
     all = soup.find_all('h2', class_ = 'title')
+
+    
     for index, items in enumerate(all):
         title = items.text
         url2 = items.a['href']
         r2 = requests.get(url2, headers=head, verify=False)
-        sys.stdout.write("\rLOADING URLS: " + animation[index % len(animation)])
-        sys.stdout.flush()
+    
         soup1 = BeautifulSoup(r2.content, 'html.parser')
         link = soup1.find('a', class_ = 'btn btn-default btn-lg')['href']
         links_ls.append(title + '||' + link)
@@ -191,7 +178,7 @@ def course_mania(page):
         'Origin': 'https://coursemania.xyz',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
     }
-
+    
     r = requests.get(COURSEMANIA, headers=head, verify=False)
     js = r.json()
     for items in js:
