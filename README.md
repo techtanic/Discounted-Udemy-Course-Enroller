@@ -1,6 +1,9 @@
 # Udemy-Course-Grabber
 Script to add all udemy paid/free courses having coupons automatically to your udemy account
 
+# Please consider donating 
+### BTC `bc1qdyjwj0eqxjk5hxejah4gyclrumwtqs3hqp63uz` 
+
 ## ***Requirements***
 
 - Python (2 or 3)
