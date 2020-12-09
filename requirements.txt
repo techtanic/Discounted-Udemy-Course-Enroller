@@ -1,6 +1,6 @@
 requests
 browser_cookie3
 BeautifulSoup4
-colorama
+PySimpleGUI
 bs4
 argparse

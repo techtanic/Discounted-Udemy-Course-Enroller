@@ -9,7 +9,7 @@ Script to add all udemy paid/free courses having coupons automatically to your u
 - Python (2 or 3)
 - Python `pip`
 - Python module `requests`
-- Python module `colorama`
+- Python module `PySimpleGUI`
 - Python module `bs4`
 - Python module `browser_cookie3`
 
@@ -30,7 +30,7 @@ Script to add all udemy paid/free courses having coupons automatically to your u
 OR
 `python udemy.py`
 OR
-`pyton3 udemy.py`
+`python3 udemy.py`
     
 
 
@@ -39,4 +39,4 @@ OR
 
 # Note: 
 This script was originally made by https://github.com/AmmeySaini/Udemy-Paid-Courses-Grabber since there aren't any updates I decided to takeover.
-And modify it for users who dont know python
+And modify it for users who don't know python
