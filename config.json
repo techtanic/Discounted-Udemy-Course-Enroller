@@ -1,6 +1,4 @@
-{   
-    "supported_currency":"American Dollar (USD), British Pound (GBP), Euro (EUR), Japanese Yen (JPY), Singaporean Dollar (SGD), Mexican Peso (MXN), Brazilian Real (BRL), Canadian Dollar (CAD), Australian Dollar (AUD), Israel Shekel (ILS), Thailand Baht (THB), Taiwan New Dollar (TWD) South African Rand (ZAR), Indian Rupee (INR), Polish Zloty (PLN), Turkish Lira (TRY), Norway Krone (NOK), South Korea Won (KRW), Indonesian Rupiah (IDR) and Russian Ruble (RUB)",
-    "supported_currency":"If your currency is not listed try USD or EUR",
-    "currency":"USD"
-    
+{
+    "access_token": "type-here",
+    "client_id": "type-here"
 }

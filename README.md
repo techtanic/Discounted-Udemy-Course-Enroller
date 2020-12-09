@@ -1,6 +1,3 @@
-# Please consider donating 
-### BTC `bc1qdyjwj0eqxjk5hxejah4gyclrumwtqs3hqp63uz` 
-
 # Udemy-Course-Grabber
 Script to add all udemy paid/free courses having coupons automatically to your udemy account
 
