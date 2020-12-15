@@ -1,3 +1,6 @@
+[![forthebadge](https://forthebadge.com/images/badges/made-with-python.svg)](_blank)
+
+
 # Udemy-Course-Grabber
 Script to add all udemy paid/free courses having coupons automatically to your udemy account
 
