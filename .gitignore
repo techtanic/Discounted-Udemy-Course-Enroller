@@ -1,6 +1,3 @@
-t.py
-r.py
-cookie.txt
 pack/__pycache__/banner.cpython-38.pyc
 pack/__pycache__/colors.cpython-38.pyc
 pack/__pycache__/constants.cpython-38.pyc
@@ -14,3 +11,6 @@ output/Udemy-Course-Grabber-x64-bit.exe
 output/Udemy-Course-Grabber-x64-bit.rename-exe
 output/config.json
 output.rar
+Udemy-Course-Grabber-x64-bit.rar
+config.json
+test.py

@@ -1,11 +1,6 @@
-import random
-import sys
-from urllib.parse import urlparse
-
 import requests
 import urllib3
 from bs4 import BeautifulSoup
-import json
 from .constants import *
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -187,30 +182,18 @@ def course_mania(page):
         links_ls.append(title + '||' + link)
     return links_ls
 
-def jojocoupons(page):
+def comidoc(page):
+    
     links_ls = []
     head = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66',
     }
 
-    r = requests.get(JOJOCP + str(page), headers=head, verify=False)
-    soup = BeautifulSoup(r.content, 'html.parser')
-    all = soup.find_all('h2', class_ = 'font130 mt0 mb10 mobfont110 lineheight20')
-    for index, items in enumerate(all):
-        title = items.text
-        url2 = items.a['href']
-        r2 = requests.get(url2, headers=head, verify=False)
-        sys.stdout.write("\rLOADING URLS: " + animation[index % len(animation)])
-        sys.stdout.flush()
-        soup1 = BeautifulSoup(r2.content, 'html.parser')
-        link = soup1.find('div', class_ = 'rh-post-wrapper')
-        for tag in soup1.find_all('a'):
-            try:
-                if urlparse(tag['href']).netloc == 'www.udemy.com' or urlparse(tag['href']).netloc == 'udemy.com':
-                    # print(tag['href'])
-                    links_ls.append(title + '||' + tag['href'])
-                    break
-            except:
-                r = ''           
+    r = requests.get(COMIDOC, headers=head).json()
+    coupons_ls = r['pageProps']['coupons']
+    for i in coupons_ls:
+        title = i['course']['detail'][0]['title']
+        link = 'https://www.udemy.com/course'+ i['course']['cleanUrl'] + '?couponCode=' + str(i['code'])
+        links_ls.append(title + '||' + link)
     return links_ls
+
