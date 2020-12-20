@@ -1,5 +1,12 @@
+[![Python](https://forthebadge.com/images/badges/made-with-python.svg)](https://www.python.org/)
+
+
 # Udemy-Course-Grabber
 Script to add all udemy paid/free courses having coupons automatically to your udemy account
+
+## I am not responsible.
+![](https://cdn.discordapp.com/attachments/749247352073617518/785906195767754753/unknown.png)
+
 
 # Please consider donating 
 ### BTC `bc1qdyjwj0eqxjk5hxejah4gyclrumwtqs3hqp63uz` 
@@ -19,7 +26,8 @@ Script to add all udemy paid/free courses having coupons automatically to your u
 
 ## ***Features***
 
-- Automatic login through browser using `browser_cookie3`
+- Good looking GUI.
+- Automatic login through browser using `browser_cookie3`.
 - One click to add all courses available with coupons to your udemy account.
 - You can add any specific course to your account from the list of courses available.
 - Many popular sites added to grab fresh/new courses (coupons).
@@ -31,8 +39,8 @@ OR
 `python udemy.py`
 OR
 `python3 udemy.py`
-    
-
+ 
+ If you are using windows 64 bit just use the exe application found [here](https://github.com/techtanic/Udemy-Course-Grabber/releases)
 
 
 
