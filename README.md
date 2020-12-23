@@ -1,19 +1,21 @@
 [![Python](https://forthebadge.com/images/badges/made-with-python.svg)](https://www.python.org/)
 
+#### If you are using windows 64 bit just use the exe application found [here](https://github.com/techtanic/Udemy-Course-Grabber/releases)
 
 # Udemy-Course-Grabber
 Script to add all udemy paid/free courses having coupons automatically to your udemy account
 
-## I am not responsible.
-![](https://cdn.discordapp.com/attachments/749247352073617518/785906195767754753/unknown.png)
+![](https://cdn.discordapp.com/attachments/758388245591228437/791362267421737040/image.png)
+
+![](https://cdn.discordapp.com/attachments/758388245591228437/791361656138891294/Screenshot_2020-12-23_204114.png)
 
 
-# Please consider donating 
+# Help me get more Cheetos
 ### BTC `bc1qdyjwj0eqxjk5hxejah4gyclrumwtqs3hqp63uz` 
 
 ## ***Requirements***
 
-- Python (2 or 3)
+- Python 3.x
 - Python `pip`
 - Python module `requests`
 - Python module `PySimpleGUI`
@@ -39,11 +41,9 @@ OR
 `python udemy.py`
 OR
 `python3 udemy.py`
- 
- If you are using windows 64 bit just use the exe application found [here](https://github.com/techtanic/Udemy-Course-Grabber/releases)
 
-
-
+## I am not responsible.
+![](https://cdn.discordapp.com/attachments/749247352073617518/785906195767754753/unknown.png)
 
 # Note: 
 This script was originally made by https://github.com/AmmeySaini/Udemy-Paid-Courses-Grabber since there aren't any updates I decided to takeover.
