@@ -7,6 +7,8 @@ Script to add all udemy paid/free courses having coupons automatically to your u
 
 ![](https://cdn.discordapp.com/attachments/758388245591228437/791362267421737040/image.png)
 
+![](https://cdn.discordapp.com/attachments/728226386602623019/791664965684953119/image_1.png)
+
 ![](https://cdn.discordapp.com/attachments/758388245591228437/791361656138891294/Screenshot_2020-12-23_204114.png)
 
 
@@ -20,6 +22,7 @@ Script to add all udemy paid/free courses having coupons automatically to your u
 - Python module `requests`
 - Python module `PySimpleGUI`
 - Python module `bs4`
+- Python module `html5lib`
 - Python module `browser_cookie3`
 
 ## ***Module Installation***
