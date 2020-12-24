@@ -72,17 +72,14 @@ def check_purchased(courseid):
     except:
         return False
 
-def total_courses():
-    r = s.get('https://www.udemy.com/api-2.0/users/me/subscribed-courses/',headers=head).json()
-    menu = [
-        ['About', ['Github', 'Discord']],
-        [f'Total Courses: {r["count"]}']
-        ]
-    return menu 
-
 def update_courses():
     while True:
-        main_window['mn'].Update(menu_definition = total_courses())
+        r = s.get('https://www.udemy.com/api-2.0/users/me/subscribed-courses/',headers=head).json()
+        new_menu = [
+            ['About', ['Github', 'Discord']],
+            [f'Total Courses: {r["count"]}']
+            ]
+        main_window['mn'].Update(menu_definition = new_menu)
         time.sleep(6) # So that Udemy's api doesn't get spammed.
 
 def free_checkout(CHECKOUT, coupon, courseid):
@@ -333,14 +330,14 @@ while True:
 
 
 checkbox_lo = [
-    [sg.Checkbox('Comidoc',background_color='#c1c1c1')],
-    [sg.Checkbox('Discudemy',background_color='#c1c1c1')],
-    [sg.Checkbox('Udemy Freebies',background_color='#c1c1c1')],
-    [sg.Checkbox('Udemy Coupons',background_color='#c1c1c1')],
-    [sg.Checkbox('Real Discount',background_color='#c1c1c1')],
-    [sg.Checkbox('Tricks Info',background_color='#c1c1c1')],
-    [sg.Checkbox('Free Web Cart',background_color='#c1c1c1')],
-    [sg.Checkbox('Course Mania',background_color='#c1c1c1')],   
+    [sg.Checkbox('Comidoc',background_color='#c1c1c1',default=True)],
+    [sg.Checkbox('Discudemy',background_color='#c1c1c1',default=True)],
+    [sg.Checkbox('Udemy Freebies',background_color='#c1c1c1',default=True)],
+    [sg.Checkbox('Udemy Coupons',background_color='#c1c1c1',default=True)],
+    [sg.Checkbox('Real Discount',background_color='#c1c1c1',default=True)],
+    [sg.Checkbox('Tricks Info',background_color='#c1c1c1',default=True)],
+    [sg.Checkbox('Free Web Cart',background_color='#c1c1c1',default=True)],
+    [sg.Checkbox('Course Mania',background_color='#c1c1c1',default=True)],   
     ]
 
 c1 = [
