@@ -1,6 +1,7 @@
 import requests
 import urllib3
 from bs4 import BeautifulSoup
+import json
 from .constants import *
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -188,8 +189,12 @@ def comidoc(page):
     head = {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66',
     }
-
-    r = requests.get(COMIDOC, headers=head).json()
+    r = requests.get(COMIDOC, headers=head)
+    soup = BeautifulSoup(r.content, 'html5lib')
+    json_id = soup.find('script',attrs={"id":"__NEXT_DATA__"}).text
+    json_id = json.loads(json_id)['buildId']
+    
+    r = requests.get(f'https://comidoc.net/_next/data/{json_id}/daily.json', headers=head).json()
     coupons_ls = r['pageProps']['coupons']
     for i in coupons_ls:
         title = i['course']['detail'][0]['title']

@@ -54,6 +54,8 @@ def get_course_id(url):
         courseid = soup.find('body',attrs={"class":"ud-app-loader ud-component--course-landing-page-free-udlite udemy"})['data-clp-course-id']
     except:
         courseid = soup.find('body',attrs={"data-module-id":"course-landing-page/udlite"})['data-clp-course-id']
+        with open("txt.txt","w",encoding="utf-8") as f:
+            f.write(str(soup))
     return courseid
 
 def get_course_coupon(url):
@@ -351,7 +353,7 @@ c2 = [
     ]
 
 main_lo = [
-    [sg.Menu(total_courses(),key='mn')],
+    [sg.Menu(menu,key='mn')],
     [sg.Text(f'Logged in as: {user}',key='user_t')],
     [sg.pin(sg.Column(c1,key='col1')),sg.pin(sg.Column(c2,key='col2',visible=False))],
     [sg.Button('Exit')],
