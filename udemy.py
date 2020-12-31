@@ -44,18 +44,24 @@ def cookiejar(client_id, access_token):
     return cookies
 
 def getRealUrl(url):
+    print(url)
     path = url.split(".com/")[1]
+
     return "https://www.udemy.com/" + path
 
 def get_course_id(url):
     r2 = s.get(url, verify=False)
     soup = BeautifulSoup(r2.content, 'html5lib')
-    try:
-        courseid = soup.find('body',attrs={"class":"ud-app-loader ud-component--course-landing-page-free-udlite udemy"})['data-clp-course-id']
-    except:
-        courseid = soup.find('body',attrs={"data-module-id":"course-landing-page/udlite"})['data-clp-course-id']
-        with open("txt.txt","w",encoding="utf-8") as f:
-            f.write(str(soup))
+    if r2.status_code == 404:
+        return ''
+
+    else:
+        try:
+            courseid = soup.find('body',attrs={"class":"ud-app-loader ud-component--course-landing-page-free-udlite udemy"})['data-clp-course-id']
+        except:
+            courseid = soup.find('body',attrs={"data-module-id":"course-landing-page/udlite"})['data-clp-course-id']
+            #with open("problem.txt","w",encoding="utf-8") as f:
+                #f.write(str(soup))
     return courseid
 
 def get_course_coupon(url):
@@ -101,7 +107,7 @@ def auto_add(list_st):
     index = 0
     global count, paid_only
     while index <= len(list_st) - 1:
-        sp1 = list_st[index].split('||')
+        sp1 = list_st[index].split('|:|')
         title = str(index + 1)+' '+sp1[0]
         main_window['out'].print(title+' ',text_color='yellow',end = '')
 
@@ -110,66 +116,73 @@ def auto_add(list_st):
 
         couponID = get_course_coupon(link)
         course_id = get_course_id(link)
-        purchased = check_purchased(course_id)
+        if not course_id:
+            main_window['out'].print('This Course link is wrong',text_color='light blue')
+            main_window['out'].print()
+            index += 1
 
-        if not purchased:
-            if couponID:
-                slp = ''
-                try:
-                    js = free_checkout(CHECKOUT, couponID, course_id)
+        else:
+            purchased = check_purchased(course_id)
 
+            if not purchased:
+                if couponID:
+                    slp = ''
                     try:
-                        if js['status'] == 'succeeded':
-                            main_window['out'].print('Successfully Enrolled To Course',text_color='green')
+                        js = free_checkout(CHECKOUT, couponID, course_id)
+
+                        try:
+                            if js['status'] == 'succeeded':
+                                main_window['out'].print('Successfully Enrolled To Course',text_color='green')
+                                main_window['out'].print()
+                                count += 1
+                                index += 1
+                        except:
+                            try:
+                                msg = js['detail']
+                                main_window['out'].print(f'{msg}',text_color='dark blue')
+                                main_window['out'].print()
+                                slp = int(re.search(r'\d+', msg).group(0))
+                                # index -= 1
+                            except:
+                                main_window['out'].print('Expired Coupon',text_color='red')
+                                main_window['out'].print()
+                                index += 1
+                        else:
+                            try:
+                                if js['status'] == 'failed':
+                                    main_window['out'].print('Coupon Expired :(',text_color='red')
+                                    main_window['out'].print()
+                                    index += 1
+                            except:
+                                pass
+                    except:
+                        pass
+                    if slp != '':
+                        slp += 10
+                        main_window['out'].print('----' +'>>'+' Pausing execution of script for ' +  str(slp) + ' seconds',text_color='red')
+                        time.sleep(slp)
+                        main_window['out'].print()
+                    else:
+                        time.sleep(5)
+
+                elif not couponID:
+                    js = free_enroll(course_id)
+                    try:
+                        if js['_class'] == 'course':
+                            main_window['out'].print('Successfully Subscribed',text_color='green')
                             main_window['out'].print()
                             count += 1
                             index += 1
                     except:
-                        try:
-                            msg = js['detail']
-                            main_window['out'].print(f'{msg}',text_color='dark blue')
-                            main_window['out'].print()
-                            slp = int(re.search(r'\d+', msg).group(0))
-                            # index -= 1
-                        except:
-                            main_window['out'].print('Expired Coupon',text_color='red')
-                            main_window['out'].print()
-                            index += 1
-                    else:
-                        try:
-                            if js['status'] == 'failed':
-                                main_window['out'].print('Coupon Expired :(',text_color='red')
-                                main_window['out'].print()
-                                index += 1
-                        except:
-                            pass
-                except:
-                    pass
-                if slp != '':
-                    slp += 10
-                    main_window['out'].print('----' +'>>'+' Pausing execution of script for ' +  str(slp) + ' seconds',text_color='red')
-                    time.sleep(slp)
-                    main_window['out'].print()
-                else:
-                    time.sleep(5)
-
-            elif not couponID:
-                js = free_enroll(course_id)
-                try:
-                    if js['_class'] == 'course':
-                        main_window['out'].print('Successfully Subscribed',text_color='green')
+                        main_window['out'].print('COUPON MIGHT HAVE EXPIRED',text_color='red')
                         main_window['out'].print()
-                        count += 1
                         index += 1
-                except:
-                    main_window['out'].print('COUPON MIGHT HAVE EXPIRED',text_color='red')
-                    main_window['out'].print()
-                    index += 1
-            
-        if purchased:
-            main_window['out'].print(purchased,text_color='light blue')
-            main_window['out'].print()
-            index += 1
+                
+            if purchased:
+                main_window['out'].print(purchased,text_color='light blue')
+                main_window['out'].print()
+                index += 1
+        
     main_window['out'].print('Total Courses Subscribed: ' + str(count),text_color='Green')
 
 def fetch_cookies():
@@ -383,7 +396,7 @@ while True:
         site_range = []
         user_dumb = True
 
-        for i in range(0,7):
+        for i in range(0,len(all_sites)):
             if values[i]:
                 func_list.append(all_func_list[i])
                 site_range.append(all_site_range[i])
