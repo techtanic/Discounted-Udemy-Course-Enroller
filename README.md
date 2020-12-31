@@ -44,11 +44,7 @@ Run `pip3 install -r requirements.txt` in Terminal.
 ## ***Usage***
 `py udemy.py`
 
-		OR
-
 `python udemy.py`
-
-		OR
 
 `python3 udemy.py`
 
