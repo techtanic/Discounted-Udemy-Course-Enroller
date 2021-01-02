@@ -1,0 +1,18 @@
+Metadata-Version: 1.1
+Name: pbkdf2
+Version: 1.3
+Summary: PKCS#5 v2.0 PBKDF2 Module
+Home-page: http://www.dlitz.net/software/python-pbkdf2/
+Author: Dwayne C. Litzenberger
+Author-email: dlitz@dlitz.net
+License: UNKNOWN
+Description: This module implements the password-based key derivation function, PBKDF2, specified in RSA PKCS#5 v2.0.
+        
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Topic :: Security :: Cryptography
