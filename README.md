@@ -1,6 +1,6 @@
 [![Python](https://forthebadge.com/images/badges/made-with-python.svg)](https://www.python.org/)
 
-[![Support Server](https://img.shields.io/discord/591914197219016707.svg?color=7289da&label=Dev+Line&logo=discord&style=flat-square)](https://discord.gg/wFsfhJh4Rh)
+[![Support Server](https://img.shields.io/discord/591914197219016707.svg?color=7289da&label=Dev+Line&logo=discord&style=forthebadge)](https://discord.gg/wFsfhJh4Rh)
 
 ## If you are using **Windows 64 bit** just use the exe application found [Here](https://github.com/techtanic/Udemy-Course-Grabber/releases)
 
