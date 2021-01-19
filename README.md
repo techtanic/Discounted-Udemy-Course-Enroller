@@ -54,4 +54,4 @@ Run `pip3 install -r requirements.txt` in Terminal.
 ![](https://cdn.discordapp.com/attachments/749247352073617518/785906195767754753/unknown.png)
 
 ### Note: 
-This script was originally made by Ammey Saini, since he is not approving PRs, I decided to takeover.
+This script was originally made by https://github.com/AmmeySaini/Udemy-Paid-Courses-Grabber, since he is not approving PRs, I decided to takeover by adding a gui and hopefully more features.
