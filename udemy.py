@@ -1,11 +1,12 @@
+import traceback
 import json
 import os
 import random
+import logging
 import re
 #!/usr/bin/python3
 import webbrowser
 import threading
-import multiprocessing
 import time
 from urllib.parse import parse_qs, urlsplit
 
@@ -21,13 +22,8 @@ from pack.functions import *
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 all_func_list = [
-    lambda page : comidoc(page),
     lambda page : discudemy(page),
     lambda page : udemy_freebies(page),
-    lambda page : udemy_coupons_me(page),
-    lambda page : real_disc(page),
-    lambda page : tricksinfo(page),
-    lambda page : freewebcart(page),
     lambda page : course_mania(page),
     ]
 
@@ -44,7 +40,6 @@ def cookiejar(client_id, access_token):
     return cookies
 
 def getRealUrl(url):
-    print(url)
     path = url.split(".com/")[1]
 
     return "https://www.udemy.com/" + path
@@ -85,7 +80,7 @@ def update_courses():
         r = s.get('https://www.udemy.com/api-2.0/users/me/subscribed-courses/',headers=head).json()
         new_menu = [
             ['About', ['Github', 'Discord']],
-            [f'Total Courses: {r["count"]}']
+            [f'Total Courses: {r["count"]}'],
             ]
         main_window['mn'].Update(menu_definition = new_menu)
         time.sleep(6) # So that Udemy's api doesn't get spammed.
@@ -129,7 +124,6 @@ def auto_add(list_st):
                     slp = ''
                     try:
                         js = free_checkout(CHECKOUT, couponID, course_id)
-
                         try:
                             if js['status'] == 'succeeded':
                                 main_window['out'].print('Successfully Enrolled To Course',text_color='green')
@@ -208,7 +202,8 @@ def main1():
                 list_st = items(d)
                 auto_add(list_st)
 
-    except Exception as e :
+    except:
+        e = traceback.format_exc()
         sg.popup_scrolled(e,title='Unknown Error')
 
     main_window['col1'].Update(visible = True)
@@ -260,7 +255,7 @@ while True:
                     'authorization': 'Bearer ' + access_token,
                     'accept': 'application/json, text/plain, */*',
                     'x-requested-with': 'XMLHttpRequest',
-                    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66',
+                    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36 Edg/87.0.664.75',
                     'x-forwarded-for': str(ip),
                     'x-udemy-authorization': 'Bearer ' + access_token,
                     'content-type': 'application/json;charset=UTF-8',
@@ -285,7 +280,8 @@ while True:
                 sg.popup_auto_close('Make sure you are logged in to udemy.com in chrome browser',title = 'Error',auto_close_duration=5,no_titlebar=True)
                 access_token = ''
 
-        except Exception as e :
+        except:
+            e = traceback.format_exc()
             sg.popup_scrolled(e,title='Unknown Error')
     
     elif event == 'c_login':
@@ -322,7 +318,7 @@ while True:
             'authorization': 'Bearer ' + access_token,
             'accept': 'application/json, text/plain, */*',
             'x-requested-with': 'XMLHttpRequest',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36 Edg/87.0.664.75',
             'x-forwarded-for': str(ip),
             'x-udemy-authorization': 'Bearer ' + access_token,
             'content-type': 'application/json;charset=UTF-8',
@@ -339,19 +335,14 @@ while True:
             login_window.close()
             break
 
-        except Exception as e:
+        except:
             sg.popup_auto_close('Login Unsuccessfull',title = 'Error',auto_close_duration=5,no_titlebar=True)
             access_token = ''
 
 
 checkbox_lo = [
-    [sg.Checkbox('Comidoc',background_color='#c1c1c1',default=True)],
     [sg.Checkbox('Discudemy',background_color='#c1c1c1',default=True)],
     [sg.Checkbox('Udemy Freebies',background_color='#c1c1c1',default=True)],
-    [sg.Checkbox('Udemy Coupons',background_color='#c1c1c1',default=True)],
-    [sg.Checkbox('Real Discount',background_color='#c1c1c1',default=True)],
-    [sg.Checkbox('Tricks Info',background_color='#c1c1c1',default=True)],
-    [sg.Checkbox('Free Web Cart',background_color='#c1c1c1',default=True)],
     [sg.Checkbox('Course Mania',background_color='#c1c1c1',default=True)],   
     ]
 
