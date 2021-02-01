@@ -1,5 +1,7 @@
 [![Python](https://forthebadge.com/images/badges/made-with-python.svg)](https://www.python.org/)
 
+[![Support Server](https://img.shields.io/discord/591914197219016707.svg?color=7289da&label=Dev+Line&logo=discord&style=forthebadge)](https://discord.gg/wFsfhJh4Rh)
+
 ## If you are using **Windows 64 bit** just use the exe application found [Here](https://github.com/techtanic/Udemy-Course-Grabber/releases)
 
 # Udemy-Course-Grabber
@@ -44,11 +46,7 @@ Run `pip3 install -r requirements.txt` in Terminal.
 ## ***Usage***
 `py udemy.py`
 
-		OR
-
 `python udemy.py`
-
-		OR
 
 `python3 udemy.py`
 
@@ -56,4 +54,4 @@ Run `pip3 install -r requirements.txt` in Terminal.
 ![](https://cdn.discordapp.com/attachments/749247352073617518/785906195767754753/unknown.png)
 
 ### Note: 
-This script was originally made by Ammey Saini, since he is not approving PRs, I decided to takeover.
+This script was originally made by https://github.com/AmmeySaini/Udemy-Paid-Courses-Grabber, since he is not approving PRs, I decided to takeover by adding a gui and hopefully more features.
