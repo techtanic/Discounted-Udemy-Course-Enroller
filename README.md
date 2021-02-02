@@ -60,9 +60,8 @@ Run `pip3 install -r requirements.txt` in Terminal.
 
 - Good looking GUI.
 - Automatic login through browser using `browser_cookie3`.
-- One click to add all courses available with coupons to your udemy account.
-- You can add any specific course to your account from the list of courses available.
-- Many popular sites added to grab fresh/new courses (coupons).
+- One click to add all available courses with coupons to your udemy account.
+- Uses popular sites for coupons.
 - Many more features
 
 
