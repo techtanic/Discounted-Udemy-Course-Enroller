@@ -30,11 +30,13 @@
 
  
 ## Screenshots
-![](https://cdn.discordapp.com/attachments/758388245591228437/791362267421737040/image.png)
 
-![](https://cdn.discordapp.com/attachments/728226386602623019/791664965684953119/image_1.png)
+![](https://cdn.discordapp.com/attachments/678549756942876692/806556442383220786/unknown.png)
 
-![](https://cdn.discordapp.com/attachments/758388245591228437/791361656138891294/Screenshot_2020-12-23_204114.png)
+![](https://cdn.discordapp.com/attachments/678549756942876692/806555709260693524/image_5.png)
+
+![](https://cdn.discordapp.com/attachments/678549756942876692/806555017057796136/image_4.png)
+
 
 ## Requirements
 
