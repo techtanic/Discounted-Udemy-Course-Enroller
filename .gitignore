@@ -16,3 +16,4 @@ config.json
 test.py
 txt.txt
 __pycache__/test.cpython-38.pyc
+pack/__pycache__/base64.cpython-38.pyc
