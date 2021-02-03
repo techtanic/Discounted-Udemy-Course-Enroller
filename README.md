@@ -1,6 +1,6 @@
 ###### .
 <p align="center">
-  <img src="https://raw.githubusercontent.com/techtanic/Udemy-Course-Grabber/master/UCG-logo.png">
+  <img src="https://github.com/techtanic/Udemy-Course-Grabber/blob/master/UCG-logo.png?raw=true">
   <br/>
   <img src="https://forthebadge.com/images/badges/made-with-python.svg">
   <br/>
