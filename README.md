@@ -28,7 +28,7 @@
 - [Donate](#donate)
 - [Credits](#credits)
 
-
+ 
 ## Screenshots
 ![](https://cdn.discordapp.com/attachments/758388245591228437/791362267421737040/image.png)
 
