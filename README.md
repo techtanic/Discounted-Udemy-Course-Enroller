@@ -96,4 +96,4 @@ BTC `14JNjiNoiKcbCHcxcqUxgJcVgyDfhGbxQF`
 
 Originally: https://github.com/AmmeySaini/Udemy-Paid-Courses-Grabber
 
-[Back to top](#.)
+[Back to top](#)
