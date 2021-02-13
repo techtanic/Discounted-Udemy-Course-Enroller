@@ -3,7 +3,7 @@ on:
   issue_comment:
   workflow_dispatch:
   schedule:
-    - cron: '* 6 * * *'
+    - cron: '0 */2 * * *'
 
 jobs:
   stale:
