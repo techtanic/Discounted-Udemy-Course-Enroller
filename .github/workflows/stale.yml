@@ -18,4 +18,4 @@ jobs:
           exempt-issue-labels: 'Status: W.I.P'
           stale-pr-label: 'Status: No Response'
           days-before-stale: '5'
-          days-before-close: '7'
+          days-before-close: '6'
