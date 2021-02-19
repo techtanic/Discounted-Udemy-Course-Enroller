@@ -1,12 +1,13 @@
 ###### .
 <p align="center">
-  <img src="https://github.com/techtanic/Udemy-Course-Grabber/blob/master/UCG-logo.png?raw=true">
-  <br/>
-  <img src="https://forthebadge.com/images/badges/made-with-python.svg">
-  <br/>
-  <a href="https://github.com/techtanic/Udemy-Course-Grabber/graphs/commit-activity"><img alt="Maintenance" src="https://img.shields.io/badge/Maintained%3F-yes-green.svg?style=for-the-badge"></a>
-  <a target="_blank" href="https://discord.gg/wFsfhJh4Rh"><img alt="Discord" src="https://img.shields.io/discord/703266580846346361.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge"></a>
-  <br/>
+    <img src="https://github.com/techtanic/Udemy-Course-Grabber/blob/master/UCG-logo.png?raw=true">
+    <br/>
+    <img src="https://forthebadge.com/images/badges/made-with-python.svg">
+    <br/>
+    <a href="https://github.com/techtanic/Udemy-Course-Grabber/graphs/commit-activity"><img alt="Maintenance" src="https://img.shields.io/badge/Maintained%3F-yes-green.svg?style=for-the-badge"></a>
+    <a target="_blank" href="https://discord.gg/wFsfhJh4Rh"><img alt="Discord" src="https://img.shields.io/discord/703266580846346361.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge"></a>
+    <br/>
+    <a href="https://github.com/techtanic/Udemy-Course-Grabber"><img src="https://cdn.discordapp.com/attachments/740211892148109373/811161354366353419/standard_8.gif"></a>
 </p>
 
 
@@ -60,8 +61,8 @@ Run `pip3 install -r requirements.txt` in Terminal.
 
 ## Key Features
 
-- Good looking GUI.
-- Automatic login through browser using `browser_cookie3`.
+- Beautiful GUI.
+- One click login.
 - One click to add all available courses with coupons to your udemy account.
 - Uses popular sites for coupons.
 - Many more features
@@ -94,6 +95,6 @@ BTC `14JNjiNoiKcbCHcxcqUxgJcVgyDfhGbxQF`
 
 ## Credits 
 
-Original Script: https://github.com/AmmeySaini/Udemy-Paid-Courses-Grabber
+Originally: https://github.com/AmmeySaini/Udemy-Paid-Courses-Grabber
 
 [Back to top](#)
