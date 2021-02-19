@@ -1,5 +1,17 @@
 # Changelog
 
+## [Unreleased](https://github.com/techtanic/Udemy-Course-Grabber)
+
+### Changed
+
+- Threaded link scraping.
+- Moved all functions to one file.
+
+### Added
+
+- Icon Base-64
+
+
 
 ## [3.1] - 2021-02-03
 
