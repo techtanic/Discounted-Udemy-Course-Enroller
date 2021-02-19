@@ -14,7 +14,7 @@ import browser_cookie3
 import PySimpleGUI as sg
 import requests
 import urllib3
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup as bs
 
 from pack.base64 import *
 
@@ -35,7 +35,7 @@ def getRealUrl(url):
 
 def get_course_id(url):
     r2 = s.get(url, verify=False)
-    soup = BeautifulSoup(r2.content, 'html5lib')
+    soup = bs(r2.content, 'html5lib')
     if r2.status_code == 404:
         return ''
 
@@ -189,7 +189,7 @@ def discudemy():
 
     for page in range(1,4):
         r = requests.get('https://www.discudemy.com/all/' + str(page), headers=head, verify=False)
-        soup = BeautifulSoup(r.content, 'html.parser')
+        soup = bs(r.content, 'html5lib')
         all = soup.find_all('section', 'card')
         for index, items in enumerate(all):
             try:
@@ -200,11 +200,11 @@ def discudemy():
                 url2 = ''
             if url2 != '':
                 r2 = requests.get(url2, headers=head, verify=False)
-                soup1 = BeautifulSoup(r2.content, 'html.parser')
+                soup1 = bs(r2.content, 'html5lib')
                 next = soup1.find('div', 'ui center aligned basic segment')
                 url3 = next.a['href']
                 r3 = requests.get(url3, headers=head, verify=False)
-                soup3 = BeautifulSoup(r3.content, 'html.parser')
+                soup3 = bs(r3.content, 'html5lib')
                 du_links.append(title + '|:|' + soup3.find('div', 'ui segment').a['href'])
     #return du_links
 
@@ -217,13 +217,13 @@ def udemy_freebies():
     }
     for page in range(1,4):
         r = requests.get('https://www.udemyfreebies.com/free-udemy-courses/' + str(page), headers=head, verify=False)
-        soup = BeautifulSoup(r.content, 'html.parser')
+        soup = bs(r.content, 'html5lib')
         all = soup.find_all('div', 'theme-block')
         for index, items in enumerate(all):
             title = items.img['title']
             url2 = items.a['href']
             r2 = requests.get(url2, headers=head, verify=False)
-            soup1 = BeautifulSoup(r2.content, 'html.parser')
+            soup1 = bs(r2.content, 'html5lib')
             url3 = soup1.find('a', class_ = 'button-icon')['href']
             link = requests.get(url3, verify=False).url
             uf_links.append(title + '|:|' + link)
@@ -248,14 +248,34 @@ def course_mania():
             cm_links.append(title + '|:|' + link)
     #return cm_links
 
-###########################
+def tutorialbar():
 
+    global tb_links
+    tb_links = []
+
+    for page in range(1,4):
+        r = requests.get('https://www.tutorialbar.com/all-courses/page/' + str(page))
+        soup = bs(r.content, 'html5lib')
+        all = soup.find_all('div', class_='content_constructor pb0 pr20 pl20 mobilepadding')
+        for items in all:
+            title = items.a.text
+            url = items.a['href']
+
+            r = requests.get(url)
+            soup = bs(r.content, 'html5lib')
+            link = soup.find('a', class_ = 'btn_offer_block re_track_btn')['href']
+            if 'www.udemy.com' in link:
+                tb_links.append(title + '|:|' + link)
+
+
+###########################
 
 def main1():
     global thread_done
     try:
         global paid_only
         global count
+
         count = 0
         links_ls =[]
         for index, items in enumerate(func_list):
@@ -275,6 +295,10 @@ def main1():
             pass
         try:
             links_ls += cm_links
+        except:
+            pass
+        try:
+            links_ls += tb_links
         except:
             pass
 
@@ -375,7 +399,7 @@ while True:
         webbrowser.open("https://github.com/techtanic/Udemy-Course-Grabber")
 
     elif event == 'Discord':
-        sg.popup_scrolled('TECHTANIC#8090',no_titlebar=True)
+        webbrowser.open("https://discord.gg/wFsfhJh4Rh")
 
     elif event == 'Back':
         login_window['col1'].update(visible = True)
@@ -421,7 +445,9 @@ while True:
 checkbox_lo = [
     [sg.Checkbox('Discudemy',default=True)],
     [sg.Checkbox('Udemy Freebies',default=True)],
-    [sg.Checkbox('Course Mania',default=True)],   
+    [sg.Checkbox('Course Mania',default=True)], 
+    [sg.Checkbox('Tutorial Bar',default=True)]
+
     ]
 
 c1 = [
@@ -461,16 +487,19 @@ while True:
     elif event == 'Start':
 
         all_func_list = [
-        threading.Thread(target=discudemy, daemon=True),
-        threading.Thread(target=udemy_freebies, daemon=True),
-        threading.Thread(target=course_mania, daemon=True),
+            threading.Thread(target=discudemy, daemon=True),
+            threading.Thread(target=udemy_freebies, daemon=True),
+            threading.Thread(target=course_mania, daemon=True),
+            threading.Thread(target=tutorialbar, daemon=True),
         ]
 
         all_sites = [
-        'Discudemy',
-        'Udemy Freebies',
-        'Course Mania',
+            'Discudemy',
+            'Udemy Freebies',
+            'Course Mania',
+            'Tutorial Bar',
         ]
+
 
         func_list = []
         sites = []
@@ -483,7 +512,7 @@ while True:
                 user_dumb = False
 
         if user_dumb:
-            sg.popup_auto_close(f'Smart Move Human',title = 'Error',auto_close_duration=5,no_titlebar=True)
+            sg.popup_auto_close(f'What do you even expect to happen!',title = 'BRUH',auto_close_duration=5,no_titlebar=True)
         if not user_dumb:
             main_window['col1'].update(visible = False)
             main_window['col2'].update(visible = True)

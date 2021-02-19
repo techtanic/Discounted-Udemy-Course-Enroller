@@ -12,10 +12,11 @@ jobs:
       - uses: actions/stale@v3
         with:
           stale-issue-message: 'This Issue has been automatically marked as stale because it has not had recent activity. It will be closed if no further activity occurs.'
-          stale-pr-message: 'This Pull Request has been automatically marked as stale because it has not had recent activity. It will be closed if no further activity occurs'
           stale-issue-label: 'Status: Awaiting Response'
           close-issue-label: 'Status: No Response'
           exempt-issue-labels: 'Status: W.I.P'
           stale-pr-label: 'Status: No Response'
-          days-before-stale: '5'
-          days-before-close: '6'
+          days-before-stale: '2'
+          days-before-close: '7'
+
+

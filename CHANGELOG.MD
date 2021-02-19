@@ -9,6 +9,7 @@
 
 ### Added
 
+- `Tutorialbar.com`
 - Icon Base-64
 
 
