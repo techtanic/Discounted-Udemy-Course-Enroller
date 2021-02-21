@@ -22,19 +22,15 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 sg.set_global_icon(icon)
 sg.change_look_and_feel('dark')
+sg.theme_background_color
 sg.set_options(button_color=(sg.theme_background_color(), sg.theme_background_color()),border_width=0)
 
 def cookiejar(client_id, access_token):
     cookies = dict(client_id=client_id, access_token=access_token)
     return cookies
 
-def getRealUrl(url):
-    path = url.split(".com/")[1]
-
-    return "https://www.udemy.com/" + path
-
 def get_course_id(url):
-    r2 = s.get(url, verify=False)
+    r2 = s.get(url,headers=head)
     soup = bs(r2.content, 'html5lib')
     if r2.status_code == 404:
         return ''
@@ -88,14 +84,11 @@ def free_enroll(courseid):
     return r2.json()
 
 def auto_add(list_st):
-    index = 0
-    global count, paid_only
-    while index <= len(list_st) - 1:
-        sp1 = list_st[index].split('|:|')
-        title = str(index + 1)+' '+sp1[0]
-        main_window['out'].print(title+' ',text_color='yellow',end = '')
-
-        link = getRealUrl(sp1[1])
+    main_window['pout'].update(0,max=len(list_st))
+    for index, link in enumerate(list_st):
+        tl = link.split('|:|')
+        main_window['out'].print(str(index) + ' ' + tl[0], text_color='yellow', end = ' ')
+        link = tl[1]
         main_window['out'].print(link,text_color='blue')
 
         couponID = get_course_coupon(link)
@@ -103,7 +96,6 @@ def auto_add(list_st):
         if not course_id:
             main_window['out'].print('This Course link is wrong',text_color='light blue')
             main_window['out'].print()
-            index += 1
 
         else:
             purchased = check_purchased(course_id)
@@ -118,31 +110,27 @@ def auto_add(list_st):
                                 main_window['out'].print('Successfully Enrolled To Course',text_color='green')
                                 main_window['out'].print()
                                 count += 1
-                                index += 1
                         except:
                             try:
                                 msg = js['detail']
                                 main_window['out'].print(f'{msg}',text_color='dark blue')
                                 main_window['out'].print()
                                 slp = int(re.search(r'\d+', msg).group(0))
-                                # index -= 1
                             except:
                                 main_window['out'].print('Expired Coupon',text_color='red')
                                 main_window['out'].print()
-                                index += 1
                         else:
                             try:
                                 if js['status'] == 'failed':
                                     main_window['out'].print('Coupon Expired :(',text_color='red')
                                     main_window['out'].print()
-                                    index += 1
                             except:
                                 pass
                     except:
                         pass
                     if slp != '':
                         slp += 10
-                        main_window['out'].print('----' +'>>'+' Pausing execution of script for ' +  str(slp) + ' seconds',text_color='red')
+                        main_window['out'].print('>>> Pausing execution of script for ' +  str(slp) + ' seconds',text_color='red')
                         time.sleep(slp)
                         main_window['out'].print()
                     else:
@@ -155,18 +143,15 @@ def auto_add(list_st):
                             main_window['out'].print('Successfully Subscribed',text_color='green')
                             main_window['out'].print()
                             count += 1
-                            index += 1
                     except:
                         main_window['out'].print('COUPON MIGHT HAVE EXPIRED',text_color='red')
                         main_window['out'].print()
-                        index += 1
-                
+            
             if purchased:
                 main_window['out'].print(purchased,text_color='light blue')
                 main_window['out'].print()
-                index += 1
         
-    main_window['out'].print('Total Courses Subscribed: ' + str(count),text_color='Green')
+        main_window['pout'].update(index+1)
 
 def fetch_cookies():
     try:
@@ -176,12 +161,22 @@ def fetch_cookies():
         print('\nAuto login failed!!, try by adding cookie file using "py udemy.py -c cookie_file.txt"')
         exit()
 
+##########################################
+
+all_sites = {
+    0:'Discudemy',
+    1:'Udemy Freebies',
+    2:'Course Mania',
+    3:'Tutorial Bar',
+}
+
 
 ##########################################
 
 def discudemy():
     global du_links
     du_links = []
+    big_all = []
     head = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
@@ -191,26 +186,33 @@ def discudemy():
         r = requests.get('https://www.discudemy.com/all/' + str(page), headers=head, verify=False)
         soup = bs(r.content, 'html5lib')
         all = soup.find_all('section', 'card')
-        for index, items in enumerate(all):
-            try:
-                title = items.a.text
-                url2 = items.a['href']
-            except:
-                title = ''
-                url2 = ''
-            if url2 != '':
-                r2 = requests.get(url2, headers=head, verify=False)
-                soup1 = bs(r2.content, 'html5lib')
-                next = soup1.find('div', 'ui center aligned basic segment')
-                url3 = next.a['href']
-                r3 = requests.get(url3, headers=head, verify=False)
-                soup3 = bs(r3.content, 'html5lib')
-                du_links.append(title + '|:|' + soup3.find('div', 'ui segment').a['href'])
-    #return du_links
+        big_all.extend(all)
+        main_window["p0"].update(page)
+    main_window["p0"].update(0,max=len(big_all))
+    for index, items in enumerate(all):
+        main_window["p0"].update(index+1)
+        try:
+            title = items.a.text
+            url2 = items.a['href']
+        except:
+            title = ''
+            url2 = ''
+        if url2 != '':
+            r2 = requests.get(url2, headers=head, verify=False)
+            soup1 = bs(r2.content, 'html5lib')
+            next = soup1.find('div', 'ui center aligned basic segment')
+            url3 = next.a['href']
+            r3 = requests.get(url3, headers=head, verify=False)
+            soup3 = bs(r3.content, 'html5lib')
+            du_links.append(title + '|:|' + soup3.find('div', 'ui segment').a['href'])
+    main_window["p0"].update(0,visible=False)
+    main_window["img0"].update(visible=True)
+    
 
 def udemy_freebies():
     global uf_links
     uf_links = []
+    big_all=[]
     head = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
@@ -219,15 +221,21 @@ def udemy_freebies():
         r = requests.get('https://www.udemyfreebies.com/free-udemy-courses/' + str(page), headers=head, verify=False)
         soup = bs(r.content, 'html5lib')
         all = soup.find_all('div', 'theme-block')
-        for index, items in enumerate(all):
-            title = items.img['title']
-            url2 = items.a['href']
-            r2 = requests.get(url2, headers=head, verify=False)
-            soup1 = bs(r2.content, 'html5lib')
-            url3 = soup1.find('a', class_ = 'button-icon')['href']
-            link = requests.get(url3, verify=False).url
-            uf_links.append(title + '|:|' + link)
-    #return uf_links
+        big_all.extend(all)
+        main_window["p1"].update(page)
+    main_window["p1"].update(0,max=len(big_all))
+
+    for index, items in enumerate(all):
+        main_window["p1"].update(index+1)
+        title = items.img['title']
+        url2 = items.a['href']
+        r2 = requests.get(url2, headers=head, verify=False)
+        soup1 = bs(r2.content, 'html5lib')
+        url3 = soup1.find('a', class_ = 'button-icon')['href']
+        link = requests.get(url3, verify=False).url
+        uf_links.append(title + '|:|' + link)
+    main_window["p1"].update(0,visible=False)
+    main_window["img1"].update(visible=True)
 
 def course_mania():
     global cm_links
@@ -241,49 +249,61 @@ def course_mania():
     
     r = requests.get('https://api.coursemania.xyz/api/get_courses', headers=head, verify=False)
     js = r.json()
-    for items in js:
+    main_window["p2"].update(0,max=len(js))
+    for index,items in enumerate(js):
+        main_window["p2"].update(index+1)
         title = items['courseName']
         link = items['url']
         if 'www.udemy.com' in link:
             cm_links.append(title + '|:|' + link)
-    #return cm_links
+    main_window["p2"].update(0,visible=False)
+    main_window["img2"].update(visible=True)
 
 def tutorialbar():
 
     global tb_links
     tb_links = []
+    big_all=[]
 
     for page in range(1,4):
         r = requests.get('https://www.tutorialbar.com/all-courses/page/' + str(page))
         soup = bs(r.content, 'html5lib')
         all = soup.find_all('div', class_='content_constructor pb0 pr20 pl20 mobilepadding')
-        for items in all:
-            title = items.a.text
-            url = items.a['href']
+        big_all.extend(all)
+        main_window["p3"].update(page)
+    main_window["p3"].update(3,max=len(big_all))
+    for index,items in enumerate(big_all):
+        main_window["p3"].update(index+1)
+        title = items.a.text
+        url = items.a['href']
 
-            r = requests.get(url)
-            soup = bs(r.content, 'html5lib')
-            link = soup.find('a', class_ = 'btn_offer_block re_track_btn')['href']
-            if 'www.udemy.com' in link:
-                tb_links.append(title + '|:|' + link)
-
+        r = requests.get(url)
+        soup = bs(r.content, 'html5lib')
+        link = soup.find('a', class_ = 'btn_offer_block re_track_btn')['href']
+        if 'www.udemy.com' in link:
+            tb_links.append(title + '|:|' + link)
+    main_window["p3"].update(0,visible=False)
+    main_window["img3"].update(visible=True)
 
 ###########################
 
 def main1():
-    global thread_done
     try:
         global paid_only
         global count
 
         count = 0
         links_ls =[]
-        for index, items in enumerate(func_list):
-            main_window['out'].print(sites[index],text_color='white')
-            main_window['out'].print('Loading URL..',text_color='white')
-            items.start()
-        for t in func_list:
-            t.join()
+        for index in funcs:
+            main_window[f"pcol{index}"].update(visible=True)
+        main_window['website_col'].update(visible = False)
+        main_window['scrape_col'].update(visible = True)
+        for index in funcs:
+            funcs[index].start()
+        for t in funcs:
+            funcs[t].join()
+        main_window['scrape_col'].update(visible = False)
+        main_window["output_col"].update(visible=True)
 
         try:
             links_ls += du_links
@@ -308,8 +328,9 @@ def main1():
         e = traceback.format_exc()
         sg.popup_scrolled(e,title='Unknown Error')
 
-    main_window['col1'].Update(visible = True)
-    main_window['col2'].Update(visible = False)
+
+    main_window['website_col'].Update(visible = True)
+    main_window['output_col'].Update(visible = False)
 
 
 
@@ -373,16 +394,18 @@ while True:
 
                 s = requests.session()
                 s.cookies.update(cookies)
+                s.keep_alive = False
 
                 login_window.close()
                 
                 break
 
             except Exception as e:
+                print(e)
                 sg.popup_auto_close('Make sure you are logged in to udemy.com in chrome browser',title = 'Error',auto_close_duration=5,no_titlebar=True)
                 access_token = ''
 
-        except:
+        except Exception as e:
             e = traceback.format_exc()
             sg.popup_scrolled(e,title='Unknown Error')
     
@@ -416,6 +439,8 @@ while True:
         cookies = cookiejar(client_id, access_token)
         s = requests.session()
         s.cookies.update(cookies)
+        s.keep_alive = False
+        
         head = {
             'authorization': 'Bearer ' + access_token,
             'accept': 'application/json, text/plain, */*',
@@ -447,23 +472,28 @@ checkbox_lo = [
     [sg.Checkbox('Udemy Freebies',default=True)],
     [sg.Checkbox('Course Mania',default=True)], 
     [sg.Checkbox('Tutorial Bar',default=True)]
-
     ]
 
-c1 = [
+website_col = [
     [sg.Frame('Websites',checkbox_lo,'yellow',border_width = 4,)],
     [sg.Button(key='Start',tooltip='Once started will not stop until completed',image_data=start)],
     ]
 
-c2 = [
+
+scrape_col = []
+for site in all_sites:
+    scrape_col.append([sg.pin(sg.Column([[sg.Text(all_sites[site]),sg.ProgressBar(3, orientation='h',key=f"p{site}", bar_color=("#1c6fba","#000000"),border_width=1, size=(20, 20)),sg.Image(data=check_mark, visible=False,key=f"img{site}")]], key=f"pcol{site}", visible=False))])
+
+output_col = [ 
     [sg.Text('Output')],
-    [sg.Multiline(size=(70, 12),key='out',autoscroll=True,disabled=True)],
+    [sg.Multiline(size=(69, 12),key='out',autoscroll=True,disabled=True)],
+    [sg.ProgressBar(3, orientation='h',key="pout", bar_color=("#1c6fba","#000000"),border_width=1, size=(46, 20))]
     ]
 
 main_lo = [
     [sg.Menu(menu,key='mn',)],
     [sg.Text(f'Logged in as: {user}',key='user_t')],
-    [sg.pin(sg.Column(c1,key='col1')),sg.pin(sg.Column(c2,key='col2',visible=False))],
+    [sg.pin(sg.Column(website_col,key='website_col')),sg.pin(sg.Column(output_col,key='output_col',visible=False)),sg.pin(sg.Column(scrape_col,key="scrape_col",visible=False))],
     [sg.Button(key='Exit',image_data=exit_)],
     ]
 
@@ -486,36 +516,30 @@ while True:
 
     elif event == 'Start':
 
-        all_func_list = [
-            threading.Thread(target=discudemy, daemon=True),
-            threading.Thread(target=udemy_freebies, daemon=True),
-            threading.Thread(target=course_mania, daemon=True),
-            threading.Thread(target=tutorialbar, daemon=True),
-        ]
+        all_functions = {
+            0:threading.Thread(target=discudemy, daemon=True),
+            1:threading.Thread(target=udemy_freebies, daemon=True),
+            2:threading.Thread(target=course_mania, daemon=True),
+            3:threading.Thread(target=tutorialbar, daemon=True),
+        }
 
-        all_sites = [
-            'Discudemy',
-            'Udemy Freebies',
-            'Course Mania',
-            'Tutorial Bar',
-        ]
-
-
-        func_list = []
-        sites = []
+        funcs = {}
+        sites = {}
         user_dumb = True
 
-        for i in range(0,len(all_sites)):
+        for i in all_sites:
             if values[i]:
-                func_list.append(all_func_list[i])
-                sites.append(all_sites[i])
+                funcs[i]=all_functions[i]
+                sites[i]=all_sites[i]
                 user_dumb = False
 
         if user_dumb:
             sg.popup_auto_close(f'What do you even expect to happen!',title = 'BRUH',auto_close_duration=5,no_titlebar=True)
         if not user_dumb:
-            main_window['col1'].update(visible = False)
-            main_window['col2'].update(visible = True)
+            for index in all_functions:
+                main_window[f"p{index}"].update(0,visible=True)
+                main_window[f"img{index}"].update(visible=False)
+                main_window[f"pcol{index}"].update(visible=False)
             threading.Thread(target=main1, daemon=True).start()
 
 

@@ -9,8 +9,10 @@
 
 ### Added
 
-- `Tutorialbar.com`
-- Icon Base-64
+- `Tutorialbar.com`.
+- Progress bar to while scraping.
+- Progress bar while Enrolling.
+- Icon Base-64.
 
 
 
@@ -18,10 +20,10 @@
 
 ### Changed
 
-- GUI Overhaul (Better Graphics)
+- GUI Overhaul (Better Graphics).
 - [READ.ME](https://github.com/techtanic/Udemy-Course-Grabber/blob/master/README.md)
-- Project Logo
-- Removed `comidoc.net` (Devs of it were not happy)
+- Project Logo.
+- Removed `comidoc.net` (Devs of it were not happy).
 
 ### Fixed
 

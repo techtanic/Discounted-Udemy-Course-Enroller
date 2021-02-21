@@ -18,7 +18,6 @@
 
 ## Table of Contents
 
-- [Screenshots](#screenshots)
 - [Requirements](#requirements)
 - [Module Installation](#module-installation)
 - [Key Features](#key-features)
@@ -29,14 +28,18 @@
 - [Donate](#donate)
 - [Credits](#credits)
 
- 
-## Screenshots
+
+<h2><details>
+<summary>Screenshots</summary>
 
 ![](https://cdn.discordapp.com/attachments/678549756942876692/806556442383220786/unknown.png)
 
 ![](https://cdn.discordapp.com/attachments/678549756942876692/806555709260693524/image_5.png)
 
 ![](https://cdn.discordapp.com/attachments/678549756942876692/806555017057796136/image_4.png)
+</details>
+
+
 
 
 ## Requirements
