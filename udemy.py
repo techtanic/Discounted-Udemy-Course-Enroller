@@ -29,6 +29,14 @@ def cookiejar(client_id, access_token):
     cookies = dict(client_id=client_id, access_token=access_token)
     return cookies
 
+def fetch_cookies():
+    try:
+        cookies = browser_cookie3.load(domain_name='www.udemy.com')
+        return requests.utils.dict_from_cookiejar(cookies), cookies
+    except:
+        print('\nAuto login failed!!, try by adding cookie file using "py udemy.py -c cookie_file.txt"')
+        exit()
+
 def get_course_id(url):
     r2 = s.get(url,headers=head)
     soup = bs(r2.content, 'html5lib')
@@ -53,8 +61,12 @@ def get_course_coupon(url):
     except:
         return ''
 
+def get_catlang(courseid):
+    r = s.get('https://www.udemy.com/api-2.0/courses/' + courseid + '/?fields[course]=locale,primary_category',headers=head).json()
+    return r["primary_category"]["title"], r["locale"]["simple_english_title"]
+
 def check_purchased(courseid):
-    r = requests.get('https://www.udemy.com/api-2.0/course-landing-components/' + courseid +'/me/?components=purchase',headers=head).json()
+    r = s.get('https://www.udemy.com/api-2.0/course-landing-components/' + courseid +'/me/?components=purchase',headers=head).json()
     try:
         return r['purchase']['data']['purchase_date']
     except:
@@ -85,7 +97,9 @@ def free_enroll(courseid):
 
 def auto_add(list_st):
     main_window['pout'].update(0,max=len(list_st))
+
     for index, link in enumerate(list_st):
+
         tl = link.split('|:|')
         main_window['out'].print(str(index) + ' ' + tl[0], text_color='yellow', end = ' ')
         link = tl[1]
@@ -93,41 +107,36 @@ def auto_add(list_st):
 
         couponID = get_course_coupon(link)
         course_id = get_course_id(link)
-        if not course_id:
-            main_window['out'].print('This Course link is wrong',text_color='light blue')
-            main_window['out'].print()
+        cat, lang = get_catlang(course_id)
 
-        else:
+        if cat in categories and lang in languages:
             purchased = check_purchased(course_id)
 
             if not purchased:
                 if couponID:
                     slp = ''
+                    
+                    js = free_checkout(couponID, course_id)
                     try:
-                        js = free_checkout(couponID, course_id)
-                        try:
-                            if js['status'] == 'succeeded':
-                                main_window['out'].print('Successfully Enrolled To Course',text_color='green')
-                                main_window['out'].print()
-                                count += 1
-                        except:
-                            try:
-                                msg = js['detail']
-                                main_window['out'].print(f'{msg}',text_color='dark blue')
-                                main_window['out'].print()
-                                slp = int(re.search(r'\d+', msg).group(0))
-                            except:
-                                main_window['out'].print('Expired Coupon',text_color='red')
-                                main_window['out'].print()
-                        else:
-                            try:
-                                if js['status'] == 'failed':
-                                    main_window['out'].print('Coupon Expired :(',text_color='red')
-                                    main_window['out'].print()
-                            except:
-                                pass
+                        if js['status'] == 'succeeded':
+                            main_window['out'].print('Successfully Enrolled To Course :)',text_color='green')
+                            main_window['out'].print()
+
+                        elif js['status'] == 'failed':
+                            main_window['out'].print('Coupon Expired :(',text_color='red')
+                            main_window['out'].print()
+                        
                     except:
-                        pass
+                        try:
+                            msg = js['detail']
+                            main_window['out'].print(f'{msg}',text_color='dark blue')
+                            main_window['out'].print()
+                            slp = int(re.search(r'\d+', msg).group(0))
+                        except:
+                            main_window['out'].print('Expired Coupon',text_color='red')
+                            main_window['out'].print()
+                        
+
                     if slp != '':
                         slp += 10
                         main_window['out'].print('>>> Pausing execution of script for ' +  str(slp) + ' seconds',text_color='red')
@@ -142,32 +151,60 @@ def auto_add(list_st):
                         if js['_class'] == 'course':
                             main_window['out'].print('Successfully Subscribed',text_color='green')
                             main_window['out'].print()
-                            count += 1
                     except:
                         main_window['out'].print('COUPON MIGHT HAVE EXPIRED',text_color='red')
                         main_window['out'].print()
             
-            if purchased:
+            elif purchased:
                 main_window['out'].print(purchased,text_color='light blue')
                 main_window['out'].print()
-        
-        main_window['pout'].update(index+1)
+        else:
+            main_window['out'].print("User not interested",text_color='light blue')
+            main_window['out'].print()
 
-def fetch_cookies():
-    try:
-        cookies = browser_cookie3.load(domain_name='www.udemy.com')
-        return requests.utils.dict_from_cookiejar(cookies), cookies
-    except:
-        print('\nAuto login failed!!, try by adding cookie file using "py udemy.py -c cookie_file.txt"')
-        exit()
+        main_window['pout'].update(index+1)
 
 ##########################################
 
 all_sites = {
-    0:'Discudemy',
-    1:'Udemy Freebies',
-    2:'Course Mania',
-    3:'Tutorial Bar',
+    "0":'Discudemy',
+    "1":'Udemy Freebies',
+    "2":'Course Mania',
+    "3":'Tutorial Bar',
+}
+
+all_cat = {
+    "c0":"Business",
+    "c1":"Design",
+    "c2":"Development",
+    "c3":"Finance & Accounting",
+    "c4":"Health & Fitness",
+    "c5":"IT & Software",
+    "c6":"Lifestyle",
+    "c7":"Marketing",
+    "c8":"Music",
+    "c9":"Office Productivity",
+    "c10":"Personal Development",
+    "c11":"Photography & Video",
+    "c12":"Teaching & Academics",
+}
+
+all_lang = {
+    "l0":"Chinese",
+    "l1":"Dutch",
+    "l2":"English",
+    "l3":"French",
+    "l4":"German",
+    "l5":"Indonesian",
+    "l6":"Italian",
+    "l7":"Japanese",
+    "l8":"Korean",
+    "l9":"Polish",
+    "l10":"Portuguese",
+    "l11":"Romanian",
+    "l12":"Spanish",
+    "l13":"Thai",
+    "l14":"Turkish",
 }
 
 
@@ -208,7 +245,6 @@ def discudemy():
     main_window["p0"].update(0,visible=False)
     main_window["img0"].update(visible=True)
     
-
 def udemy_freebies():
     global uf_links
     uf_links = []
@@ -296,7 +332,7 @@ def main1():
         links_ls =[]
         for index in funcs:
             main_window[f"pcol{index}"].update(visible=True)
-        main_window['website_col'].update(visible = False)
+        main_window['main_col'].update(visible = False)
         main_window['scrape_col'].update(visible = True)
         for index in funcs:
             funcs[index].start()
@@ -329,7 +365,7 @@ def main1():
         sg.popup_scrolled(e,title='Unknown Error')
 
 
-    main_window['website_col'].Update(visible = True)
+    main_window['main_col'].Update(visible = True)
     main_window['output_col'].Update(visible = False)
 
 
@@ -440,7 +476,7 @@ while True:
         s = requests.session()
         s.cookies.update(cookies)
         s.keep_alive = False
-        
+
         head = {
             'authorization': 'Bearer ' + access_token,
             'accept': 'application/json, text/plain, */*',
@@ -466,23 +502,39 @@ while True:
             sg.popup_auto_close('Login Unsuccessfull',title = 'Error',auto_close_duration=5,no_titlebar=True)
             access_token = ''
 
+with open('config.json') as f:
+    config = json.load(f)
 
-checkbox_lo = [
-    [sg.Checkbox('Discudemy',default=True)],
-    [sg.Checkbox('Udemy Freebies',default=True)],
-    [sg.Checkbox('Course Mania',default=True)], 
-    [sg.Checkbox('Tutorial Bar',default=True)]
-    ]
+checkbox_lo = []
+for index in all_sites:
+    checkbox_lo.append([sg.Checkbox(all_sites[index],key=index,default=config["sites"][str(index)])])
 
-website_col = [
-    [sg.Frame('Websites',checkbox_lo,'yellow',border_width = 4,)],
+category_lo = []
+for index in range(len(all_cat)):
+    if index%3 == 0:
+        try:
+            category_lo.append([sg.Checkbox(all_cat[f"c{index}"],default=config["category"][f"c{index}"], key=f"c{index}",size=(16,1)), sg.Checkbox(all_cat[f"c{index+1}"],default=config["category"][f"c{index+1}"], key=f"c{index+1}",size=(16,1)),sg.Checkbox(all_cat[f"c{index+2}"],default=config["category"][f"c{index+2}"], key=f"c{index+2}",size=(15,1))])
+        except KeyError:
+            category_lo.append([sg.Checkbox(all_cat[f"c{index}"],default=config["category"][f"c{index}"], key=f"c{index}",size=(17,1))])   
+
+
+language_lo = []
+for index in range(len(all_lang)):
+    if index%3 == 0:
+        try:
+            language_lo.append([sg.Checkbox(all_lang[f"l{index}"],default=config["languages"][f"l{index}"], key=f"l{index}",size=(8,1)),sg.Checkbox(all_lang[f"l{index+1}"],default=config["languages"][f"l{index+1}"], key=f"l{index+1}",size=(8,1)),sg.Checkbox(all_lang[f"l{index+2}"],default=config["languages"][f"l{index+2}"], key=f"l{index+2}",size=(8,1))])
+        except KeyError:
+            language_lo.append([sg.Checkbox(all_lang[f"l{index}"],default=config["languages"][f"l{index}"], key=f"l{index}",size=(8,1))])
+
+main_col = [ 
+    [sg.Frame('Websites',checkbox_lo,'yellow',border_width = 4,title_location="n",relief="ridge",key="fcb"),sg.Frame('Language',language_lo,'yellow',border_width = 4,title_location="n",relief="ridge",key="fl")],
+    [sg.Frame('Category',category_lo,'yellow',border_width = 4,title_location="n",relief="ridge",key="fc")],
     [sg.Button(key='Start',tooltip='Once started will not stop until completed',image_data=start)],
     ]
 
-
 scrape_col = []
 for site in all_sites:
-    scrape_col.append([sg.pin(sg.Column([[sg.Text(all_sites[site]),sg.ProgressBar(3, orientation='h',key=f"p{site}", bar_color=("#1c6fba","#000000"),border_width=1, size=(20, 20)),sg.Image(data=check_mark, visible=False,key=f"img{site}")]], key=f"pcol{site}", visible=False))])
+    scrape_col.append([sg.pin(sg.Column([[sg.Text(all_sites[site],size=(12,1)),sg.ProgressBar(3, orientation='h',key=f"p{site}", bar_color=("#1c6fba","#000000"),border_width=1, size=(20, 20)),sg.Image(data=check_mark, visible=False,key=f"img{site}")]], key=f"pcol{site}", visible=False))])
 
 output_col = [ 
     [sg.Text('Output')],
@@ -493,9 +545,11 @@ output_col = [
 main_lo = [
     [sg.Menu(menu,key='mn',)],
     [sg.Text(f'Logged in as: {user}',key='user_t')],
-    [sg.pin(sg.Column(website_col,key='website_col')),sg.pin(sg.Column(output_col,key='output_col',visible=False)),sg.pin(sg.Column(scrape_col,key="scrape_col",visible=False))],
+    [sg.pin(sg.Column(main_col,key='main_col')),sg.pin(sg.Column(output_col,key='output_col',visible=False)),sg.pin(sg.Column(scrape_col,key="scrape_col",visible=False))],
     [sg.Button(key='Exit',image_data=exit_)],
     ]
+
+#,sg.Button(key='Dummy',image_data=back)
 
 global main_window
 main_window = sg.Window('Udemy Course Grabber', main_lo)
@@ -504,6 +558,8 @@ threading.Thread(target=update_courses, daemon=True).start()
 while True:
         
     event, values = main_window.read()
+    if event == 'Dummy':
+        print(values)
 
     if event in (None, 'Exit'):
         break
@@ -516,15 +572,27 @@ while True:
 
     elif event == 'Start':
 
+        for index in all_lang:
+            config["languages"][index]=values[index]
+        for index in all_cat:
+            config["category"][index]=values[index]
+        for index in all_sites:
+            config["sites"][index]=values[index]
+        with open('config.json','w') as f:
+            json.dump(config,f,indent=4)
+            
         all_functions = {
-            0:threading.Thread(target=discudemy, daemon=True),
-            1:threading.Thread(target=udemy_freebies, daemon=True),
-            2:threading.Thread(target=course_mania, daemon=True),
-            3:threading.Thread(target=tutorialbar, daemon=True),
+            "0":threading.Thread(target=discudemy, daemon=True),
+            "1":threading.Thread(target=udemy_freebies, daemon=True),
+            "2":threading.Thread(target=course_mania, daemon=True),
+            "3":threading.Thread(target=tutorialbar, daemon=True),
         }
 
         funcs = {}
         sites = {}
+        categories = []
+        languages = [] 
+
         user_dumb = True
 
         for i in all_sites:
@@ -533,15 +601,22 @@ while True:
                 sites[i]=all_sites[i]
                 user_dumb = False
 
+        for index in all_cat:
+            if values[index]:
+                categories.append(all_cat[index])
+
+        for index in all_lang:
+            if values[index]:
+                languages.append(all_lang[index])     
+
         if user_dumb:
-            sg.popup_auto_close(f'What do you even expect to happen!',title = 'BRUH',auto_close_duration=5,no_titlebar=True)
+            sg.popup_auto_close('What do you even expect to happen!',auto_close_duration=5,no_titlebar=True)
         if not user_dumb:
             for index in all_functions:
                 main_window[f"p{index}"].update(0,visible=True)
                 main_window[f"img{index}"].update(visible=False)
                 main_window[f"pcol{index}"].update(visible=False)
             threading.Thread(target=main1, daemon=True).start()
-
 
 main_window.close()
 

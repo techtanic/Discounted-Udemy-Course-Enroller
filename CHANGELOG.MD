@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased](https://github.com/techtanic/Udemy-Course-Grabber)
+## [3.2](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.0)
 
 ### Changed
 
@@ -10,11 +10,12 @@
 ### Added
 
 - `Tutorialbar.com`.
+- Category filter
+- Language filter
+- Save filter and sites
 - Progress bar to while scraping.
 - Progress bar while Enrolling.
 - Icon Base-64.
-
-
 
 ## [3.1] - 2021-02-03
 
