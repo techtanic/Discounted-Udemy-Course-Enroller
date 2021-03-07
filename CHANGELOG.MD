@@ -1,6 +1,6 @@
 # Changelog
 
-## [3.2](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.0)
+## [3.2](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.2)
 
 ### Changed
 
