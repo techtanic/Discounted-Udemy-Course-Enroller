@@ -1,6 +1,6 @@
 # Changelog
 
-## [3.3](https://github.com/techtanic/Udemy-Course-Grabbe/releases/tag/v3.3) - 2021-03-21 
+## [3.3](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.3) - 2021-03-21 
 
 ### Added
 
