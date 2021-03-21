@@ -169,8 +169,8 @@ def auto_add(list_st):
 all_sites = {
     "0":'Discudemy',
     "1":'Udemy Freebies',
-    "2":'Course Mania',
-    "3":'Tutorial Bar',
+    "2":'Tutorial Bar',
+    "3":'Real Discount',
 }
 
 all_cat = {
@@ -273,28 +273,6 @@ def udemy_freebies():
     main_window["p1"].update(0,visible=False)
     main_window["img1"].update(visible=True)
 
-def course_mania():
-    global cm_links
-    cm_links = []
-    head = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
-        'Referer': 'https://coursemania.xyz/',
-        'Origin': 'https://coursemania.xyz',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
-    }
-    
-    r = requests.get('https://api.coursemania.xyz/api/get_courses', headers=head, verify=False)
-    js = r.json()
-    main_window["p2"].update(0,max=len(js))
-    for index,items in enumerate(js):
-        main_window["p2"].update(index+1)
-        title = items['courseName']
-        link = items['url']
-        if 'www.udemy.com' in link:
-            cm_links.append(title + '|:|' + link)
-    main_window["p2"].update(0,visible=False)
-    main_window["img2"].update(visible=True)
-
 def tutorialbar():
 
     global tb_links
@@ -306,10 +284,10 @@ def tutorialbar():
         soup = bs(r.content, 'html5lib')
         all = soup.find_all('div', class_='content_constructor pb0 pr20 pl20 mobilepadding')
         big_all.extend(all)
-        main_window["p3"].update(page)
-    main_window["p3"].update(3,max=len(big_all))
+        main_window["p2"].update(page)
+    main_window["p2"].update(0,max=len(big_all))
     for index,items in enumerate(big_all):
-        main_window["p3"].update(index+1)
+        main_window["p2"].update(index+1)
         title = items.a.text
         url = items.a['href']
 
@@ -318,9 +296,33 @@ def tutorialbar():
         link = soup.find('a', class_ = 'btn_offer_block re_track_btn')['href']
         if 'www.udemy.com' in link:
             tb_links.append(title + '|:|' + link)
+    main_window["p2"].update(0,visible=False)
+    main_window["img2"].update(visible=True)
+
+def real_discount():
+
+    global rd_links
+    rd_links = []
+    big_all=[]
+
+    for page in range(1,4):
+        r = requests.get('https://app.real.discount/stores/Udemy?page=' + str(page))
+        soup = bs(r.content, 'html5lib')
+        all = soup.find_all('div', class_='card-body')
+        big_all.extend(all)
+        main_window["p3"].update(page)
+    main_window["p3"].update(0,max=len(big_all))
+    for index,items in enumerate(big_all):
+        main_window["p3"].update(index+1)
+        title = items.a.h3.text
+        url = 'https://app.real.discount' + items.a['href']
+        r = requests.get(url)
+        soup = bs(r.content, 'html5lib')
+        link = soup.find('div', class_ = 'col-lg-7 col-md-12 col-sm-12 col-xs-12').a['href']
+        if link.startswith('https://www.udemy.com'):
+            rd_links.append(title + '|:|' + link)
     main_window["p3"].update(0,visible=False)
     main_window["img3"].update(visible=True)
-
 ###########################
 
 def main1():
@@ -341,20 +343,20 @@ def main1():
         main_window['scrape_col'].update(visible = False)
         main_window["output_col"].update(visible=True)
 
-        try:
+        try:   #du_links
             links_ls += du_links
         except:
             pass
-        try:
+        try:   #uf_links
             links_ls += uf_links
         except:
-            pass
-        try:
-            links_ls += cm_links
+            pass     
+        try:   #tb_links
+            links_ls += tb_links
         except:
             pass
-        try:
-            links_ls += tb_links
+        try:   #rd_links
+            links_ls += rd_links
         except:
             pass
 
@@ -584,8 +586,8 @@ while True:
         all_functions = {
             "0":threading.Thread(target=discudemy, daemon=True),
             "1":threading.Thread(target=udemy_freebies, daemon=True),
-            "2":threading.Thread(target=course_mania, daemon=True),
-            "3":threading.Thread(target=tutorialbar, daemon=True),
+            "2":threading.Thread(target=tutorialbar, daemon=True),
+            "3":threading.Thread(target=real_discount, daemon=True),
         }
 
         funcs = {}

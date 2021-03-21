@@ -1,11 +1,17 @@
 # Changelog
 
-## [3.2](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.2) - 2021-03-20
+## [3.3](https://github.com/techtanic/Udemy-Course-Grabbe/releases/tag/v3.3) - 2021-03-21 
+
+### Added
+
+- `app.real.discount`.
 
 ### Changed
 
-- Threaded link scraping.
-- Moved all functions to one file.
+- Tutorialbar is now third.
+- Removed `coursemania.xyz`. (The website is DEAD.)
+
+## [3.2](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.2) - 2021-03-07
 
 ### Added
 
@@ -16,6 +22,12 @@
 - Progress bar to while scraping.
 - Progress bar while Enrolling.
 - Icon Base-64.
+
+### Changed
+
+- Threaded link scraping.
+- Moved all functions to one file.
+
 
 ## [3.1] - 2021-02-03
 
