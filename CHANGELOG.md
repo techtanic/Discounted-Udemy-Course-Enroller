@@ -2,104 +2,56 @@
 
 ## [3.3](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.3) - 2021-03-21 
 
-### Added
-
-- `app.real.discount`.
-
-### Changed
-
+- Added `app.real.discount`.
 - Tutorialbar is now third.
 - Removed `coursemania.xyz`. (The website is DEAD.)
 
 ## [3.2](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.2) - 2021-03-07
 
-### Added
-
-- `Tutorialbar.com`.
-- Category filter
-- Language filter
-- Save filter and sites
-- Progress bar to while scraping.
-- Progress bar while Enrolling.
-- Icon Base-64.
-
-### Changed
-
+- Added `Tutorialbar.com`.
+- Added category filter
+- Added language filter
+- Added save filter and sites
+- Added progress bar to while scraping.
+- Added progress bar while Enrolling.
+- Added icon Base-64.
 - Threaded link scraping.
 - Moved all functions to one file.
 
 
 ## [3.1] - 2021-02-03
 
-### Changed
-
 - GUI Overhaul (Better Graphics).
 - [READ.ME](https://github.com/techtanic/Udemy-Course-Grabber/blob/master/README.md)
-- Project Logo.
+- Added Project Logo.
 - Removed `comidoc.net` (Devs of it were not happy).
-
-### Fixed
-
-- Many Bugs
-
+- Fixed many Bugs
 
 ## [3.0] - 2020-12-31
 
-### Added 
-
-- Get account country
-- Course Counter
-- `Comidoc.net`
-- Logged in as `account name` 
-
-### Changed
-
-- Get account country
-
-### Fixed 
-
-- Coupon Expired issue
-
+- Added account country
+- Added Course Counter
+- Added `Comidoc.net`
+- Added logged in as `account name` 
+- Fixed Coupon Expired issue
 
 ## [2.0] - 2020-12-09
 
-### Added 
-
-- GUI
-
-### Fixed 
-
-- Minor Bug
-
+- Added GUI
+- Fixed Minor Bug
 
 ## [1.2] - 2020-12-03
 
-### Added 
-
-- config.json file for storing secret. 
-
-### Changed
-
+- Added config.json file for storing secret. 
 - Removed `comidoc.net`
-
-### Fixed 
-
-- Coupon Expired issue
-
-
+- Fixed Coupon Expired issue
+- 
 ## [1.1] - 2020-12-02
 
-### Added
-
-- `Comidoc.net`
-
-### Fixed
-
-- Minor bugs
+- Added `Comidoc.net`
+- Attempt to fix minor bugs
 
 ## [1.0] - 2020-12-1
-
-### Added
 
 - First release
 

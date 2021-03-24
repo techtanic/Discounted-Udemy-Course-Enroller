@@ -32,15 +32,16 @@
 <h2><details>
 <summary>Screenshots</summary>
 
-![](https://cdn.discordapp.com/attachments/678549756942876692/806556442383220786/unknown.png)
+![Login](https://cdn.discordapp.com/attachments/823472016999972884/824183983197782026/unknown.png)
 
-![](https://cdn.discordapp.com/attachments/678549756942876692/806555709260693524/image_5.png)
+![Cookie Login](https://cdn.discordapp.com/attachments/823472016999972884/824184031524552725/unknown.png)
 
-![](https://cdn.discordapp.com/attachments/678549756942876692/806555017057796136/image_4.png)
+![Udemy Course Grabber](https://cdn.discordapp.com/attachments/823472016999972884/824184807155302400/unknown.png)
+
+![Coupon Scraping](https://cdn.discordapp.com/attachments/823472016999972884/824184975645212683/unknown.png)
+
+![Enrolling](https://cdn.discordapp.com/attachments/823472016999972884/824187751075282974/unknown.png)
 </details>
-
-
-
 
 ## Requirements
 
