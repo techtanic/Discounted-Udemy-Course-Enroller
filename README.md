@@ -15,15 +15,11 @@
 
 > Script/Software to enroll in available Udemy Paid/Free courses having coupons automatically to your Udemy account.
 
+Checkout the website: techtanic.github.io/ucg  
+Everything you need can be on the website.
 
 ## Table of Contents
-
-- [Requirements](#requirements)
-- [Module Installation](#module-installation)
 - [Key Features](#key-features)
-- [Usage](#usage)
-  - [Python Script](#python-script)
-  - [Windows 64 bit](#windows-64-bit)
 - [Disclaimer](#disclaimer)
 - [Donate](#donate)
 - [Credits](#credits)
@@ -43,25 +39,6 @@
 ![Enrolling](https://cdn.discordapp.com/attachments/823472016999972884/824187751075282974/unknown.png)
 </details>
 
-## Requirements
-
-- Python 3.x
-- Python `pip`
-- Python module `requests`
-- Python module `PySimpleGUI`
-- Python module `bs4`
-- Python module `html5lib`
-- Python module `browser_cookie3`
-
-
-## Module Installation
-
-Run	`pip install -r requirements.txt` in CMD.
-
-OR
-
-Run `pip3 install -r requirements.txt` in Terminal.
-
 
 ## Key Features
 
@@ -72,25 +49,8 @@ Run `pip3 install -r requirements.txt` in Terminal.
 - Many more features
 
 
-## Usage
-
-### Python Script
-
-`py udemy.py`
-
-`python udemy.py`
-
-`python3 udemy.py`
-
-### Windows 64 bit
-
- If you are using **Windows 64 bit** just use the exe application found [Here](https://github.com/techtanic/Udemy-Course-Grabber/releases)
-
-
 ## Disclaimer
 ![](https://cdn.discordapp.com/attachments/749247352073617518/785906195767754753/unknown.png)
-
-
 ## Donate
 
 BTC `bc1qdyjwj0eqxjk5hxejah4gyclrumwtqs3hqp63uz` 
