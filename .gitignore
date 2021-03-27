@@ -15,3 +15,4 @@ pyins.txt
 Udemy-Course-Grabber-x64-bit.spec
 build/
 dist/
+test/
