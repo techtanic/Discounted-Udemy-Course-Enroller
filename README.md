@@ -1,4 +1,3 @@
-###### .
 <p align="center">
     <img src="https://github.com/techtanic/Udemy-Course-Grabber/blob/master/UCG-logo.png?raw=true">
     <br/>
@@ -15,15 +14,8 @@
 
 > Script/Software to enroll in available Udemy Paid/Free courses having coupons automatically to your Udemy account.
 
-Checkout the website: techtanic.github.io/ucg  
+Checkout the website: [techtanic.github.io/ucg](techtanic.github.io/ucg)
 Everything you need can be on the website.
-
-## Table of Contents
-- [Key Features](#key-features)
-- [Disclaimer](#disclaimer)
-- [Donate](#donate)
-- [Credits](#credits)
-
 
 <h2><details>
 <summary>Screenshots</summary>
