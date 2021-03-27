@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased](https://github.com/techtanic/Udemy-Course-Grabber)
+
+- Added Instructor Exclusion
+- Added Update checking
+
 ## [3.3](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.3) - 2021-03-21 
 
 - Added `app.real.discount`.

@@ -38,5 +38,6 @@
         "1": true,
         "2": true,
         "3": true
-    }
+    },
+    "exclude_instructor": []
 }

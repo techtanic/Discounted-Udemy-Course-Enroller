@@ -6,6 +6,7 @@ import re
 import threading
 import time
 import traceback
+from typing import NoReturn
 #!/usr/bin/python3
 import webbrowser
 from urllib.parse import parse_qs, urlsplit
@@ -30,12 +31,8 @@ def cookiejar(client_id, access_token):
     return cookies
 
 def fetch_cookies():
-    try:
-        cookies = browser_cookie3.load(domain_name='www.udemy.com')
-        return requests.utils.dict_from_cookiejar(cookies), cookies
-    except:
-        print('\nAuto login failed!!, try by adding cookie file using "py udemy.py -c cookie_file.txt"')
-        exit()
+	cookies = browser_cookie3.load(domain_name='www.udemy.com')
+	return requests.utils.dict_from_cookiejar(cookies), cookies
 
 def get_course_id(url):
     r2 = s.get(url,headers=head)
@@ -65,12 +62,16 @@ def get_catlang(courseid):
     r = s.get('https://www.udemy.com/api-2.0/courses/' + courseid + '/?fields[course]=locale,primary_category',headers=head).json()
     return r["primary_category"]["title"], r["locale"]["simple_english_title"]
 
-def check_purchased(courseid):
-    r = s.get('https://www.udemy.com/api-2.0/course-landing-components/' + courseid +'/me/?components=purchase',headers=head).json()
+def course_landing_api(courseid):
+    r = s.get('https://www.udemy.com/api-2.0/course-landing-components/' + courseid +'/me/?components=purchase,instructor_bio',headers=head).json()
+    
+    instructor = r['instructor_bio']['data']['instructors_info'][0]['absolute_url'].lstrip('/user/').rstrip('/')
+    print(instructor)
     try:
-        return r['purchase']['data']['purchase_date']
+        purchased = r['purchase']['data']['purchase_date']
     except:
-        return False
+        purchased = False
+    return instructor,purchased
 
 def update_courses():
     while True:
@@ -81,6 +82,14 @@ def update_courses():
             ]
         main_window['mn'].Update(menu_definition = new_menu)
         time.sleep(6) # So that Udemy's api doesn't get spammed.
+
+def update_available():
+    c_version = 'v3.3'
+    version =  requests.get("https://api.github.com/repos/techtanic/Udemy-Course-Grabber/releases/latest").json()['tag_name']
+    if c_version == version:
+        return
+    else:
+        sg.popup_auto_close('Update Available',no_titlebar=True,)
 
 def free_checkout(coupon, courseid):
     payload = '{"shopping_cart":{"items":[{"buyableType":"course","buyableId":' + str(courseid) + ',"discountInfo":{"code":"' + coupon + '"},"purchasePrice":{"currency":"' + currency + '","currency_symbol":"","amount":0,"price_string":"Free"},"buyableContext":{"contentLocaleId":null}}]},"payment_info":{"payment_vendor":"Free","payment_method":"free-method"}}'
@@ -108,9 +117,13 @@ def auto_add(list_st):
         couponID = get_course_coupon(link)
         course_id = get_course_id(link)
         cat, lang = get_catlang(course_id)
+        instructor,purchased = course_landing_api(course_id)
+        
+        if instructor in instructor_exclude:
+            main_window['out'].print("Instructor excluded",text_color='light blue')
+            main_window['out'].print()
 
-        if cat in categories and lang in languages:
-            purchased = check_purchased(course_id)
+        elif cat in categories and lang in languages:
 
             if not purchased:
                 if couponID:
@@ -158,6 +171,7 @@ def auto_add(list_st):
             elif purchased:
                 main_window['out'].print(purchased,text_color='light blue')
                 main_window['out'].print()
+        
         else:
             main_window['out'].print("User not interested",text_color='light blue')
             main_window['out'].print()
@@ -391,9 +405,11 @@ login_layout = [
     [sg.Column(c1,key = 'col1'), sg.Column(c2,visible = False, key = 'col2')],
     ]
 
-login_window = sg.Window('Login',login_layout)
+login_window = sg.Window('Login',login_layout,finalize=True)
 
 ip = ".".join(map(str, (random.randint(0, 255) for _ in range(4))))
+
+update_available()
 
 while True:
     event, values = login_window.read()
@@ -519,7 +535,6 @@ for index in range(len(all_cat)):
         except KeyError:
             category_lo.append([sg.Checkbox(all_cat[f"c{index}"],default=config["category"][f"c{index}"], key=f"c{index}",size=(17,1))])   
 
-
 language_lo = []
 for index in range(len(all_lang)):
     if index%3 == 0:
@@ -528,10 +543,23 @@ for index in range(len(all_lang)):
         except KeyError:
             language_lo.append([sg.Checkbox(all_lang[f"l{index}"],default=config["languages"][f"l{index}"], key=f"l{index}",size=(8,1))])
 
-main_col = [ 
-    [sg.Frame('Websites',checkbox_lo,'yellow',border_width = 4,title_location="n",relief="ridge",key="fcb"),sg.Frame('Language',language_lo,'yellow',border_width = 4,title_location="n",relief="ridge",key="fl")],
-    [sg.Frame('Category',category_lo,'yellow',border_width = 4,title_location="n",relief="ridge",key="fc")],
-    [sg.Button(key='Start',tooltip='Once started will not stop until completed',image_data=start)],
+main_tab = [ 
+    [sg.Frame('Websites',checkbox_lo,'#4deeea',border_width = 4,title_location="n",key="fcb"),sg.Frame('Language',language_lo,'#4deeea',border_width = 4,title_location="n",key="fl")],
+    [sg.Frame('Category',category_lo,'#4deeea',border_width = 4,title_location="n",key="fc")],
+    ]
+
+author_e = '\n'.join(config['exclude_instructor'])
+
+exclude_lo = [
+    [sg.Multiline(default_text=author_e,key='author_e')],
+    [sg.Text("Go to the instructor's profile and copy username from the url.")],
+    [sg.Text('Paste instructor(s) username in new lines')],
+    [sg.Text("Example:",font="bold")],
+    [sg.Text('  If the url is "https://www.udemy.com/user/ogbrw-wef/"\n  Then the username will be "ogbrw-wef"')],    
+    ]
+
+advanced_tab = [
+    [sg.Frame('Exclude Instructor',exclude_lo,'#4deeea',border_width = 4,title_location="n",key="fea")],
     ]
 
 scrape_col = []
@@ -542,6 +570,11 @@ output_col = [
     [sg.Text('Output')],
     [sg.Multiline(size=(69, 12),key='out',autoscroll=True,disabled=True)],
     [sg.ProgressBar(3, orientation='h',key="pout", bar_color=("#1c6fba","#000000"),border_width=1, size=(46, 20))]
+    ]
+
+main_col = [
+    [sg.TabGroup([[sg.Tab('Main', main_tab), sg.Tab('Advanced', advanced_tab)]],border_width=2)],
+    [sg.Button(key='Start',tooltip='Once started will not stop until completed',image_data=start)],
     ]
 
 main_lo = [
@@ -580,9 +613,11 @@ while True:
             config["category"][index]=values[index]
         for index in all_sites:
             config["sites"][index]=values[index]
+        config['exclude_instructor'] = values['author_e'].split()
+
         with open('config.json','w') as f:
             json.dump(config,f,indent=4)
-            
+
         all_functions = {
             "0":threading.Thread(target=discudemy, daemon=True),
             "1":threading.Thread(target=udemy_freebies, daemon=True),
@@ -593,8 +628,8 @@ while True:
         funcs = {}
         sites = {}
         categories = []
-        languages = [] 
-
+        languages = []
+        instructor_exclude = config['exclude_instructor']
         user_dumb = True
 
         for i in all_sites:
