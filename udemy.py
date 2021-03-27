@@ -66,7 +66,6 @@ def course_landing_api(courseid):
     r = s.get('https://www.udemy.com/api-2.0/course-landing-components/' + courseid +'/me/?components=purchase,instructor_bio',headers=head).json()
     
     instructor = r['instructor_bio']['data']['instructors_info'][0]['absolute_url'].lstrip('/user/').rstrip('/')
-    print(instructor)
     try:
         purchased = r['purchase']['data']['purchase_date']
     except:
