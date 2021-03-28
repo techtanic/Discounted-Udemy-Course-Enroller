@@ -174,9 +174,9 @@ def auto_add(list_st):
         else:
             main_window['out'].print("User not interested",text_color='light blue')
             main_window['out'].print()
-
         main_window['pout'].update(index+1)
 
+    #have to put more here
 ##########################################
 
 all_sites = {
