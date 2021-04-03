@@ -102,12 +102,12 @@ def update_courses():
         time.sleep(6) # So that Udemy's api doesn't get spammed.
 
 def update_available():
-    c_version = 'v3.3'
+    c_version = 'v3.4'
     version =  requests.get("https://api.github.com/repos/techtanic/Udemy-Course-Grabber/releases/latest").json()['tag_name']
     if c_version == version:
         return
     else:
-        sg.popup_auto_close('Update Available',no_titlebar=True,)
+        sg.popup_auto_close('Update Available',no_titlebar=True,button_color=("white","blue"))
 
 def free_checkout(coupon, courseid):
     payload = '{"checkout_environment":"Marketplace","checkout_event":"Submit","shopping_info":{"items":[{"discountInfo":{"code":"'+ coupon +'"},"buyable":{"type":"course","id":'+ str(courseid) +',"context":{}},"price":{"amount":0,"currency":"'+ currency +'"}}]},"payment_info":{"payment_vendor":"Free","payment_method":"free-method"}}'
@@ -249,7 +249,7 @@ def discudemy():
     du_links = []
     big_all = []
     head = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
     }
 

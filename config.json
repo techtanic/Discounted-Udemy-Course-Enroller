@@ -39,7 +39,5 @@
         "2": true,
         "3": true
     },
-    "exclude_instructor": [
-        "sdwdw"
-    ]
+    "exclude_instructor": []
 }
