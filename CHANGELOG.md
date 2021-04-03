@@ -5,7 +5,7 @@
 - Added Instructor Exclusion
 - Added Update checking
 - Added Support Website in About menu
-- Fixed the bug where it did enrolling in any courses
+- Fixed the bug where it did not enroll in any courses
 - Updated `request headers`
 - Config file is now auto created
 - Configs won't be reset from this update onwards.
