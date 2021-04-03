@@ -254,7 +254,7 @@ def discudemy():
     }
 
     for page in range(1,4):
-        r = requests.get('https://www.discudemy.com/all/' + str(page), headers=head, verify=False)
+        r = requests.get('https://www.discudemy.com/all/' + str(page), headers=head)
         soup = bs(r.content, 'html5lib')
         all = soup.find_all('section', 'card')
         big_all.extend(all)
@@ -264,21 +264,20 @@ def discudemy():
         main_window["p0"].update(index+1)
         try:
             title = items.a.text
-            url2 = items.a['href']
-        except:
-            title = ''
-            url2 = ''
-        if url2 != '':
-            r2 = requests.get(url2, headers=head, verify=False)
-            soup1 = bs(r2.content, 'html5lib')
-            next = soup1.find('div', 'ui center aligned basic segment')
-            url3 = next.a['href']
-            r3 = requests.get(url3, headers=head, verify=False)
-            soup3 = bs(r3.content, 'html5lib')
-            du_links.append(title + '|:|' + soup3.find('div', 'ui segment').a['href'])
+            url = items.a['href']
+
+            r = requests.get(url, headers=head)
+            soup = bs(r.content, 'html5lib')
+            next = soup.find('div', 'ui center aligned basic segment')
+            url = next.a['href']
+            r = requests.get(url, headers=head)
+            soup = bs(r.content, 'html5lib')
+            du_links.append(title + '|:|' + soup.find('div', 'ui segment').a['href'])
+        except AttributeError:
+            continue
     main_window["p0"].update(0,visible=False)
     main_window["img0"].update(visible=True)
-    
+
 def udemy_freebies():
     global uf_links
     uf_links = []

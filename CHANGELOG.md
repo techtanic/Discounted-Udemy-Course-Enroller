@@ -9,6 +9,7 @@
 - Updated `request headers`
 - Config file is now auto created
 - Configs won't be reset from this update onwards.
+- Cleaned up a bit
 
 ## [3.3](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.3) - 2021-03-21 
 
