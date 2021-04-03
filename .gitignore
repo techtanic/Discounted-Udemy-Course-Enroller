@@ -16,3 +16,4 @@ Udemy-Course-Grabber-x64-bit.spec
 build/
 dist/
 test/
+pyins.json
