@@ -4,6 +4,9 @@
 
 - Added Instructor Exclusion
 - Added Update checking
+- Added Support Website in About menu
+- Fixed the bug where it did enrolling in any courses
+- Updated `request headers`
 
 ## [3.3](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.3) - 2021-03-21 
 

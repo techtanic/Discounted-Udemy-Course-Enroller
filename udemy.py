@@ -76,7 +76,7 @@ def update_courses():
     while True:
         r = s.get('https://www.udemy.com/api-2.0/users/me/subscribed-courses/',headers=head).json()
         new_menu = [
-            ['About', ['Github', 'Discord']],
+            ['About', ['Support', 'Github', 'Discord']],
             [f'Total Courses: {r["count"]}'],
             ]
         main_window['mn'].Update(menu_definition = new_menu)
@@ -91,7 +91,7 @@ def update_available():
         sg.popup_auto_close('Update Available',no_titlebar=True,)
 
 def free_checkout(coupon, courseid):
-    payload = '{"shopping_cart":{"items":[{"buyableType":"course","buyableId":' + str(courseid) + ',"discountInfo":{"code":"' + coupon + '"},"purchasePrice":{"currency":"' + currency + '","currency_symbol":"","amount":0,"price_string":"Free"},"buyableContext":{"contentLocaleId":null}}]},"payment_info":{"payment_vendor":"Free","payment_method":"free-method"}}'
+    payload = '{"checkout_environment":"Marketplace","checkout_event":"Submit","shopping_info":{"items":[{"discountInfo":{"code":"'+ coupon +'"},"buyable":{"type":"course","id":'+ str(courseid) +',"context":{}},"price":{"amount":0,"currency":"'+ currency +'"}}]},"payment_info":{"payment_vendor":"Free","payment_method":"free-method"}}'
     
     r = s.post('https://www.udemy.com/payment/checkout-submit/', headers=head, data=payload, verify=False)
     return r.json()
@@ -135,6 +135,7 @@ def auto_add(list_st):
                             main_window['out'].print()
 
                         elif js['status'] == 'failed':
+                            print(js)
                             main_window['out'].print('Coupon Expired :(',text_color='red')
                             main_window['out'].print()
                         
@@ -145,6 +146,7 @@ def auto_add(list_st):
                             main_window['out'].print()
                             slp = int(re.search(r'\d+', msg).group(0))
                         except:
+                            print(js)
                             main_window['out'].print('Expired Coupon',text_color='red')
                             main_window['out'].print()
                         
@@ -379,7 +381,6 @@ def main1():
         e = traceback.format_exc()
         sg.popup_scrolled(e,title='Unknown Error')
 
-
     main_window['main_col'].Update(visible = True)
     main_window['output_col'].Update(visible = False)
 
@@ -387,7 +388,7 @@ def main1():
 
 ############## MAIN ############# MAIN############## MAIN ############# MAIN ############## MAIN ############# MAIN ###########
 menu = [
-    ['About', ['Github', 'Discord']]
+    ['About', ['Support','Github', 'Discord']]
 ]
 
 c1 = [
@@ -431,7 +432,7 @@ while True:
                     'authorization': 'Bearer ' + access_token,
                     'accept': 'application/json, text/plain, */*',
                     'x-requested-with': 'XMLHttpRequest',
-                    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36 Edg/87.0.664.75',
+                    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36',
                     'x-forwarded-for': str(ip),
                     'x-udemy-authorization': 'Bearer ' + access_token,
                     'content-type': 'application/json;charset=UTF-8',
@@ -473,6 +474,9 @@ while True:
 
     elif event == 'Github':
         webbrowser.open("https://github.com/techtanic/Udemy-Course-Grabber")
+    
+    elif event == 'Support':
+        webbrowser.open("https://techtanic.github.io/ucg/")
 
     elif event == 'Discord':
         webbrowser.open("https://discord.gg/wFsfhJh4Rh")
@@ -498,7 +502,7 @@ while True:
             'authorization': 'Bearer ' + access_token,
             'accept': 'application/json, text/plain, */*',
             'x-requested-with': 'XMLHttpRequest',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36 Edg/87.0.664.75',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36',
             'x-forwarded-for': str(ip),
             'x-udemy-authorization': 'Bearer ' + access_token,
             'content-type': 'application/json;charset=UTF-8',
@@ -598,6 +602,9 @@ while True:
     if event in (None, 'Exit'):
         break
     
+    elif event == 'Support':
+        webbrowser.open("https://techtanic.github.io/ucg/")
+
     elif event == 'Github':
         webbrowser.open("https://github.com/techtanic/Udemy-Course-Grabber")
 
