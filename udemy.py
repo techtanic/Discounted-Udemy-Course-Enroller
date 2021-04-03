@@ -30,6 +30,25 @@ def cookiejar(client_id, access_token):
     cookies = dict(client_id=client_id, access_token=access_token)
     return cookies
 
+def config_load():
+    try:
+        with open("config.json") as f:
+            config = json.load(f)
+
+    except FileNotFoundError as e:
+        config = {"access_token":"","client_id":"","languages":{"l0":True,"l1":True,"l2":True,"l3":True,"l4":True,"l5":True,"l6":True,"l7":True,"l8":True,"l9":True,"l10":True,"l11":True,"l12":True,"l13":True,"l14":True},"category":{"c0":True,"c1":True,"c2":True,"c3":True,"c4":True,"c5":True,"c6":True,"c7":True,"c8":True,"c9":True,"c10":True,"c11":True,"c12":True},"sites":{"0":True,"1":True,"2":True,"3":True},"exclude_instructor":[]}
+        with open("config.json", "w") as f:
+            json.dump(config,f,indent=4)
+    try:
+        author_e = '\n'.join(config['exclude_instructor'])
+    except KeyError:
+        config['exclude_instructor'] = []
+        author_e = '\n'.join(config['exclude_instructor'])
+
+    with open("config.json", "w") as f:
+        json.dump(config,f,indent=4)
+    return config,author_e
+
 def fetch_cookies():
 	cookies = browser_cookie3.load(domain_name='www.udemy.com')
 	return requests.utils.dict_from_cookiejar(cookies), cookies
@@ -135,7 +154,7 @@ def auto_add(list_st):
                             main_window['out'].print()
 
                         elif js['status'] == 'failed':
-                            print(js)
+                            #print(js)
                             main_window['out'].print('Coupon Expired :(',text_color='red')
                             main_window['out'].print()
                         
@@ -146,7 +165,7 @@ def auto_add(list_st):
                             main_window['out'].print()
                             slp = int(re.search(r'\d+', msg).group(0))
                         except:
-                            print(js)
+                            #print(js)
                             main_window['out'].print('Expired Coupon',text_color='red')
                             main_window['out'].print()
                         
@@ -410,11 +429,11 @@ login_window = sg.Window('Login',login_layout,finalize=True)
 ip = ".".join(map(str, (random.randint(0, 255) for _ in range(4))))
 
 update_available()
+config,author_e = config_load()
 
 while True:
     event, values = login_window.read()
-    with open('config.json') as f:
-        config = json.load(f)
+
     if event in (None,):
         login_window.close()
         exit()
@@ -523,8 +542,6 @@ while True:
             sg.popup_auto_close('Login Unsuccessfull',title = 'Error',auto_close_duration=5,no_titlebar=True)
             access_token = ''
 
-with open('config.json') as f:
-    config = json.load(f)
 
 checkbox_lo = []
 for index in all_sites:
@@ -601,7 +618,7 @@ while True:
 
     if event in (None, 'Exit'):
         break
-    
+
     elif event == 'Support':
         webbrowser.open("https://techtanic.github.io/ucg/")
 
