@@ -34,9 +34,9 @@
         "c12": true
     },
     "sites": {
-        "0": true,
-        "1": true,
-        "2": true,
+        "0": false,
+        "1": false,
+        "2": false,
         "3": true
     },
     "exclude_instructor": []
