@@ -17,7 +17,7 @@ import urllib3
 from bs4 import BeautifulSoup as bs
 
 from pack.base64 import *
-from pack.constants import version
+from pack.constants import create_scrape_obj, version, all_sites
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -26,11 +26,183 @@ sg.change_look_and_feel('dark')
 sg.theme_background_color
 sg.set_options(button_color=(sg.theme_background_color(), sg.theme_background_color()), border_width=0)
 
+############## Scraper
+def discudemy():
+    global du_links
+    du_links = []
+    big_all = []
+    head = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
+    }
 
+    for page in range(1, 4):
+        r = requests.get('https://www.discudemy.com/all/' + str(page), headers=head)
+        soup = bs(r.content, 'html5lib')
+        all = soup.find_all('section', 'card')
+        big_all.extend(all)
+        main_window["p0"].update(page)
+    main_window["p0"].update(0, max=len(big_all))
+    for index, items in enumerate(all):
+        main_window["p0"].update(index+1)
+        try:
+            title = items.a.text
+            url = items.a['href']
+
+            r = requests.get(url, headers=head)
+            soup = bs(r.content, 'html5lib')
+            next = soup.find('div', 'ui center aligned basic segment')
+            url = next.a['href']
+            r = requests.get(url, headers=head)
+            soup = bs(r.content, 'html5lib')
+            du_links.append(
+                title + '|:|' + soup.find('div', 'ui segment').a['href'])
+        except AttributeError:
+            continue
+    main_window["p0"].update(0, visible=False)
+    main_window["img0"].update(visible=True)
+
+def udemy_freebies():
+    global uf_links
+    uf_links = []
+    big_all = []
+    head = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
+    }
+    for page in range(1, 4):
+        r = requests.get('https://www.udemyfreebies.com/free-udemy-courses/' + str(page), headers=head, verify=False)
+        soup = bs(r.content, 'html5lib')
+        all = soup.find_all('div', 'theme-block')
+        big_all.extend(all)
+        main_window["p1"].update(page)
+    main_window["p1"].update(0, max=len(big_all))
+
+    for index, items in enumerate(all):
+        main_window["p1"].update(index+1)
+        title = items.img['title']
+        url2 = items.a['href']
+        r2 = requests.get(url2, headers=head, verify=False)
+        soup1 = bs(r2.content, 'html5lib')
+        url3 = soup1.find('a', class_='button-icon')['href']
+        link = requests.get(url3, verify=False).url
+        uf_links.append(title + '|:|' + link)
+    main_window["p1"].update(0, visible=False)
+    main_window["img1"].update(visible=True)
+
+def tutorialbar():
+
+    global tb_links
+    tb_links = []
+    big_all = []
+
+    for page in range(1, 4):
+        r = requests.get(
+            'https://www.tutorialbar.com/all-courses/page/' + str(page))
+        soup = bs(r.content, 'html5lib')
+        all = soup.find_all(
+            'div', class_='content_constructor pb0 pr20 pl20 mobilepadding')
+        big_all.extend(all)
+        main_window["p2"].update(page)
+    main_window["p2"].update(0, max=len(big_all))
+    for index, items in enumerate(big_all):
+        main_window["p2"].update(index+1)
+        title = items.a.text
+        url = items.a['href']
+
+        r = requests.get(url)
+        soup = bs(r.content, 'html5lib')
+        link = soup.find('a', class_='btn_offer_block re_track_btn')['href']
+        if 'www.udemy.com' in link:
+            tb_links.append(title + '|:|' + link)
+    main_window["p2"].update(0, visible=False)
+    main_window["img2"].update(visible=True)
+
+def real_discount():
+
+    global rd_links
+    rd_links = []
+    big_all = []
+
+    for page in range(1, 4):
+        r = requests.get('https://app.real.discount/stores/Udemy?page=' + str(page))
+        soup = bs(r.content, 'html5lib')
+        all = soup.find_all('div', class_='card-body')
+        big_all.extend(all)
+    main_window["p3"].update(page)
+    main_window["p3"].update(0, max=len(big_all))
+    for index, items in enumerate(big_all):
+        #main_window["p3"].update(index+1)
+        title = items.a.h3.text
+        url = 'https://app.real.discount' + items.a['href']
+        r = requests.get(url)
+        soup = bs(r.content, 'html5lib')
+        try:
+            link = soup.select_one('#panel > div:nth-child(4) > div:nth-child(1) > div.col-lg-7.col-md-12.col-sm-12.col-xs-12 > a')['href']
+            if link.startswith('https://www.udemy.com'):
+                rd_links.append(title + '|:|' + link)
+        except:
+            pass
+    main_window["p3"].update(0, visible=False)
+    main_window["img3"].update(visible=True)
+###########################
+def create_scrape_obj():
+    funcs = {
+    "0": threading.Thread(target=discudemy, daemon=True),
+    "1": threading.Thread(target=udemy_freebies, daemon=True),
+    "2": threading.Thread(target=tutorialbar, daemon=True),
+    "3": threading.Thread(target=real_discount, daemon=True),
+        }
+    return funcs
+
+version = 'v3.4'
+
+all_sites = {
+    "0": 'Discudemy',
+    "1": 'Udemy Freebies',
+    "2": 'Tutorial Bar',
+    "3": 'Real Discount',
+}
+
+all_cat = {
+    "c0": "Business",
+    "c1": "Design",
+    "c2": "Development",
+    "c3": "Finance & Accounting",
+    "c4": "Health & Fitness",
+    "c5": "IT & Software",
+    "c6": "Lifestyle",
+    "c7": "Marketing",
+    "c8": "Music",
+    "c9": "Office Productivity",
+    "c10": "Personal Development",
+    "c11": "Photography & Video",
+    "c12": "Teaching & Academics",
+}
+
+all_lang = {
+    "l0": "Chinese",
+    "l1": "Dutch",
+    "l2": "English",
+    "l3": "French",
+    "l4": "German",
+    "l5": "Indonesian",
+    "l6": "Italian",
+    "l7": "Japanese",
+    "l8": "Korean",
+    "l9": "Polish",
+    "l10": "Portuguese",
+    "l11": "Romanian",
+    "l12": "Spanish",
+    "l13": "Thai",
+    "l14": "Turkish",
+}
+
+
+#############
 def cookiejar(client_id, access_token):
     cookies = dict(client_id=client_id, access_token=access_token)
     return cookies
-
 
 def config_load():
     try:
@@ -52,11 +224,9 @@ def config_load():
         json.dump(config, f, indent=4)
     return config, instructor_exclude
 
-
 def fetch_cookies():
     cookies = browser_cookie3.load(domain_name='www.udemy.com')
     return requests.utils.dict_from_cookiejar(cookies), cookies
-
 
 def get_course_id(url):
     r2 = s.get(url, headers=head)
@@ -73,7 +243,6 @@ def get_course_id(url):
             # f.write(str(soup))
     return courseid
 
-
 def get_course_coupon(url):
     query = urlsplit(url).query
     params = parse_qs(query)
@@ -83,11 +252,9 @@ def get_course_coupon(url):
     except:
         return ''
 
-
 def get_catlang(courseid):
     r = s.get('https://www.udemy.com/api-2.0/courses/' + courseid + '/?fields[course]=locale,primary_category', headers=head).json()
     return r["primary_category"]["title"], r["locale"]["simple_english_title"]
-
 
 def course_landing_api(courseid):
     r = s.get('https://www.udemy.com/api-2.0/course-landing-components/' + courseid + '/me/?components=purchase,instructor_bio', headers=head).json()
@@ -99,7 +266,6 @@ def course_landing_api(courseid):
         purchased = False
     return instructor, purchased
 
-
 def update_courses():
     while True:
         r = s.get('https://www.udemy.com/api-2.0/users/me/subscribed-courses/', headers=head).json()
@@ -110,22 +276,17 @@ def update_courses():
         main_window['mn'].Update(menu_definition=new_menu)
         time.sleep(6)  # So that Udemy's api doesn't get spammed.
 
-
 def update_available():
     if version == requests.get("https://api.github.com/repos/techtanic/Udemy-Course-Grabber/releases/latest").json()['tag_name']:
         return
     else:
         sg.popup_auto_close('Update Available', no_titlebar=True, button_color=("white", "blue"))
 
-
 def free_checkout(coupon, courseid):
-    payload = '{"checkout_environment":"Marketplace","checkout_event":"Submit","shopping_info":{"items":[{"discountInfo":{"code":"' + coupon + '"},"buyable":{"type":"course","id":' + str(
-        courseid) + ',"context":{}},"price":{"amount":0,"currency":"' + currency + '"}}]},"payment_info":{"payment_vendor":"Free","payment_method":"free-method"}}'
+    payload = '{"checkout_environment":"Marketplace","checkout_event":"Submit","shopping_info":{"items":[{"discountInfo":{"code":"' + coupon + '"},"buyable":{"type":"course","id":' + str(courseid) + ',"context":{}},"price":{"amount":0,"currency":"' + currency + '"}}]},"payment_info":{"payment_vendor":"Free","payment_method":"free-method"}}'
 
-    r = s.post('https://www.udemy.com/payment/checkout-submit/',
-               headers=head, data=payload, verify=False)
+    r = s.post('https://www.udemy.com/payment/checkout-submit/', headers=head, data=payload, verify=False)
     return r.json()
-
 
 def free_enroll(courseid):
 
@@ -133,7 +294,6 @@ def free_enroll(courseid):
 
     r = s.get('https://www.udemy.com/api-2.0/users/me/subscribed-courses/' + str(courseid) + '/?fields%5Bcourse%5D=%40default%2Cbuyable_object_type%2Cprimary_subcategory%2Cis_private', headers=head, verify=False)
     return r.json()
-
 
 def auto_add(list_st):
     main_window['pout'].update(0, max=len(list_st))
@@ -220,175 +380,11 @@ def auto_add(list_st):
         main_window['pout'].update(index+1)
 
     # have to put more here
-##########################################
-
-
-all_sites = {
-    "0": 'Discudemy',
-    "1": 'Udemy Freebies',
-    "2": 'Tutorial Bar',
-    "3": 'Real Discount',
-}
-
-all_cat = {
-    "c0": "Business",
-    "c1": "Design",
-    "c2": "Development",
-    "c3": "Finance & Accounting",
-    "c4": "Health & Fitness",
-    "c5": "IT & Software",
-    "c6": "Lifestyle",
-    "c7": "Marketing",
-    "c8": "Music",
-    "c9": "Office Productivity",
-    "c10": "Personal Development",
-    "c11": "Photography & Video",
-    "c12": "Teaching & Academics",
-}
-
-all_lang = {
-    "l0": "Chinese",
-    "l1": "Dutch",
-    "l2": "English",
-    "l3": "French",
-    "l4": "German",
-    "l5": "Indonesian",
-    "l6": "Italian",
-    "l7": "Japanese",
-    "l8": "Korean",
-    "l9": "Polish",
-    "l10": "Portuguese",
-    "l11": "Romanian",
-    "l12": "Spanish",
-    "l13": "Thai",
-    "l14": "Turkish",
-}
 
 
 ##########################################
 
-def discudemy():
-    global du_links
-    du_links = []
-    big_all = []
-    head = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
-    }
-
-    for page in range(1, 4):
-        r = requests.get('https://www.discudemy.com/all/' + str(page), headers=head)
-        soup = bs(r.content, 'html5lib')
-        all = soup.find_all('section', 'card')
-        big_all.extend(all)
-        main_window["p0"].update(page)
-    main_window["p0"].update(0, max=len(big_all))
-    for index, items in enumerate(all):
-        main_window["p0"].update(index+1)
-        try:
-            title = items.a.text
-            url = items.a['href']
-
-            r = requests.get(url, headers=head)
-            soup = bs(r.content, 'html5lib')
-            next = soup.find('div', 'ui center aligned basic segment')
-            url = next.a['href']
-            r = requests.get(url, headers=head)
-            soup = bs(r.content, 'html5lib')
-            du_links.append(
-                title + '|:|' + soup.find('div', 'ui segment').a['href'])
-        except AttributeError:
-            continue
-    main_window["p0"].update(0, visible=False)
-    main_window["img0"].update(visible=True)
-
-
-def udemy_freebies():
-    global uf_links
-    uf_links = []
-    big_all = []
-    head = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
-    }
-    for page in range(1, 4):
-        r = requests.get('https://www.udemyfreebies.com/free-udemy-courses/' + str(page), headers=head, verify=False)
-        soup = bs(r.content, 'html5lib')
-        all = soup.find_all('div', 'theme-block')
-        big_all.extend(all)
-        main_window["p1"].update(page)
-    main_window["p1"].update(0, max=len(big_all))
-
-    for index, items in enumerate(all):
-        main_window["p1"].update(index+1)
-        title = items.img['title']
-        url2 = items.a['href']
-        r2 = requests.get(url2, headers=head, verify=False)
-        soup1 = bs(r2.content, 'html5lib')
-        url3 = soup1.find('a', class_='button-icon')['href']
-        link = requests.get(url3, verify=False).url
-        uf_links.append(title + '|:|' + link)
-    main_window["p1"].update(0, visible=False)
-    main_window["img1"].update(visible=True)
-
-
-def tutorialbar():
-
-    global tb_links
-    tb_links = []
-    big_all = []
-
-    for page in range(1, 4):
-        r = requests.get(
-            'https://www.tutorialbar.com/all-courses/page/' + str(page))
-        soup = bs(r.content, 'html5lib')
-        all = soup.find_all(
-            'div', class_='content_constructor pb0 pr20 pl20 mobilepadding')
-        big_all.extend(all)
-        main_window["p2"].update(page)
-    main_window["p2"].update(0, max=len(big_all))
-    for index, items in enumerate(big_all):
-        main_window["p2"].update(index+1)
-        title = items.a.text
-        url = items.a['href']
-
-        r = requests.get(url)
-        soup = bs(r.content, 'html5lib')
-        link = soup.find('a', class_='btn_offer_block re_track_btn')['href']
-        if 'www.udemy.com' in link:
-            tb_links.append(title + '|:|' + link)
-    main_window["p2"].update(0, visible=False)
-    main_window["img2"].update(visible=True)
-
-
-def real_discount():
-
-    global rd_links
-    rd_links = []
-    big_all = []
-
-    for page in range(1, 4):
-        r = requests.get('https://app.real.discount/stores/Udemy?page=' + str(page))
-        soup = bs(r.content, 'html5lib')
-        all = soup.find_all('div', class_='card-body')
-        big_all.extend(all)
-    main_window["p3"].update(page)
-    main_window["p3"].update(0, max=len(big_all))
-    for index, items in enumerate(big_all):
-        #main_window["p3"].update(index+1)
-        title = items.a.h3.text
-        url = 'https://app.real.discount' + items.a['href']
-        r = requests.get(url)
-        soup = bs(r.content, 'html5lib')
-        try:
-            link = soup.select_one('#panel > div:nth-child(4) > div:nth-child(1) > div.col-lg-7.col-md-12.col-sm-12.col-xs-12 > a')['href']
-            if link.startswith('https://www.udemy.com'):
-                rd_links.append(title + '|:|' + link)
-        except:
-            pass
-    main_window["p3"].update(0, visible=False)
-    main_window["img3"].update(visible=True)
-###########################
+#######
 
 
 def main1():
@@ -684,13 +680,7 @@ while True:
         with open('config.json', 'w') as f:
             json.dump(config, f, indent=4)
 
-        all_functions = {
-            "0": threading.Thread(target=discudemy, daemon=True),
-            "1": threading.Thread(target=udemy_freebies, daemon=True),
-            "2": threading.Thread(target=tutorialbar, daemon=True),
-            "3": threading.Thread(target=real_discount, daemon=True),
-        }
-
+        all_functions = create_scrape_obj()
         funcs = {}
         sites = {}
         categories = []
