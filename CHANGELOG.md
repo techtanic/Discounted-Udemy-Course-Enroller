@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/techtanic/Udemy-Course-Grabber)
 
+- Fixed RealDiscount
+- 
+
 ## [3.4](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.4)
 
 - Added Instructor Exclusion

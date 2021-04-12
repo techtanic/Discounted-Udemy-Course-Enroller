@@ -43,14 +43,14 @@ def config_load():
         with open("config.json", "w") as f:
             json.dump(config, f, indent=4)
     try:
-        author_e = '\n'.join(config['exclude_instructor'])
+        instructor_exclude = '\n'.join(config['exclude_instructor'])
     except KeyError:
         config['exclude_instructor'] = []
-        author_e = '\n'.join(config['exclude_instructor'])
+        instructor_exclude = '\n'.join(config['exclude_instructor'])
 
     with open("config.json", "w") as f:
         json.dump(config, f, indent=4)
-    return config, author_e
+    return config, instructor_exclude
 
 
 def fetch_cookies():
@@ -459,7 +459,7 @@ login_window = sg.Window('Login', login_layout, finalize=True)
 ip = ".".join(map(str, (random.randint(0, 255) for _ in range(4))))
 
 update_available()
-config, author_e = config_load()
+config, instructor_exclude = config_load()
 
 while True:
     event, values = login_window.read()
@@ -607,10 +607,8 @@ main_tab = [
     [sg.Frame('Category', category_lo, '#4deeea', border_width=4, title_location="n", key="fc")],
 ]
 
-author_e = '\n'.join(config['exclude_instructor'])
-
 exclude_lo = [
-    [sg.Multiline(default_text=author_e, key='author_e')],
+    [sg.Multiline(default_text=instructor_exclude, key='instructor_exclude')],
     [sg.Text("Go to the instructor's profile and copy username from the url.")],
     [sg.Text('Paste instructor(s) username in new lines')],
     [sg.Text("Example:", font="bold")],
@@ -681,7 +679,7 @@ while True:
             config["category"][index] = values[index]
         for index in all_sites:
             config["sites"][index] = values[index]
-        config['exclude_instructor'] = values['author_e'].split()
+        config['exclude_instructor'] = values['instructor_exclude'].split()
 
         with open('config.json', 'w') as f:
             json.dump(config, f, indent=4)
