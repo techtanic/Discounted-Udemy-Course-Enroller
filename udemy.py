@@ -18,13 +18,12 @@ from bs4 import BeautifulSoup as bs
 
 from pack.base64 import *
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 sg.set_global_icon(icon)
 sg.change_look_and_feel('dark')
 sg.theme_background_color
 sg.set_options(button_color=(sg.theme_background_color(), sg.theme_background_color()), border_width=0)
-sg.set
+
 ############## Scraper
 def discudemy():
     global du_links
@@ -54,8 +53,7 @@ def discudemy():
             url = next.a['href']
             r = requests.get(url, headers=head)
             soup = bs(r.content, 'html5lib')
-            du_links.append(
-                title + '|:|' + soup.find('div', 'ui segment').a['href'])
+            du_links.append(title + '|:|' + soup.find('div', 'ui segment').a['href'])
         except AttributeError:
             continue
     main_window["p0"].update(0, visible=False)
@@ -70,7 +68,7 @@ def udemy_freebies():
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
     }
     for page in range(1, 4):
-        r = requests.get('https://www.udemyfreebies.com/free-udemy-courses/' + str(page), headers=head, verify=False)
+        r = requests.get('https://www.udemyfreebies.com/free-udemy-courses/' + str(page), headers=head)
         soup = bs(r.content, 'html5lib')
         all = soup.find_all('div', 'theme-block')
         big_all.extend(all)
@@ -81,10 +79,10 @@ def udemy_freebies():
         main_window["p1"].update(index+1)
         title = items.img['title']
         url2 = items.a['href']
-        r2 = requests.get(url2, headers=head, verify=False)
+        r2 = requests.get(url2, headers=head)
         soup1 = bs(r2.content, 'html5lib')
         url3 = soup1.find('a', class_='button-icon')['href']
-        link = requests.get(url3, verify=False).url
+        link = requests.get(url3).url
         uf_links.append(title + '|:|' + link)
     main_window["p1"].update(0, visible=False)
     main_window["img1"].update(visible=True)
@@ -130,8 +128,9 @@ def real_discount():
         big_all.extend(all)
     main_window["p3"].update(page)
     main_window["p3"].update(0, max=len(big_all))
+
     for index, items in enumerate(big_all):
-        #main_window["p3"].update(index+1)
+        main_window["p3"].update(index+1)
         title = items.a.h3.text
         url = 'https://app.real.discount' + items.a['href']
         r = requests.get(url)
@@ -142,15 +141,41 @@ def real_discount():
                 rd_links.append(title + '|:|' + link)
         except:
             pass
+
     main_window["p3"].update(0, visible=False)
     main_window["img3"].update(visible=True)
-###########################
+
+def coursevania():
+
+    global cv_links
+    cv_links = []
+
+    r = requests.get('https://coursevania.com/wp-admin/admin-ajax.php?&template=courses/grid&args={%22posts_per_page%22:%2230%22}&action=stm_lms_load_content&sort=date_high').json()
+    soup = bs(r['content'], 'html5lib')
+    all = soup.find_all('div', attrs={"class":"stm_lms_courses__single--title"})
+    main_window["p4"].update(0, max=len(all))
+
+    for index,item in enumerate(all):
+        main_window["p4"].update(index+1)
+        title = item.h5.text
+        r = requests.get(item.a['href'])
+        soup = bs(r.content, 'html5lib')
+        cv_links.append(title + '|:|' + soup.find('div', attrs={"class":"stm-lms-buy-buttons"}).a['href'])
+        print(cv_links)
+
+    main_window["p4"].update(0, visible=False)
+    main_window["img4"].update(visible=True)
+
+########################### Constants
+
+
 def create_scrape_obj():
     funcs = {
     "0": threading.Thread(target=discudemy, daemon=True),
     "1": threading.Thread(target=udemy_freebies, daemon=True),
     "2": threading.Thread(target=tutorialbar, daemon=True),
     "3": threading.Thread(target=real_discount, daemon=True),
+    "4": threading.Thread(target=coursevania, daemon=True),
         }
     return funcs
 
@@ -161,6 +186,7 @@ all_sites = {
     "1": 'Udemy Freebies',
     "2": 'Tutorial Bar',
     "3": 'Real Discount',
+    "4": 'Course Vania',
 }
 
 all_cat = {
@@ -617,8 +643,7 @@ advanced_tab = [
 
 scrape_col = []
 for site in all_sites:
-    scrape_col.append([sg.pin(sg.Column([[sg.Text(all_sites[site], size=(12, 1)), sg.ProgressBar(3, orientation='h', key=f"p{site}", bar_color=(
-        "#1c6fba", "#000000"), border_width=1, size=(20, 20)), sg.Image(data=check_mark, visible=False, key=f"img{site}")]], key=f"pcol{site}", visible=False))])
+    scrape_col.append([sg.pin(sg.Column([[sg.Text(all_sites[site], size=(12, 1)), sg.ProgressBar(3, orientation='h', key=f"p{site}", bar_color=("#1c6fba", "#000000"), border_width=1, size=(20, 20)), sg.Image(data=check_mark, visible=False, key=f"img{site}")]], key=f"pcol{site}", visible=False))])
 
 output_col = [
     [sg.Text('Output')],
@@ -628,17 +653,14 @@ output_col = [
 ]
 
 main_col = [
-    [sg.TabGroup([[sg.Tab('Main', main_tab), sg.Tab(
-        'Advanced', advanced_tab)]], border_width=2)],
-    [sg.Button(
-        key='Start', tooltip='Once started will not stop until completed', image_data=start)],
+    [sg.TabGroup([[sg.Tab('Main', main_tab), sg.Tab('Advanced', advanced_tab)]], border_width=2)],
+    [sg.Button(key='Start', tooltip='Once started will not stop until completed', image_data=start)],
 ]
 
 main_lo = [
     [sg.Menu(menu, key='mn',)],
     [sg.Text(f'Logged in as: {user}', key='user_t')],
-    [sg.pin(sg.Column(main_col, key='main_col')), sg.pin(sg.Column(output_col, key='output_col',
-                                                                   visible=False)), sg.pin(sg.Column(scrape_col, key="scrape_col", visible=False))],
+    [sg.pin(sg.Column(main_col, key='main_col')), sg.pin(sg.Column(output_col, key='output_col', visible=False)), sg.pin(sg.Column(scrape_col, key="scrape_col", visible=False))],
     [sg.Button(key='Exit', image_data=exit_)],
 ]
 
