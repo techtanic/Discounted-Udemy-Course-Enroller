@@ -6,7 +6,8 @@
 - Fixed RealDiscount
 - Refactored some code
 
-## [3.4](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.4)
+## [3.4](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.4) - 2021-04-03 
+
 
 - Added Instructor Exclusion
 - Added Update checking
