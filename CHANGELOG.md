@@ -3,7 +3,7 @@
 ## [Unreleased](https://github.com/techtanic/Udemy-Course-Grabber)
 
 - Fixed RealDiscount
-- 
+- Refactored some code
 
 ## [3.4](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.4)
 
