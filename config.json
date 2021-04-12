@@ -1,6 +1,6 @@
 {
-    "access_token": "type-here",
-    "client_id": "type-here",
+    "access_token": "",
+    "client_id": "",
     "languages": {
         "l0": true,
         "l1": true,
@@ -34,10 +34,10 @@
         "c12": true
     },
     "sites": {
-        "0": false,
-        "1": false,
-        "2": false,
-        "3": false,
+        "0": true,
+        "1": true,
+        "2": true,
+        "3": true,
         "4": true
     },
     "exclude_instructor": []

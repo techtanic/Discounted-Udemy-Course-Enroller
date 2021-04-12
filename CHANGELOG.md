@@ -1,10 +1,13 @@
 # Changelog
 
-## [Unreleased](https://github.com/techtanic/Udemy-Course-Grabber)
+## [v3.5](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.5) - 2021-04-12
 
 - Added CourseVania
 - Fixed RealDiscount
 - Refactored some code
+- Fixed some **really** broken code (There should be more courses now on)
+- Update now shows after logging in
+  
 
 ## [3.4](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.4) - 2021-04-03 
 

@@ -41,7 +41,8 @@ def discudemy():
         big_all.extend(all)
         main_window["p0"].update(page)
     main_window["p0"].update(0, max=len(big_all))
-    for index, items in enumerate(all):
+
+    for index, items in enumerate(big_all):
         main_window["p0"].update(index+1)
         try:
             title = items.a.text
@@ -63,26 +64,20 @@ def udemy_freebies():
     global uf_links
     uf_links = []
     big_all = []
-    head = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
-    }
-    for page in range(1, 4):
-        r = requests.get('https://www.udemyfreebies.com/free-udemy-courses/' + str(page), headers=head)
+
+    for page in range(1, 3):
+        r = requests.get('https://www.udemyfreebies.com/free-udemy-courses/' + str(page))
         soup = bs(r.content, 'html5lib')
-        all = soup.find_all('div', 'theme-block')
+        all = soup.find_all('div', 'coupon-name')
         big_all.extend(all)
         main_window["p1"].update(page)
     main_window["p1"].update(0, max=len(big_all))
 
-    for index, items in enumerate(all):
+    for index, items in enumerate(big_all):
         main_window["p1"].update(index+1)
-        title = items.img['title']
-        url2 = items.a['href']
-        r2 = requests.get(url2, headers=head)
-        soup1 = bs(r2.content, 'html5lib')
-        url3 = soup1.find('a', class_='button-icon')['href']
-        link = requests.get(url3).url
+        title = items.a.text
+        url = bs(requests.get(items.a['href']).content, 'html5lib').find('a', class_='button-icon')['href']
+        link = requests.get(url).url
         uf_links.append(title + '|:|' + link)
     main_window["p1"].update(0, visible=False)
     main_window["img1"].update(visible=True)
@@ -178,7 +173,7 @@ def create_scrape_obj():
         }
     return funcs
 
-version = 'v3.4'
+version = 'v3.5'
 
 all_sites = {
     "0": 'Discudemy',
@@ -234,8 +229,7 @@ def config_load():
             config = json.load(f)
 
     except FileNotFoundError as e:
-        config = {"access_token": "", "client_id": "", "languages": {"l0": True, "l1": True, "l2": True, "l3": True, "l4": True, "l5": True, "l6": True, "l7": True, "l8": True, "l9": True, "l10": True, "l11": True, "l12": True, "l13": True, "l14": True}, "category": {
-            "c0": True, "c1": True, "c2": True, "c3": True, "c4": True, "c5": True, "c6": True, "c7": True, "c8": True, "c9": True, "c10": True, "c11": True, "c12": True}, "sites": {"0": True, "1": True, "2": True, "3": True}, "exclude_instructor": []}
+        config = requests.get('https://raw.githubusercontent.com/techtanic/Udemy-Course-Grabber/master/config.json').json()
         with open("config.json", "w") as f:
             json.dump(config, f, indent=4)
 
@@ -480,11 +474,10 @@ login_layout = [
     [sg.Column(c1, key='col1'), sg.Column(c2, visible=False, key='col2')],
 ]
 
-login_window = sg.Window('Login', login_layout, finalize=True)
+login_window = sg.Window('Login', login_layout)
 
 ip = ".".join(map(str, (random.randint(0, 255) for _ in range(4))))
 
-update_available()
 config, instructor_exclude = config_load()
 
 while True:
@@ -672,9 +665,9 @@ main_lo = [
 # ,sg.Button(key='Dummy',image_data=back)
 
 global main_window
-main_window = sg.Window('Udemy Course Grabber', main_lo)
+main_window = sg.Window('Udemy Course Grabber', main_lo,finalize=True)
 threading.Thread(target=update_courses, daemon=True).start()
-
+update_available()
 while True:
 
     event, values = main_window.read()
