@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/techtanic/Udemy-Course-Grabber)
 
+- Added CourseVania
 - Fixed RealDiscount
 - Refactored some code
 

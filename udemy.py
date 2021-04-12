@@ -161,7 +161,6 @@ def coursevania():
         r = requests.get(item.a['href'])
         soup = bs(r.content, 'html5lib')
         cv_links.append(title + '|:|' + soup.find('div', attrs={"class":"stm-lms-buy-buttons"}).a['href'])
-        print(cv_links)
 
     main_window["p4"].update(0, visible=False)
     main_window["img4"].update(visible=True)
@@ -239,11 +238,17 @@ def config_load():
             "c0": True, "c1": True, "c2": True, "c3": True, "c4": True, "c5": True, "c6": True, "c7": True, "c8": True, "c9": True, "c10": True, "c11": True, "c12": True}, "sites": {"0": True, "1": True, "2": True, "3": True}, "exclude_instructor": []}
         with open("config.json", "w") as f:
             json.dump(config, f, indent=4)
+
     try:
         instructor_exclude = '\n'.join(config['exclude_instructor'])
     except KeyError:
         config['exclude_instructor'] = []
         instructor_exclude = '\n'.join(config['exclude_instructor'])
+
+    try: #v3.5
+        config['sites']['4']
+    except KeyError:
+        config['sites']['4'] = True
 
     with open("config.json", "w") as f:
         json.dump(config, f, indent=4)
@@ -326,8 +331,7 @@ def auto_add(list_st):
     for index, link in enumerate(list_st):
 
         tl = link.split('|:|')
-        main_window['out'].print(
-            str(index) + ' ' + tl[0], text_color='yellow', end=' ')
+        main_window['out'].print(str(index) + ' ' + tl[0], text_color='yellow', end=' ')
         link = tl[1]
         main_window['out'].print(link, text_color='blue')
 
@@ -409,9 +413,6 @@ def auto_add(list_st):
 
 ##########################################
 
-#######
-
-
 def main1():
     try:
         global count
@@ -443,6 +444,10 @@ def main1():
             pass
         try:  # rd_links
             links_ls += rd_links
+        except:
+            pass
+        try:  # cv_links
+            links_ls += cv_links
         except:
             pass
 
