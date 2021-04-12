@@ -17,7 +17,6 @@ import urllib3
 from bs4 import BeautifulSoup as bs
 
 from pack.base64 import *
-from pack.constants import create_scrape_obj, version, all_sites
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -25,7 +24,7 @@ sg.set_global_icon(icon)
 sg.change_look_and_feel('dark')
 sg.theme_background_color
 sg.set_options(button_color=(sg.theme_background_color(), sg.theme_background_color()), border_width=0)
-
+sg.set
 ############## Scraper
 def discudemy():
     global du_links
