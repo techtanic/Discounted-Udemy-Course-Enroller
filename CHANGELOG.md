@@ -1,5 +1,10 @@
 # Changelog
 
+## [v3.5](https://github.com/techtanic/Udemy-Course-Grabber)
+
+- Added Stay logged in option
+- Fixed CourseVania
+
 ## [v3.5](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.5) - 2021-04-12
 
 - Added CourseVania

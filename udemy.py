@@ -3,6 +3,7 @@ import logging
 import os
 import random
 import re
+import sys
 import threading
 import time
 import traceback
@@ -30,7 +31,7 @@ def discudemy():
     du_links = []
     big_all = []
     head = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.128 Safari/537.36 Edg/89.0.774.77',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
     }
 
@@ -144,8 +145,11 @@ def coursevania():
 
     global cv_links
     cv_links = []
-
-    r = requests.get('https://coursevania.com/wp-admin/admin-ajax.php?&template=courses/grid&args={%22posts_per_page%22:%2230%22}&action=stm_lms_load_content&sort=date_high').json()
+    r = requests.get('https://coursevania.com/courses/')
+    soup = bs(r.content, 'html5lib')
+    nonce = soup.find_all("script")[22].text[30:]
+    nonce = json.loads(nonce[:len(nonce)-6])['load_content']
+    r = requests.get('https://coursevania.com/wp-admin/admin-ajax.php?&template=courses/grid&args={%22posts_per_page%22:%2230%22}&action=stm_lms_load_content&nonce=' + nonce + '&sort=date_high').json()
     soup = bs(r['content'], 'html5lib')
     all = soup.find_all('div', attrs={"class":"stm_lms_courses__single--title"})
     main_window["p4"].update(0, max=len(all))
@@ -156,7 +160,7 @@ def coursevania():
         r = requests.get(item.a['href'])
         soup = bs(r.content, 'html5lib')
         cv_links.append(title + '|:|' + soup.find('div', attrs={"class":"stm-lms-buy-buttons"}).a['href'])
-
+    print(cv_links)
     main_window["p4"].update(0, visible=False)
     main_window["img4"].update(visible=True)
 
@@ -244,8 +248,22 @@ def config_load():
     except KeyError:
         config['sites']['4'] = True
 
+    try: #3.6
+        config['stay_logged_in']
+    except KeyError:
+        config['stay_logged_in']= {}
+    try: #3.6
+        config['stay_logged_in']['auto']
+    except KeyError:
+        config['stay_logged_in']['auto'] = False
+    try: #3.6
+        config['stay_logged_in']['cookie']
+    except KeyError:
+        config['stay_logged_in']['cookie'] = False
+
     with open("config.json", "w") as f:
         json.dump(config, f, indent=4)
+
     return config, instructor_exclude
 
 def fetch_cookies():
@@ -306,6 +324,31 @@ def update_available():
     else:
         sg.popup_auto_close('Update Available', no_titlebar=True, button_color=("white", "blue"))
 
+def check_login():
+    head = {
+        'authorization': 'Bearer ' + access_token,
+        'accept': 'application/json, text/plain, */*',
+        'x-requested-with': 'XMLHttpRequest',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.128 Safari/537.36 Edg/89.0.774.77',
+        'x-forwarded-for': str(ip),
+        'x-udemy-authorization': 'Bearer ' + access_token,
+        'content-type': 'application/json;charset=UTF-8',
+        'origin': 'https://www.udemy.com',
+        'referer': 'https://www.udemy.com/',
+        'dnt': '1',
+    }
+
+    r = requests.get('https://www.udemy.com/api-2.0/contexts/me/?me=True&Config=True', headers=head).json()
+    currency = r['Config']['price_country']['currency']
+    user = ''
+    user = r['me']['display_name']
+
+    s = requests.session()
+    s.cookies.update(cookies)
+    s.keep_alive = False
+
+    return head, user, currency, s
+#!-----------------
 def free_checkout(coupon, courseid):
     payload = '{"checkout_environment":"Marketplace","checkout_event":"Submit","shopping_info":{"items":[{"discountInfo":{"code":"' + coupon + '"},"buyable":{"type":"course","id":' + str(courseid) + ',"context":{}},"price":{"amount":0,"currency":"' + currency + '"}}]},"payment_info":{"payment_vendor":"Free","payment_method":"free-method"}}'
 
@@ -318,8 +361,9 @@ def free_enroll(courseid):
 
     r = s.get('https://www.udemy.com/api-2.0/users/me/subscribed-courses/' + str(courseid) + '/?fields%5Bcourse%5D=%40default%2Cbuyable_object_type%2Cprimary_subcategory%2Cis_private', headers=head, verify=False)
     return r.json()
+#-----------------
 
-def auto_add(list_st):
+def auto(list_st):
     main_window['pout'].update(0, max=len(list_st))
 
     for index, link in enumerate(list_st):
@@ -445,7 +489,7 @@ def main1():
         except:
             pass
 
-        auto_add(links_ls)
+        auto(links_ls)
 
     except:
         e = traceback.format_exc()
@@ -454,147 +498,116 @@ def main1():
     main_window['main_col'].Update(visible=True)
     main_window['output_col'].Update(visible=False)
 
+config, instructor_exclude = config_load()
+ip = ".".join(map(str, (random.randint(0, 255) for _ in range(4))))
 
 ############## MAIN ############# MAIN############## MAIN ############# MAIN ############## MAIN ############# MAIN ###########
 menu = [
     ['About', ['Support', 'Github', 'Discord']]
 ]
 
-c1 = [
-    [sg.Button(key='a_login', image_data=auto_login), sg.T(''), sg.B(key='c_login', image_data=cookie_login)],
-]
-c2 = [
-    [sg.T('Access Token'), sg.InputText(default_text='', key='access_token', size=(20, 1), pad=(5, 5))],
-    [sg.T('Client ID'), sg.InputText(default_text='', key='client_id', size=(25, 1), pad=(5, 5))],
-    [sg.B(key='Back', image_data=back), sg.T('                     '), sg.B(key='Login', image_data=login)],
-]
+login_error = False
+try:
+    if config['stay_logged_in']['auto']:
+        my_cookies, cookies = fetch_cookies()
+        access_token = my_cookies['access_token']
+        csrftoken = my_cookies['csrftoken']
+        head, user, currency, s = check_login()
 
-login_layout = [
-    [sg.Menu(menu)],
-    [sg.Column(c1, key='col1'), sg.Column(c2, visible=False, key='col2')],
-]
-
-login_window = sg.Window('Login', login_layout)
-
-ip = ".".join(map(str, (random.randint(0, 255) for _ in range(4))))
-
-config, instructor_exclude = config_load()
-
-while True:
-    event, values = login_window.read()
-
-    if event in (None,):
-        login_window.close()
-        exit()
-
-    elif event == 'a_login':
-        try:
-
-            my_cookies, cookies = fetch_cookies()
-
-            try:
-                access_token = my_cookies['access_token']
-                csrftoken = my_cookies['csrftoken']
-
-                head = {
-                    'authorization': 'Bearer ' + access_token,
-                    'accept': 'application/json, text/plain, */*',
-                    'x-requested-with': 'XMLHttpRequest',
-                    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36',
-                    'x-forwarded-for': str(ip),
-                    'x-udemy-authorization': 'Bearer ' + access_token,
-                    'content-type': 'application/json;charset=UTF-8',
-                    'origin': 'https://www.udemy.com',
-                    'referer': 'https://www.udemy.com/',
-                    'dnt': '1',
-                }
-
-                r = requests.get(
-                    'https://www.udemy.com/api-2.0/contexts/me/?me=True&Config=True', headers=head).json()
-                currency = r['Config']['price_country']['currency']
-                user = ''
-                user = r['me']['display_name']
-
-                s = requests.session()
-                s.cookies.update(cookies)
-                s.keep_alive = False
-
-                login_window.close()
-
-                break
-
-            except Exception as e:
-                print(e)
-                sg.popup_auto_close('Make sure you are logged in to udemy.com in chrome browser',
-                                    title='Error', auto_close_duration=5, no_titlebar=True)
-                access_token = ''
-
-        except Exception as e:
-            e = traceback.format_exc()
-            sg.popup_scrolled(e, title='Unknown Error')
-
-    elif event == 'c_login':
-        login_window['col1'].update(visible=False)
-        login_window['col2'].update(visible=True)
-
+    elif config['stay_logged_in']['cookie']:
         access_token = config['access_token']
         client_id = config['client_id']
-        login_window['access_token'].update(value=access_token)
-        login_window['client_id'].update(value=client_id)
-
-    elif event == 'Github':
-        webbrowser.open("https://github.com/techtanic/Udemy-Course-Grabber")
-
-    elif event == 'Support':
-        webbrowser.open("https://techtanic.github.io/ucg/")
-
-    elif event == 'Discord':
-        webbrowser.open("https://discord.gg/wFsfhJh4Rh")
-
-    elif event == 'Back':
-        login_window['col1'].update(visible=True)
-        login_window['col2'].update(visible=False)
-
-    elif event == 'Login':
-
-        access_token = values['access_token']
-        client_id = values['client_id']
-        config['access_token'] = access_token
-        config['client_id'] = client_id
-
         csrftoken = ''
         cookies = cookiejar(client_id, access_token)
-        s = requests.session()
-        s.cookies.update(cookies)
-        s.keep_alive = False
+        head, user, currency, s = check_login()
+        with open('config.json', 'w') as f:
+            json.dump(config, f, indent=4)
+except:
+    login_error = True
+if (not config['stay_logged_in']['auto'] and not config['stay_logged_in']['cookie']) or login_error:
 
-        head = {
-            'authorization': 'Bearer ' + access_token,
-            'accept': 'application/json, text/plain, */*',
-            'x-requested-with': 'XMLHttpRequest',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36',
-            'x-forwarded-for': str(ip),
-            'x-udemy-authorization': 'Bearer ' + access_token,
-            'content-type': 'application/json;charset=UTF-8',
-            'referer': 'https://www.udemy.com/courses/search/?q=free%20courses&src=sac&kw=free',
-            'origin': 'https://www.udemy.com'
-        }
-        try:
-            r = requests.get(
-                'https://www.udemy.com/api-2.0/contexts/me/?me=True&Config=True', headers=head).json()
-            currency = r['Config']['price_country']['currency']
-            user = ''
-            user = r['me']['display_name']
-            with open('config.json', 'w') as f:
-                json.dump(config, f, indent=4)
+    c1 = [
+        [sg.Button(key='a_login', image_data=auto_login), sg.T(''), sg.B(key='c_login', image_data=cookie_login)],
+    ]
+    c2 = [
+        [sg.T('Access Token'), sg.InputText(default_text='', key='access_token', size=(20, 1), pad=(5, 5))],
+        [sg.T('Client ID'), sg.InputText(default_text='', key='client_id', size=(25, 1), pad=(5, 5))],
+        [sg.B(key='Back', image_data=back), sg.T('                     '), sg.B(key='Login', image_data=login)],
+    ]
+
+    login_layout = [
+        [sg.Menu(menu)],
+        [sg.Column(c1, key='col1'), sg.Column(c2, visible=False, key='col2')],
+    ]
+
+    login_window = sg.Window('Login', login_layout)
+
+    while True:
+        event, values = login_window.read()
+
+        if event in (None,):
             login_window.close()
-            break
+            sys.exit()
+            
 
-        except:
-            sg.popup_auto_close(
-                'Login Unsuccessfull', title='Error', auto_close_duration=5, no_titlebar=True)
-            access_token = ''
+        elif event == 'a_login':
+            try:
+                my_cookies, cookies = fetch_cookies()
+                try:
+                    access_token = my_cookies['access_token']
+                    csrftoken = my_cookies['csrftoken']
+                    head, user, currency, s = check_login()
+                    login_window.close()
+                    break
 
+                except Exception as e:
+                    sg.popup_auto_close('Make sure you are logged in to udemy.com in chrome browser', title='Error', auto_close_duration=5, no_titlebar=True)
+
+            except Exception as e:
+                e = traceback.format_exc()
+                sg.popup_scrolled(e, title='Unknown Error')
+
+        elif event == 'c_login':
+            login_window['col1'].update(visible=False)
+            login_window['col2'].update(visible=True)
+
+            access_token = config['access_token']
+            client_id = config['client_id']
+            login_window['access_token'].update(value=access_token)
+            login_window['client_id'].update(value=client_id)
+
+        elif event == 'Github':
+            webbrowser.open("https://github.com/techtanic/Udemy-Course-Grabber")
+
+        elif event == 'Support':
+            webbrowser.open("https://techtanic.github.io/ucg/")
+
+        elif event == 'Discord':
+            webbrowser.open("https://discord.gg/wFsfhJh4Rh")
+
+        elif event == 'Back':
+            login_window['col1'].update(visible=True)
+            login_window['col2'].update(visible=False)
+
+        elif event == 'Login':
+
+            access_token = values['access_token']
+            client_id = values['client_id']
+            config['access_token'] = access_token
+            config['client_id'] = client_id
+            csrftoken = ''
+            try:
+                cookies = cookiejar(client_id, access_token)
+                head, user, currency, s = check_login()
+                with open('config.json', 'w') as f:
+                    json.dump(config, f, indent=4)
+                login_window.close()
+                break
+
+            except:
+                sg.popup_auto_close(
+                    'Login Unsuccessfull', title='Error', auto_close_duration=5, no_titlebar=True)
+                access_token = ''
 
 checkbox_lo = []
 for index in all_sites:

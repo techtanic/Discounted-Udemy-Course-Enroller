@@ -40,5 +40,9 @@
         "3": true,
         "4": true
     },
-    "exclude_instructor": []
+    "exclude_instructor": [],
+    "stay_logged_in": {
+        "auto": false,
+        "cookie": false
+    }
 }
