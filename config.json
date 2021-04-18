@@ -42,7 +42,7 @@
     },
     "exclude_instructor": [],
     "stay_logged_in": {
-        "auto": true,
+        "auto": false,
         "cookie": false
     }
 }
