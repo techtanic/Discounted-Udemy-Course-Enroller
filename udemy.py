@@ -160,7 +160,6 @@ def coursevania():
         r = requests.get(item.a['href'])
         soup = bs(r.content, 'html5lib')
         cv_links.append(title + '|:|' + soup.find('div', attrs={"class":"stm-lms-buy-buttons"}).a['href'])
-    print(cv_links)
     main_window["p4"].update(0, visible=False)
     main_window["img4"].update(visible=True)
 
