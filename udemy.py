@@ -10,11 +10,11 @@ import traceback
 #!/usr/bin/python3
 import webbrowser
 from urllib.parse import parse_qs, urlsplit
+from PySimpleGUI.PySimpleGUI import vbottom
 
 import browser_cookie3
 import PySimpleGUI as sg
 import requests
-import urllib3
 from bs4 import BeautifulSoup as bs
 
 from pack.base64 import *
@@ -177,7 +177,7 @@ def create_scrape_obj():
         }
     return funcs
 
-version = 'v3.5'
+version = 'v3.6'
 
 all_sites = {
     "0": 'Discudemy',
@@ -222,20 +222,24 @@ all_lang = {
 }
 
 
-#############
+################
 def cookiejar(client_id, access_token):
     cookies = dict(client_id=client_id, access_token=access_token)
     return cookies
 
-def config_load():
+def save_config(config):
+    if True:
+        with open("config.json", "w") as f:
+            json.dump(config, f, indent=4)
+#################
+
+def load_config():
     try:
         with open("config.json") as f:
             config = json.load(f)
 
     except FileNotFoundError as e:
         config = requests.get('https://raw.githubusercontent.com/techtanic/Udemy-Course-Grabber/master/config.json').json()
-        with open("config.json", "w") as f:
-            json.dump(config, f, indent=4)
 
     try:
         instructor_exclude = '\n'.join(config['exclude_instructor'])
@@ -261,8 +265,7 @@ def config_load():
     except KeyError:
         config['stay_logged_in']['cookie'] = False
 
-    with open("config.json", "w") as f:
-        json.dump(config, f, indent=4)
+    save_config(config)
 
     return config, instructor_exclude
 
@@ -348,7 +351,8 @@ def check_login():
     s.keep_alive = False
 
     return head, user, currency, s
-#!-----------------
+
+#-----------------
 def free_checkout(coupon, courseid):
     payload = '{"checkout_environment":"Marketplace","checkout_event":"Submit","shopping_info":{"items":[{"discountInfo":{"code":"' + coupon + '"},"buyable":{"type":"course","id":' + str(courseid) + ',"context":{}},"price":{"amount":0,"currency":"' + currency + '"}}]},"payment_info":{"payment_vendor":"Free","payment_method":"free-method"}}'
 
@@ -498,7 +502,7 @@ def main1():
     main_window['main_col'].Update(visible=True)
     main_window['output_col'].Update(visible=False)
 
-config, instructor_exclude = config_load()
+config, instructor_exclude = load_config()
 ip = ".".join(map(str, (random.randint(0, 255) for _ in range(4))))
 
 ############## MAIN ############# MAIN############## MAIN ############# MAIN ############## MAIN ############# MAIN ###########
@@ -520,18 +524,19 @@ try:
         csrftoken = ''
         cookies = cookiejar(client_id, access_token)
         head, user, currency, s = check_login()
-        with open('config.json', 'w') as f:
-            json.dump(config, f, indent=4)
+        
 except:
     login_error = True
 if (not config['stay_logged_in']['auto'] and not config['stay_logged_in']['cookie']) or login_error:
 
     c1 = [
         [sg.Button(key='a_login', image_data=auto_login), sg.T(''), sg.B(key='c_login', image_data=cookie_login)],
+        [sg.Checkbox('Stay logged-in',default=config['stay_logged_in']['auto'],key='sli_a')]
     ]
     c2 = [
         [sg.T('Access Token'), sg.InputText(default_text='', key='access_token', size=(20, 1), pad=(5, 5))],
         [sg.T('Client ID'), sg.InputText(default_text='', key='client_id', size=(25, 1), pad=(5, 5))],
+        [sg.Checkbox('Stay logged-in',default=config['stay_logged_in']['cookie'],key='sli_c')],
         [sg.B(key='Back', image_data=back), sg.T('                     '), sg.B(key='Login', image_data=login)],
     ]
 
@@ -557,6 +562,8 @@ if (not config['stay_logged_in']['auto'] and not config['stay_logged_in']['cooki
                     access_token = my_cookies['access_token']
                     csrftoken = my_cookies['csrftoken']
                     head, user, currency, s = check_login()
+                    config['stay_logged_in']['auto']=values['sli_a']
+                    save_config(config)
                     login_window.close()
                     break
 
@@ -599,15 +606,13 @@ if (not config['stay_logged_in']['auto'] and not config['stay_logged_in']['cooki
             try:
                 cookies = cookiejar(client_id, access_token)
                 head, user, currency, s = check_login()
-                with open('config.json', 'w') as f:
-                    json.dump(config, f, indent=4)
+                save_config(config)
                 login_window.close()
                 break
 
             except:
                 sg.popup_auto_close(
                     'Login Unsuccessfull', title='Error', auto_close_duration=5, no_titlebar=True)
-                access_token = ''
 
 checkbox_lo = []
 for index in all_sites:
@@ -668,9 +673,14 @@ main_col = [
     [sg.Button(key='Start', tooltip='Once started will not stop until completed', image_data=start)],
 ]
 
+if config['stay_logged_in']['auto'] or config['stay_logged_in']['cookie']: 
+    logout_btn_lo = sg.Button(key='Logout', image_data=logout)
+else:
+    logout_btn_lo = sg.Button(key='Logout', image_data=logout,visible=False)
+
 main_lo = [
     [sg.Menu(menu, key='mn',)],
-    [sg.Text(f'Logged in as: {user}', key='user_t')],
+    [sg.Text(f'Logged in as: {user}', key='user_t'), sg.vbottom(logout_btn_lo)],
     [sg.pin(sg.Column(main_col, key='main_col')), sg.pin(sg.Column(output_col, key='output_col', visible=False)), sg.pin(sg.Column(scrape_col, key="scrape_col", visible=False))],
     [sg.Button(key='Exit', image_data=exit_)],
 ]
@@ -678,7 +688,7 @@ main_lo = [
 # ,sg.Button(key='Dummy',image_data=back)
 
 global main_window
-main_window = sg.Window('Udemy Course Grabber', main_lo,finalize=True)
+main_window = sg.Window('Udemy Course Grabber', main_lo, finalize=True)
 threading.Thread(target=update_courses, daemon=True).start()
 update_available()
 while True:
@@ -689,7 +699,12 @@ while True:
 
     if event in (None, 'Exit'):
         break
-
+    
+    elif event == 'Logout':
+        config['stay_logged_in']['auto'],config['stay_logged_in']['cookie'] = False, False
+        save_config(config)
+        break
+    
     elif event == 'Support':
         webbrowser.open("https://techtanic.github.io/ucg/")
 
@@ -709,8 +724,7 @@ while True:
             config["sites"][index] = values[index]
         config['exclude_instructor'] = values['instructor_exclude'].split()
 
-        with open('config.json', 'w') as f:
-            json.dump(config, f, indent=4)
+        save_config(config)
 
         all_functions = create_scrape_obj()
         funcs = {}

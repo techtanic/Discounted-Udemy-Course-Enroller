@@ -34,7 +34,7 @@
         "c12": true
     },
     "sites": {
-        "0": true,
+        "0": false,
         "1": true,
         "2": true,
         "3": true,
@@ -42,7 +42,7 @@
     },
     "exclude_instructor": [],
     "stay_logged_in": {
-        "auto": false,
+        "auto": true,
         "cookie": false
     }
 }
