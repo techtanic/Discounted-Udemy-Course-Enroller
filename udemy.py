@@ -98,6 +98,7 @@ def tutorialbar():
         big_all.extend(all)
         main_window["p2"].update(page)
     main_window["p2"].update(0, max=len(big_all))
+    
     for index, items in enumerate(big_all):
         main_window["p2"].update(index+1)
         title = items.a.text
