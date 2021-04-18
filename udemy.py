@@ -10,8 +10,6 @@ import traceback
 #!/usr/bin/python3
 import webbrowser
 from urllib.parse import parse_qs, urlsplit
-from PySimpleGUI.PySimpleGUI import vbottom
-
 import browser_cookie3
 import PySimpleGUI as sg
 import requests
@@ -98,7 +96,7 @@ def tutorialbar():
         big_all.extend(all)
         main_window["p2"].update(page)
     main_window["p2"].update(0, max=len(big_all))
-    
+
     for index, items in enumerate(big_all):
         main_window["p2"].update(index+1)
         title = items.a.text
@@ -680,7 +678,7 @@ else:
 
 main_lo = [
     [sg.Menu(menu, key='mn',)],
-    [sg.Text(f'Logged in as: {user}', key='user_t'), sg.vbottom(logout_btn_lo)],
+    [sg.Text(f'Logged in as: {user}', key='user_t'), logout_btn_lo],
     [sg.pin(sg.Column(main_col, key='main_col')), sg.pin(sg.Column(output_col, key='output_col', visible=False)), sg.pin(sg.Column(scrape_col, key="scrape_col", visible=False))],
     [sg.Button(key='Exit', image_data=exit_)],
 ]
