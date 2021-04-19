@@ -187,8 +187,6 @@ def idcoupons():
     main_window["p5"].update(0, visible=False)
     main_window["img5"].update(visible=True)
 
-def test():
-    pass
 ########################### Constants
 
 version = 'v3.6'
