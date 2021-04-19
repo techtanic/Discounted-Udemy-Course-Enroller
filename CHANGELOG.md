@@ -6,6 +6,7 @@
 - Added `Stay logged-in` option
 - Added `IDownloadCoupons`
 - Fixed `CourseVania`
+- Changed `config.json` to `duce-settings.json` 
 
 
 ## [v3.5](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.5) - 2021-04-12
