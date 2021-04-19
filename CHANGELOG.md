@@ -1,6 +1,6 @@
 # Changelog
 
-## [v3.6](https://github.com/techtanic/Discounted-Udemy-Course-Enroller)
+## [v3.6](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.6)
 
 - Changed Name to **Discounted Udemy Course Enroller** (DUCE)
 - Added `Stay logged-in` option
