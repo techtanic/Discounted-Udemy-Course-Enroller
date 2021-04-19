@@ -253,17 +253,20 @@ def cookiejar(client_id, access_token):
 
 def save_config(config):
     if True:
-        with open("settings.json", "w") as f:
+        with open("duce-settings.json", "w") as f:
             json.dump(config, f, indent=4)
 #################
 
 def load_config():
-    try:
+    try: #v3.6
         os.rename("config.json","duce-settings.json")
+    except  FileNotFoundError:
+        pass
+    try:
         with open("duce-settings.json") as f:
             config = json.load(f)
 
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         config = requests.get('https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/master/duce-settings.json').json()
 
     try:

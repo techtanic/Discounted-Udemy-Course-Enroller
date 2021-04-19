@@ -1,0 +1,49 @@
+{
+    "access_token": "",
+    "client_id": "",
+    "languages": {
+        "l0": true,
+        "l1": true,
+        "l2": true,
+        "l3": true,
+        "l4": true,
+        "l5": true,
+        "l6": true,
+        "l7": true,
+        "l8": true,
+        "l9": true,
+        "l10": true,
+        "l11": true,
+        "l12": true,
+        "l13": true,
+        "l14": true
+    },
+    "category": {
+        "c0": true,
+        "c1": true,
+        "c2": true,
+        "c3": true,
+        "c4": true,
+        "c5": true,
+        "c6": true,
+        "c7": true,
+        "c8": true,
+        "c9": true,
+        "c10": true,
+        "c11": true,
+        "c12": true
+    },
+    "sites": {
+        "0": true,
+        "1": false,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true
+    },
+    "exclude_instructor": [],
+    "stay_logged_in": {
+        "auto": false,
+        "cookie": false
+    }
+}
