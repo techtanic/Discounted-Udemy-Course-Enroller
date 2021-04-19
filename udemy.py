@@ -405,9 +405,9 @@ def auto(list_st):
 
     for index, link in enumerate(list_st):
 
-        tl = link.split('|:|')
-        main_window['out'].print(str(index) + ' ' + tl[0], text_color='yellow', end=' ')
-        link = tl[1]
+        title = link.split('|:|')
+        main_window['out'].print(str(index) + ' ' + title[0], text_color='yellow', end=' ')
+        link = title[1]
         main_window['out'].print(link, text_color='blue')
 
         couponID = get_course_coupon(link)
@@ -416,8 +416,7 @@ def auto(list_st):
         instructor, purchased = course_landing_api(course_id)
 
         if instructor in instructor_exclude:
-            main_window['out'].print(
-                "Instructor excluded", text_color='light blue')
+            main_window['out'].print("Instructor excluded", text_color='light blue')
             main_window['out'].print()
 
         elif cat in categories and lang in languages:
@@ -478,8 +477,7 @@ def auto(list_st):
                 main_window['out'].print()
 
         else:
-            main_window['out'].print(
-                "User not interested", text_color='light blue')
+            main_window['out'].print("User not interested", text_color='light blue')
             main_window['out'].print()
         main_window['pout'].update(index+1)
 
@@ -490,9 +488,6 @@ def auto(list_st):
 
 def main1():
     try:
-        global count
-
-        count = 0
         links_ls = []
         for index in funcs:
             main_window[f"pcol{index}"].update(visible=True)
@@ -525,8 +520,13 @@ def main1():
             links_ls += cv_links
         except:
             pass
+        try:  # idc_links
+            links_ls += idc_links
+        except:
+            pass
 
         auto(links_ls)
+
 
     except:
         e = traceback.format_exc()
