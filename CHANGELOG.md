@@ -13,6 +13,7 @@
 ## [v3.5](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.5) - 2021-04-12
 
 - Added `CourseVania`
+- Added stats at the end of each run
 - Fixed `RealDiscount`
 - Refactored some code
 - Fixed some **really** broken code (There should be more courses now on)
