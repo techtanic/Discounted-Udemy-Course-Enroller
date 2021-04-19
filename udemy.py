@@ -418,7 +418,6 @@ def auto(list_st):
         course_id = get_course_id(link)
         cat, lang = get_catlang(course_id)
         instructor, purchased, amount = course_landing_api(course_id)
-
         if instructor in instructor_exclude:
             main_window['out'].print("Instructor excluded", text_color='light blue')
             main_window['out'].print()
@@ -720,11 +719,11 @@ output_col = [
 
 done_col = [
     [sg.Text('       Stats',font=("",17),text_color='#FFD700')],
-    [sg.Text('Successfully Enrolled:       ',key='se_c',font=10,text_color='#7CFC00')],
-    [sg.Text('Amount Saved: $          ',key='as_c',font=10,text_color='#00FA9A')],
-    [sg.Text('Already Enrolled:      ',key='ae_c',font=10,text_color='#00FFFF')],
-    [sg.Text('Expired Courses:       ',key='e_c',font=10,text_color='#FF0000')],
-    [sg.Text('Excluded Courses:      ',key='ex_c',font=10,text_color='#FF4500')],
+    [sg.Text('Successfully Enrolled:             ',key='se_c',font=10,text_color='#7CFC00')],
+    [sg.Text('Amount Saved: $                                            ',key='as_c',font=10,text_color='#00FA9A')],
+    [sg.Text('Already Enrolled:              ',key='ae_c',font=10,text_color='#00FFFF')],
+    [sg.Text('Expired Courses:           ',key='e_c',font=10,text_color='#FF0000')],
+    [sg.Text('Excluded Courses:          ',key='ex_c',font=10,text_color='#FF4500')],
 ]
 
 main_col = [
