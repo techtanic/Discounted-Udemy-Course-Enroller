@@ -3,8 +3,9 @@
 ## [Unreleased](https://github.com/techtanic/Discounted-Udemy-Course-Enroller)
 
 - Changed Name to **Discounted Udemy Course Enroller** (DUCE)
-- Added `Stay logged-in` option
 - Added `IDownloadCoupons`
+- Added `Stay logged-in` option
+- Added stats at the end of each run
 - Fixed `CourseVania`
 - Changed `config.json` to `duce-settings.json` 
 - Made enrolling faster
@@ -13,7 +14,6 @@
 ## [v3.5](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.5) - 2021-04-12
 
 - Added `CourseVania`
-- Added stats at the end of each run
 - Fixed `RealDiscount`
 - Refactored some code
 - Fixed some **really** broken code (There should be more courses now on)
