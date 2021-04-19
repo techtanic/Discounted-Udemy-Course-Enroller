@@ -1,11 +1,14 @@
 # Changelog
 
-## [v3.5](https://github.com/techtanic/Udemy-Course-Grabber)
+## [v3.5](https://github.com/techtanic/Discounted-Udemy-Course-Enroller)
 
+- Changed Name to **Discounted Udemy Course Enroller** (DUCE)
 - Added `Stay logged-in` option
+- Added `IDownloadCoupons`
 - Fixed `CourseVania`
 
-## [v3.5](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.5) - 2021-04-12
+
+## [v3.5](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.5) - 2021-04-12
 
 - Added `CourseVania`
 - Fixed `RealDiscount`
@@ -14,7 +17,7 @@
 - Update now shows after logging in
   
 
-## [3.4](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.4) - 2021-04-03 
+## [3.4](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.4) - 2021-04-03 
 
 
 - Added Instructor Exclusion
@@ -26,13 +29,13 @@
 - Configs won't be reset from this update onwards.
 - Cleaned up a bit
 
-## [3.3](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.3) - 2021-03-21 
+## [3.3](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.3) - 2021-03-21 
 
 - Added `app.real.discount`.
 - Tutorialbar is now third.
 - Removed `coursemania.xyz`. (The website is DEAD.)
 
-## [3.2](https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.2) - 2021-03-07
+## [3.2](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.2) - 2021-03-07
 
 - Added `Tutorialbar.com`.
 - Added category filter
@@ -48,7 +51,7 @@
 ## [3.1] - 2021-02-03
 
 - GUI Overhaul (Better Graphics).
-- [READ.ME](https://github.com/techtanic/Udemy-Course-Grabber/blob/master/README.md)
+- [READ.ME](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/blob/master/README.md)
 - Added Project Logo.
 - Removed `comidoc.net` (Devs of it were not happy).
 - Fixed many Bugs
@@ -81,9 +84,9 @@
 
 - First release
 
-[3.1]: https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.1
-[3.0]: https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v3.0
-[2.0]: https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v2.0
-[1.2]: https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v1.2
-[1.1]: https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v1.1
-[1.0]: https://github.com/techtanic/Udemy-Course-Grabber/releases/tag/v1.0
+[3.1]: https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.1
+[3.0]: https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.0
+[2.0]: https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v2.0
+[1.2]: https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v1.2
+[1.1]: https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v1.1
+[1.0]: https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v1.0

@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 import random
 import re
@@ -7,9 +6,9 @@ import sys
 import threading
 import time
 import traceback
-#!/usr/bin/python3
 import webbrowser
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, unquote, urlsplit
+
 import browser_cookie3
 import PySimpleGUI as sg
 import requests
@@ -17,6 +16,7 @@ from bs4 import BeautifulSoup as bs
 
 from pack.base64 import *
 
+#DUCE
 
 sg.set_global_icon(icon)
 sg.change_look_and_feel('dark')
@@ -162,8 +162,34 @@ def coursevania():
     main_window["p4"].update(0, visible=False)
     main_window["img4"].update(visible=True)
 
+def idcoupons():
+
+    global idc_links
+    idc_links = []
+    big_all = []
+    for page in range(1,4):
+        r = requests.get('https://idownloadcoupon.com/product-category/udemy-2/page/'+ str(page))
+        soup = bs(r.content, 'html5lib')
+        all = soup.find_all('a', attrs={"class":"button product_type_external"})
+        big_all.extend(all)
+    main_window["p5"].update(0, max=len(big_all))
+
+    for index,item in enumerate(big_all):
+        main_window["p5"].update(index+1)
+        title = item['aria-label']
+        link = unquote(item['href']).split('url=')
+        try:
+            link = link[1]
+        except IndexError:
+            link = link[0]
+        if link.startswith('https://www.udemy.com'):
+            idc_links.append(title + '|:|' + link)
+    main_window["p5"].update(0, visible=False)
+    main_window["img5"].update(visible=True)
+
 ########################### Constants
 
+version = 'v3.6'
 
 def create_scrape_obj():
     funcs = {
@@ -172,10 +198,9 @@ def create_scrape_obj():
     "2": threading.Thread(target=tutorialbar, daemon=True),
     "3": threading.Thread(target=real_discount, daemon=True),
     "4": threading.Thread(target=coursevania, daemon=True),
+    "5": threading.Thread(target=idcoupons, daemon=True),
         }
     return funcs
-
-version = 'v3.6'
 
 all_sites = {
     "0": 'Discudemy',
@@ -183,6 +208,7 @@ all_sites = {
     "2": 'Tutorial Bar',
     "3": 'Real Discount',
     "4": 'Course Vania',
+    "5": 'IDownloadCoupons',
 }
 
 all_cat = {
@@ -227,17 +253,18 @@ def cookiejar(client_id, access_token):
 
 def save_config(config):
     if True:
-        with open("config.json", "w") as f:
+        with open("settings.json", "w") as f:
             json.dump(config, f, indent=4)
 #################
 
 def load_config():
     try:
-        with open("config.json") as f:
+        os.rename("config.json","duce-settings.json")
+        with open("duce-settings.json") as f:
             config = json.load(f)
 
     except FileNotFoundError as e:
-        config = requests.get('https://raw.githubusercontent.com/techtanic/Udemy-Course-Grabber/master/config.json').json()
+        config = requests.get('https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/master/duce-settings.json').json()
 
     try:
         instructor_exclude = '\n'.join(config['exclude_instructor'])
@@ -262,6 +289,11 @@ def load_config():
         config['stay_logged_in']['cookie']
     except KeyError:
         config['stay_logged_in']['cookie'] = False
+    try: #v3.6
+        config['sites']['5']
+    except KeyError:
+        config['sites']['5'] = True
+
 
     save_config(config)
 
@@ -320,10 +352,10 @@ def update_courses():
         time.sleep(6)  # So that Udemy's api doesn't get spammed.
 
 def update_available():
-    if version == requests.get("https://api.github.com/repos/techtanic/Udemy-Course-Grabber/releases/latest").json()['tag_name']:
-        return
-    else:
+    if version.lstrip('v') < requests.get("https://api.github.com/repos/techtanic/Discounted-Udemy-Course-Enroller/releases/latest").json()['tag_name'].lstrip('v'):
         sg.popup_auto_close('Update Available', no_titlebar=True, button_color=("white", "blue"))
+    else:
+        return
 
 def check_login():
     head = {
@@ -582,7 +614,7 @@ if (not config['stay_logged_in']['auto'] and not config['stay_logged_in']['cooki
             login_window['client_id'].update(value=client_id)
 
         elif event == 'Github':
-            webbrowser.open("https://github.com/techtanic/Udemy-Course-Grabber")
+            webbrowser.open("https://github.com/techtanic/Discounted-Udemy-Course-Enroller")
 
         elif event == 'Support':
             webbrowser.open("https://techtanic.github.io/ucg/")
@@ -686,7 +718,7 @@ main_lo = [
 # ,sg.Button(key='Dummy',image_data=back)
 
 global main_window
-main_window = sg.Window('Udemy Course Grabber', main_lo, finalize=True)
+main_window = sg.Window('Discounted-Udemy-Course-Enroller', main_lo, finalize=True)
 threading.Thread(target=update_courses, daemon=True).start()
 update_available()
 while True:
@@ -707,7 +739,7 @@ while True:
         webbrowser.open("https://techtanic.github.io/ucg/")
 
     elif event == 'Github':
-        webbrowser.open("https://github.com/techtanic/Udemy-Course-Grabber")
+        webbrowser.open("https://github.com/techtanic/Discounted-Udemy-Course-Enroller")
 
     elif event == 'Discord':
         webbrowser.open("https://discord.gg/wFsfhJh4Rh")
