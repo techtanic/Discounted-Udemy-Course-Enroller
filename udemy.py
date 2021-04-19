@@ -201,7 +201,6 @@ def create_scrape_obj():
     "3": threading.Thread(target=real_discount, daemon=True),
     "4": threading.Thread(target=coursevania, daemon=True),
     "5": threading.Thread(target=idcoupons, daemon=True),
-    "6": threading.Thread(target=test, daemon=True),
         }
     return funcs
 
@@ -212,7 +211,6 @@ all_sites = {
     "3": 'Real Discount',
     "4": 'Course Vania',
     "5": 'IDownloadCoupons',
-    "6": 'test'
 }
 
 all_cat = {
