@@ -199,7 +199,7 @@ def create_scrape_obj():
     "3": threading.Thread(target=real_discount, daemon=True),
     "4": threading.Thread(target=coursevania, daemon=True),
     "5": threading.Thread(target=idcoupons, daemon=True),
-        }
+        }   
     return funcs
 
 all_sites = {
