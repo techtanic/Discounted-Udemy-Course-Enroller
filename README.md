@@ -20,13 +20,13 @@ Everything you need can be on the website.
 <h2><details>
 <summary>Screenshots</summary>
 
-![Login](https://cdn.discordapp.com/attachments/823472016999972884/824183983197782026/unknown.png)
+![Login](https://cdn.discordapp.com/attachments/823472016999972884/834051177792274452/unknown.png)
 
-![Cookie Login](https://cdn.discordapp.com/attachments/823472016999972884/824184031524552725/unknown.png)
+![Cookie Login](https://cdn.discordapp.com/attachments/823472016999972884/834051201342373888/unknown.png)
 
-![Discounted Udemy Course Enroller](https://cdn.discordapp.com/attachments/823472016999972884/824184807155302400/unknown.png)
+![Discounted Udemy Course Enroller](https://cdn.discordapp.com/attachments/823472016999972884/834051568554737674/unknown.png)
 
-![Coupon Scraping](https://cdn.discordapp.com/attachments/823472016999972884/824184975645212683/unknown.png)
+![Coupon Scraping](https://cdn.discordapp.com/attachments/823472016999972884/834051762255560704/unknown.png)
 
 ![Enrolling](https://cdn.discordapp.com/attachments/823472016999972884/824187751075282974/unknown.png)
 </details>
