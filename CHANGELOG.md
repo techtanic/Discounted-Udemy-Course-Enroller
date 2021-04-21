@@ -1,7 +1,7 @@
 # Changelog
 
 ## [Unreleased](https://github.com/techtanic/Discounted-Udemy-Course-Enroller)
-
+-Added exception to deleted courses
 
 ## [v3.6](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.6) - 2021-04-19
 - Changed Name to **Discounted Udemy Course Enroller** (DUCE)

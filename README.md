@@ -14,7 +14,7 @@
 
 > Script/Software to enroll in available Udemy Paid/Free courses having coupons automatically to your Udemy account.
 
-Checkout the website: [techtanic.github.io/ucg](https://techtanic.github.io/ucg/)
+Checkout the website: [techtanic.github.io/duce](https://techtanic.github.io/duce/)
 Everything you need can be on the website.
 
 <h2><details>
