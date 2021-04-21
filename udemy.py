@@ -1,3 +1,4 @@
+from decimal import Decimal
 import json
 import os
 import random
@@ -405,7 +406,7 @@ def course_landing_api(courseid):
     except:
         print(r["purchase"]["data"])
 
-    return instructor, purchased, amount
+    return instructor, purchased, Decimal(amount)
 
 
 def update_courses():
@@ -539,7 +540,6 @@ def auto(list_st):
                                 main_window["out"].print()
                                 se_c += 1
                                 as_c += amount
-
                             elif js["status"] == "failed":
                                 # print(js)
                                 main_window["out"].print(
@@ -571,7 +571,7 @@ def auto(list_st):
                             time.sleep(slp)
                             main_window["out"].print()
                         else:
-                            time.sleep(3)
+                            time.sleep(3.5)
 
                     elif not coupon_id:
                         js = free_enroll(course_id)
@@ -608,7 +608,7 @@ def auto(list_st):
     main_window["done_col"].update(visible=True)
 
     main_window["se_c"].update(value=f"Successfully Enrolled: {se_c}")
-    main_window["as_c"].update(value=f"Amount Saved: ${as_c}")
+    main_window["as_c"].update(value=f"Amount Saved: ${round(as_c,2)}")
     main_window["ae_c"].update(value=f"Already Enrolled: {ae_c}")
     main_window["e_c"].update(value=f"Expired Courses: {e_c}")
     main_window["ex_c"].update(value=f"Excluded Courses: {ex_c}")
