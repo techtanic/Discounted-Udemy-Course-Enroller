@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased](https://github.com/techtanic/Discounted-Udemy-Course-Enroller)
+
 - Added exception to deleted courses
 - Fixed Amount saved calculating wrong values.
 
