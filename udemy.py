@@ -214,7 +214,7 @@ def idcoupons():
 
 ########################### Constants
 
-version = "v3.6"
+version = "v3.7"
 
 
 def create_scrape_obj():
@@ -344,7 +344,7 @@ def get_course_id(url):
     r = s.get(url, allow_redirects=False)
     soup = bs(r.content, "html5lib")
     if r.status_code in (404, 302):
-        return
+        return False
 
     else:
         try:
@@ -513,92 +513,95 @@ def auto(list_st):
         )
         link = title[1]
         main_window["out"].print(link, text_color="blue")
-        couponID = get_course_coupon(link)
         course_id = get_course_id(link)
-        cat, lang = get_catlang(course_id)
-        instructor, purchased, amount = course_landing_api(course_id)
-        if instructor in instructor_exclude:
-            main_window["out"].print("Instructor excluded", text_color="light blue")
-            main_window["out"].print()
-            ex_c += 1
-
-        elif cat in categories and lang in languages:
-
-            if not purchased:
-
-                if couponID:
-                    slp = ""
-
-                    js = free_checkout(couponID, course_id)
-                    try:
-                        if js["status"] == "succeeded":
-                            main_window["out"].print(
-                                "Successfully Enrolled To Course :)", text_color="green"
-                            )
-                            main_window["out"].print()
-                            se_c += 1
-                            as_c += amount
-
-                        elif js["status"] == "failed":
-                            # print(js)
-                            main_window["out"].print(
-                                "Coupon Expired :(", text_color="red"
-                            )
-                            main_window["out"].print()
-                            e_c += 1
-
-                    except:
-                        try:
-                            msg = js["detail"]
-                            main_window["out"].print(f"{msg}", text_color="dark blue")
-                            main_window["out"].print()
-                            slp = int(re.search(r"\d+", msg).group(0))
-                        except:
-                            # print(js)
-                            main_window["out"].print("Expired Coupon", text_color="red")
-                            main_window["out"].print()
-                            e_c += 1
-
-                    if slp != "":
-                        slp += 5
-                        main_window["out"].print(
-                            ">>> Pausing execution of script for "
-                            + str(slp)
-                            + " seconds",
-                            text_color="red",
-                        )
-                        time.sleep(slp)
-                        main_window["out"].print()
-                    else:
-                        time.sleep(3)
-
-                elif not couponID:
-                    js = free_enroll(course_id)
-                    try:
-                        if js["_class"] == "course":
-                            main_window["out"].print(
-                                "Successfully Subscribed", text_color="green"
-                            )
-                            main_window["out"].print()
-                            se_c += 1
-                            as_c += amount
-
-                    except:
-                        main_window["out"].print(
-                            "COUPON MIGHT HAVE EXPIRED", text_color="red"
-                        )
-                        main_window["out"].print()
-                        e_c += 1
-
-            elif purchased:
-                main_window["out"].print(purchased, text_color="light blue")
+        if course_id:
+            coupon_id = get_course_coupon(link)
+            cat, lang = get_catlang(course_id)
+            instructor, purchased, amount = course_landing_api(course_id)
+            if instructor in instructor_exclude:
+                main_window["out"].print("Instructor excluded", text_color="light blue")
                 main_window["out"].print()
-                ae_c += 1
+                ex_c += 1
 
-        else:
-            main_window["out"].print("User not interested", text_color="light blue")
-            main_window["out"].print()
-            ex_c += 1
+            elif cat in categories and lang in languages:
+
+                if not purchased:
+
+                    if coupon_id:
+                        slp = ""
+
+                        js = free_checkout(coupon_id, course_id)
+                        try:
+                            if js["status"] == "succeeded":
+                                main_window["out"].print(
+                                    "Successfully Enrolled To Course :)", text_color="green"
+                                )
+                                main_window["out"].print()
+                                se_c += 1
+                                as_c += amount
+
+                            elif js["status"] == "failed":
+                                # print(js)
+                                main_window["out"].print(
+                                    "Coupon Expired :(", text_color="red"
+                                )
+                                main_window["out"].print()
+                                e_c += 1
+
+                        except:
+                            try:
+                                msg = js["detail"]
+                                main_window["out"].print(f"{msg}", text_color="dark blue")
+                                main_window["out"].print()
+                                slp = int(re.search(r"\d+", msg).group(0))
+                            except:
+                                # print(js)
+                                main_window["out"].print("Expired Coupon", text_color="red")
+                                main_window["out"].print()
+                                e_c += 1
+
+                        if slp != "":
+                            slp += 5
+                            main_window["out"].print(
+                                ">>> Pausing execution of script for "
+                                + str(slp)
+                                + " seconds",
+                                text_color="red",
+                            )
+                            time.sleep(slp)
+                            main_window["out"].print()
+                        else:
+                            time.sleep(3)
+
+                    elif not coupon_id:
+                        js = free_enroll(course_id)
+                        try:
+                            if js["_class"] == "course":
+                                main_window["out"].print(
+                                    "Successfully Subscribed", text_color="green"
+                                )
+                                main_window["out"].print()
+                                se_c += 1
+                                as_c += amount
+
+                        except:
+                            main_window["out"].print(
+                                "COUPON MIGHT HAVE EXPIRED", text_color="red"
+                            )
+                            main_window["out"].print()
+                            e_c += 1
+
+                elif purchased:
+                    main_window["out"].print(purchased, text_color="light blue")
+                    main_window["out"].print()
+                    ae_c += 1
+
+            else:
+                main_window["out"].print("User not interested", text_color="light blue")
+                main_window["out"].print()
+                ex_c += 1
+        elif not course_id:
+            main_window["out"].print('Course doesn\'t exist', text_color="red")
 
         main_window["pout"].update(index + 1)
 
