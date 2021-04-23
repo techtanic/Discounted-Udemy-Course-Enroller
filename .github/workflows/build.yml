@@ -42,7 +42,7 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
       - name: Build with pyinstaller for windows
-        run: pyinstaller -y -F -w -i "UCG-logo.ico" --name "Discounted-Udemy-Course-Enroller-windows" --add-data="pack;pack/"  "udemy.py"
+        run: pyinstaller -y -F -w -i "DUCE-LOGO.ico" --name "Discounted-Udemy-Course-Enroller-windows" --add-data="pack;pack/"  "udemy.py"
       - name: Load Release URL File from release job
         uses: actions/download-artifact@v1
         with:
