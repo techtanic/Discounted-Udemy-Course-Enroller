@@ -1,12 +1,13 @@
 # Changelog
 
-## [Unreleased](https://github.com/techtanic/Discounted-Udemy-Course-Enroller)
+## [v3.7](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.7) - 2021-04-23
 
 - Added exception to deleted courses
 - Changed Logo
 - Fixed Amount saved calculating wrong values.
 
 ## [v3.6](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.6) - 2021-04-19
+
 - Changed Name to **Discounted Udemy Course Enroller** (DUCE)
 - Added `IDownloadCoupons`
 - Added `Stay logged-in` option
