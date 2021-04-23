@@ -3,6 +3,7 @@
 ## [Unreleased](https://github.com/techtanic/Discounted-Udemy-Course-Enroller)
 
 - Added exception to deleted courses
+- Changed Logo
 - Fixed Amount saved calculating wrong values.
 
 ## [v3.6](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.6) - 2021-04-19

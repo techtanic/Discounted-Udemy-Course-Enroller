@@ -535,7 +535,8 @@ def auto(list_st):
                         try:
                             if js["status"] == "succeeded":
                                 main_window["out"].print(
-                                    "Successfully Enrolled To Course :)", text_color="green"
+                                    "Successfully Enrolled To Course :)",
+                                    text_color="green",
                                 )
                                 main_window["out"].print()
                                 se_c += 1
@@ -551,12 +552,16 @@ def auto(list_st):
                         except:
                             try:
                                 msg = js["detail"]
-                                main_window["out"].print(f"{msg}", text_color="dark blue")
+                                main_window["out"].print(
+                                    f"{msg}", text_color="dark blue"
+                                )
                                 main_window["out"].print()
                                 slp = int(re.search(r"\d+", msg).group(0))
                             except:
                                 # print(js)
-                                main_window["out"].print("Expired Coupon", text_color="red")
+                                main_window["out"].print(
+                                    "Expired Coupon", text_color="red"
+                                )
                                 main_window["out"].print()
                                 e_c += 1
 
@@ -601,7 +606,7 @@ def auto(list_st):
                 main_window["out"].print()
                 ex_c += 1
         elif not course_id:
-            main_window["out"].print('Course doesn\'t exist', text_color="red")
+            main_window["out"].print("Course doesn't exist", text_color="red")
 
         main_window["pout"].update(index + 1)
 
