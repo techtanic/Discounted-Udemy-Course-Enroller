@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://github.com/techtanic/Discounted-Udemy-Course-Enroller/blob/master/UCG-logo.png?raw=true">
+    <img src="https://github.com/techtanic/Discounted-Udemy-Course-Enroller/blob/master/DUCE-LOGO.png?raw=true">
     <br/>
     <img src="https://forthebadge.com/images/badges/made-with-python.svg">
     <br/>
