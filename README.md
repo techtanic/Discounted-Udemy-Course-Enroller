@@ -12,7 +12,7 @@
 
 # Discounted Udemy Course Enroller
 
-> Script/Software to enroll in available Udemy Paid/Free courses having coupons automatically to your Udemy account.
+>Software to enroll in available Udemy Paid/Free courses having coupons automatically to your Udemy account.
 
 Checkout the website: [techtanic.github.io/duce](https://techtanic.github.io/duce/)
 Everything you need can be on the website.
