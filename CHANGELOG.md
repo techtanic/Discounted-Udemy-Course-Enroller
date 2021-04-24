@@ -1,5 +1,12 @@
 # Changelog
 
+
+## [v3.9](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.7) - 2021-04-24
+
+- Fixed Instructor Exclude not saving
+- Fixed crash on custom rating
+
+
 ## [v3.8](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.7) - 2021-04-24
 
 - Added Title Keyword Exclusion (Advanced)
