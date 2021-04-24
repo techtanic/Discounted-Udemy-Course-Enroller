@@ -33,7 +33,7 @@ def discudemy():
     du_links = []
     big_all = []
     head = {
-        "user-agent": "Mozilla/5.0 (Linux; Android 6.0.1; Moto G (4)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.72 Mobile Safari/537.36 Edg/90.0.818.42",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.72 Safari/537.36 Edg/90.0.818.42",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
     }
 
@@ -437,7 +437,7 @@ def check_login():
         "authorization": "Bearer " + access_token,
         "accept": "application/json, text/plain, */*",
         "x-requested-with": "XMLHttpRequest",
-        "user-agent": "Mozilla/5.0 (Linux; Android 6.0.1; Moto G (4)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.72 Mobile Safari/537.36 Edg/90.0.818.42",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.72 Safari/537.36 Edg/90.0.818.42",
         "x-forwarded-for": str(
             ".".join(map(str, (random.randint(0, 255) for _ in range(4))))
         ),
