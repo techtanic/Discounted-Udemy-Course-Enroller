@@ -215,7 +215,7 @@ def idcoupons():
 
 ########################### Constants
 
-version = "v3.7"
+version = "v3.8"
 
 
 def create_scrape_obj():
