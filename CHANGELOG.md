@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased-v3.8](https://github.com/techtanic/Discounted-Udemy-Course-Enroller)
+
+- Added Title Keyword Exclusion (Advanced)
+- Added Minimum Rating (Advanced)
+- More detailed exclusion
+- Changed few fonts
+- Hopeful fix for [#41](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/issues/41)
+
+
 ## [v3.7](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.7) - 2021-04-23
 
 - Added exception to deleted courses

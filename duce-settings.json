@@ -42,9 +42,11 @@
         "5": true,
         "6": true
     },
-    "exclude_instructor": [],
     "stay_logged_in": {
         "auto": false,
         "cookie": false
-    }
+    },
+    "min_rating": 0.0,
+    "title_exclude": [],
+    "instructor_exclude": []
 }

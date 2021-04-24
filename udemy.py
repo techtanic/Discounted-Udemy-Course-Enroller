@@ -303,12 +303,6 @@ def load_config():
             "https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/master/duce-settings.json"
         ).json()
 
-    try:
-        instructor_exclude = "\n".join(config["exclude_instructor"])
-    except KeyError:
-        config["exclude_instructor"] = []
-        instructor_exclude = "\n".join(config["exclude_instructor"])
-
     try:  # v3.5
         config["sites"]["4"]
     except KeyError:
@@ -331,9 +325,25 @@ def load_config():
     except KeyError:
         config["sites"]["5"] = True
 
-    save_config(config)
+    try:  # v3.7
+        config["min_rating"]
+    except KeyError:
+        config["min_rating"] = 0.0
+    try:  # v3.7
+        title_exclude = "\n".join(config["title_exclude"])
+    except KeyError:
+        config["title_exclude"] = []
+        title_exclude = "\n".join(config["title_exclude"])
+    try:  # v3.7
+        config["instructor_exclude"] = config["exclude_instructor"]
+        instructor_exclude = "\n".join(config["instructor_exclude"])
+        del config["exclude_instructor"]
+    except KeyError:
+        config["instructor_exclude"] = []
+        instructor_exclude = "\n".join(config["instructor_exclude"])
 
-    return config, instructor_exclude
+    save_config(config)
+    return config, instructor_exclude, title_exclude
 
 
 def fetch_cookies():
@@ -374,14 +384,18 @@ def get_course_coupon(url):
         return ""
 
 
-def get_catlang(courseid):
+def affiliate_api(courseid):
     r = s.get(
         "https://www.udemy.com/api-2.0/courses/"
         + courseid
-        + "/?fields[course]=locale,primary_category",
+        + "/?fields[course]=locale,primary_category,avg_rating_recent",
         headers=head,
     ).json()
-    return r["primary_category"]["title"], r["locale"]["simple_english_title"]
+    return (
+        r["primary_category"]["title"],
+        r["locale"]["simple_english_title"],
+        round(r["avg_rating_recent"], 1),
+    )
 
 
 def course_landing_api(courseid):
@@ -419,7 +433,7 @@ def update_courses():
             [f'Total Courses: {r["count"]}'],
         ]
         main_window["mn"].Update(menu_definition=new_menu)
-        time.sleep(6)  # So that Udemy's api doesn't get spammed.
+        time.sleep(10)  # So that Udemy's api doesn't get spammed.
 
 
 def update_available():
@@ -431,6 +445,7 @@ def update_available():
         )
     else:
         return
+
 
 def check_login():
     head = {
@@ -461,6 +476,13 @@ def check_login():
 
     return head, user, currency, s
 
+def title_in_exclusion(title,t_x):
+    title_words = title.casefold().split()
+    for word in title_words:
+        word = word.casefold()
+        if word in t_x :
+            return True
+    return False
 
 # -----------------
 def free_checkout(coupon, courseid):
@@ -509,23 +531,48 @@ def auto(list_st):
     se_c, ae_c, e_c, ex_c, as_c = 0, 0, 0, 0, 0
     for index, link in enumerate(list_st):
 
-        title = link.split("|:|")
-        main_window["out"].print(
-            str(index) + " " + title[0], text_color="yellow", end=" "
-        )
-        link = title[1]
+        tl = link.split("|:|")
+        main_window["out"].print(str(index) + " " + tl[0], text_color="yellow", end=" ")
+        link = tl[1]
         main_window["out"].print(link, text_color="blue")
         course_id = get_course_id(link)
         if course_id:
             coupon_id = get_course_coupon(link)
-            cat, lang = get_catlang(course_id)
+            cat, lang, avg_rating = affiliate_api(course_id)
             instructor, purchased, amount = course_landing_api(course_id)
-            if instructor in instructor_exclude:
-                main_window["out"].print("Instructor excluded", text_color="light blue")
+            title_words = tl[0].split()
+
+            if (
+                instructor in instructor_exclude
+                or title_in_exclusion(tl[0],title_exclude)
+                or cat not in categories
+                or lang not in languages
+                or avg_rating < values["min_rating"]
+            ):
+                if instructor in instructor_exclude:
+                    main_window["out"].print(
+                        f"Instructor excluded: {instructor}", text_color="light blue"
+                    )
+                elif title_exclude in title_words:
+                    main_window["out"].print(
+                        "Title Excluded", text_color="light blue"
+                    )
+                elif cat not in categories:
+                    main_window["out"].print(
+                        f"Category excluded: {cat}", text_color="light blue"
+                    )
+                elif lang not in languages:
+                    main_window["out"].print(
+                        f"Languages excluded: {lang}", text_color="light blue"
+                    )
+                elif avg_rating < values["min_rating"]:
+                    main_window["out"].print(
+                        f"Poor rating: {avg_rating}", text_color="light blue"
+                    )
                 main_window["out"].print()
                 ex_c += 1
 
-            elif cat in categories and lang in languages:
+            else:
 
                 if not purchased:
 
@@ -602,10 +649,6 @@ def auto(list_st):
                     main_window["out"].print()
                     ae_c += 1
 
-            else:
-                main_window["out"].print("User not interested", text_color="light blue")
-                main_window["out"].print()
-                ex_c += 1
         elif not course_id:
             main_window["out"].print("Course doesn't exist", text_color="red")
 
@@ -671,7 +714,7 @@ def main1():
     main_window["output_col"].Update(visible=False)
 
 
-config, instructor_exclude = load_config()
+config, instructor_exclude, title_exclude = load_config()
 
 ############## MAIN ############# MAIN############## MAIN ############# MAIN ############## MAIN ############# MAIN ###########
 menu = [["About", ["Support", "Github", "Discord"]]]
@@ -929,30 +972,63 @@ main_tab = [
     ],
 ]
 
-exclude_lo = [
-    [sg.Multiline(default_text=instructor_exclude, key="instructor_exclude")],
-    [sg.Text("Go to the instructor's profile and copy username from the url.")],
-    [sg.Text("Paste instructor(s) username in new lines")],
-    [sg.Text("Example:", font="bold")],
+instructor_ex_lo = [
     [
-        sg.Text(
-            '  If the url is "https://www.udemy.com/user/ogbrw-wef/"\n  Then the username will be "ogbrw-wef"'
+        sg.Multiline(
+            default_text=instructor_exclude, key="instructor_exclude", size=(15, 10)
         )
     ],
+    [sg.Text("Paste instructor(s)\nusername in new lines")],
+]
+title_ex_lo = [
+    [sg.Multiline(default_text=title_exclude, key="title_exclude", size=(20, 10))],
+    [sg.Text("Keywords in new lines\nNot cAsE sensitive")],
+]
+
+rating_lo = [
+    [
+        sg.Spin(
+            [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0],
+            initial_value=config["min_rating"],
+            key="min_rating",
+            font=25,
+        ),
+        sg.Text("0.0 <-> 5.0", font=15),
+    ]
 ]
 
 advanced_tab = [
     [
         sg.Frame(
             "Exclude Instructor",
-            exclude_lo,
+            instructor_ex_lo,
             "#4deeea",
             border_width=4,
             title_location="n",
-            key="fea",
+            font=25,
+        ),
+        sg.Frame(
+            "Title Keyword Exclusion",
+            title_ex_lo,
+            "#4deeea",
+            border_width=4,
+            title_location="n",
+            font=25,
+        ),
+    ],
+    [
+        sg.Frame(
+            "Minimum Rating",
+            rating_lo,
+            "#4deeea",
+            border_width=4,
+            title_location="n",
+            key="f_min_rating",
+            font=25,
         )
     ],
 ]
+
 
 scrape_col = []
 for site in all_sites:
@@ -1028,6 +1104,7 @@ main_col = [
         sg.TabGroup(
             [[sg.Tab("Main", main_tab), sg.Tab("Advanced", advanced_tab)]],
             border_width=2,
+            font=25,
         )
     ],
     [
@@ -1101,8 +1178,8 @@ while True:
             config["category"][index] = values[index]
         for index in all_sites:
             config["sites"][index] = values[index]
-        config["exclude_instructor"] = values["instructor_exclude"].split()
-
+        config["instructor_exclude"] = values["instructor_exclude"].split()
+        config["title_exclude"] = values["title_exclude"].split()
         save_config(config)
 
         all_functions = create_scrape_obj()
@@ -1110,7 +1187,8 @@ while True:
         sites = {}
         categories = []
         languages = []
-        instructor_exclude = config["exclude_instructor"]
+        instructor_exclude = config["instructor_exclude"]
+        title_exclude = config["title_exclude"]
         user_dumb = True
 
         for i in all_sites:
