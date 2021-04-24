@@ -334,10 +334,16 @@ def load_config():
     except KeyError:
         config["title_exclude"] = []
         title_exclude = "\n".join(config["title_exclude"])
-    try:  # v3.7
+    try: #v3.9
         config["instructor_exclude"] = config["exclude_instructor"]
-        instructor_exclude = "\n".join(config["instructor_exclude"])
+    except KeyError:
+        pass
+    try:  #v3.9
         del config["exclude_instructor"]
+    except KeyError:
+        pass
+    try:  # v3.9
+        instructor_exclude = "\n".join(config["instructor_exclude"])
     except KeyError:
         config["instructor_exclude"] = []
         instructor_exclude = "\n".join(config["instructor_exclude"])
@@ -541,13 +547,12 @@ def auto(list_st):
             cat, lang, avg_rating = affiliate_api(course_id)
             instructor, purchased, amount = course_landing_api(course_id)
             title_words = tl[0].split()
-
             if (
                 instructor in instructor_exclude
                 or title_in_exclusion(tl[0],title_exclude)
                 or cat not in categories
                 or lang not in languages
-                or avg_rating < values["min_rating"]
+                or avg_rating < min_rating
             ):
                 if instructor in instructor_exclude:
                     main_window["out"].print(
@@ -1180,6 +1185,7 @@ while True:
             config["sites"][index] = values[index]
         config["instructor_exclude"] = values["instructor_exclude"].split()
         config["title_exclude"] = values["title_exclude"].split()
+        config["min_rating"] = float(values["min_rating"])
         save_config(config)
 
         all_functions = create_scrape_obj()
@@ -1189,6 +1195,7 @@ while True:
         languages = []
         instructor_exclude = config["instructor_exclude"]
         title_exclude = config["title_exclude"]
+        min_rating = config["min_rating"]
         user_dumb = True
 
         for i in all_sites:
