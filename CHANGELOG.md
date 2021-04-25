@@ -1,7 +1,7 @@
 # Changelog
 
 
-## [v4.0](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.7) - 2021-04-25
+## [v4.0](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v4.0) - 2021-04-25
 
 - Fixed Title keyword splitting multiple words
 - Fixed Title Keyword Exclusion not working 
@@ -9,13 +9,13 @@
 
 
 
-## [v3.9](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.7) - 2021-04-24
+## [v3.9](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.9) - 2021-04-24
 
 - Fixed Instructor Exclude not saving
 - Fixed crash on custom rating
 
 
-## [v3.8](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.7) - 2021-04-24
+## [v3.8](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.8) - 2021-04-24
 
 - Added Title Keyword Exclusion (Advanced)
 - Added Minimum Rating (Advanced)
