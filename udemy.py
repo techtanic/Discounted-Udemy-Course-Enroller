@@ -215,7 +215,7 @@ def idcoupons():
 
 ########################### Constants
 
-version = "v3.9"
+version = "v4.0"
 
 
 def create_scrape_obj():
@@ -334,11 +334,11 @@ def load_config():
     except KeyError:
         config["title_exclude"] = []
         title_exclude = "\n".join(config["title_exclude"])
-    try: #v3.9
+    try:  # v3.9
         config["instructor_exclude"] = config["exclude_instructor"]
     except KeyError:
         pass
-    try:  #v3.9
+    try:  # v3.9
         del config["exclude_instructor"]
     except KeyError:
         pass
@@ -435,7 +435,7 @@ def update_courses():
             "https://www.udemy.com/api-2.0/users/me/subscribed-courses/", headers=head
         ).json()
         new_menu = [
-            ["About", ["Support", "Github", "Discord"]],
+            ["Help", ["Support", "Github", "Discord"]],
             [f'Total Courses: {r["count"]}'],
         ]
         main_window["mn"].Update(menu_definition=new_menu)
@@ -482,13 +482,15 @@ def check_login():
 
     return head, user, currency, s
 
-def title_in_exclusion(title,t_x):
+
+def title_in_exclusion(title, t_x):
     title_words = title.casefold().split()
     for word in title_words:
         word = word.casefold()
-        if word in t_x :
+        if word in t_x:
             return True
     return False
+
 
 # -----------------
 def free_checkout(coupon, courseid):
@@ -549,7 +551,7 @@ def auto(list_st):
             title_words = tl[0].split()
             if (
                 instructor in instructor_exclude
-                or title_in_exclusion(tl[0],title_exclude)
+                or title_in_exclusion(tl[0], title_exclude)
                 or cat not in categories
                 or lang not in languages
                 or avg_rating < min_rating
@@ -558,10 +560,8 @@ def auto(list_st):
                     main_window["out"].print(
                         f"Instructor excluded: {instructor}", text_color="light blue"
                     )
-                elif title_exclude in title_words:
-                    main_window["out"].print(
-                        "Title Excluded", text_color="light blue"
-                    )
+                elif title_in_exclusion(tl[0], title_exclude):
+                    main_window["out"].print("Title Excluded", text_color="light blue")
                 elif cat not in categories:
                     main_window["out"].print(
                         f"Category excluded: {cat}", text_color="light blue"
@@ -570,7 +570,7 @@ def auto(list_st):
                     main_window["out"].print(
                         f"Languages excluded: {lang}", text_color="light blue"
                     )
-                elif avg_rating < values["min_rating"]:
+                elif avg_rating < min_rating:
                     main_window["out"].print(
                         f"Poor rating: {avg_rating}", text_color="light blue"
                     )
@@ -722,7 +722,7 @@ def main1():
 config, instructor_exclude, title_exclude = load_config()
 
 ############## MAIN ############# MAIN############## MAIN ############# MAIN ############## MAIN ############# MAIN ###########
-menu = [["About", ["Support", "Github", "Discord"]]]
+menu = [["Help", ["Support", "Github", "Discord"]]]
 
 login_error = False
 try:
@@ -1078,7 +1078,7 @@ output_col = [
 ]
 
 done_col = [
-    [sg.Text("       Stats", font=("", 17), text_color="#FFD700")],
+    [sg.Text("       Stats", font=17, text_color="#FFD700")],
     [
         sg.Text(
             "Successfully Enrolled:             ",
@@ -1089,7 +1089,7 @@ done_col = [
     ],
     [
         sg.Text(
-            "Amount Saved: $                                            ",
+            "Amount Saved: $              ",
             key="as_c",
             font=10,
             text_color="#00FA9A",
@@ -1167,7 +1167,7 @@ while True:
         break
 
     elif event == "Support":
-        webbrowser.open("https://techtanic.github.io/ucg/")
+        webbrowser.open("https://techtanic.github.io/duce/support/#")
 
     elif event == "Github":
         webbrowser.open("https://github.com/techtanic/Discounted-Udemy-Course-Enroller")
@@ -1184,7 +1184,7 @@ while True:
         for index in all_sites:
             config["sites"][index] = values[index]
         config["instructor_exclude"] = values["instructor_exclude"].split()
-        config["title_exclude"] = values["title_exclude"].split()
+        config["title_exclude"] = values["title_exclude"].split("\n")
         config["min_rating"] = float(values["min_rating"])
         save_config(config)
 

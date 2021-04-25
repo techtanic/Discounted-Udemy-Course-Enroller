@@ -1,6 +1,14 @@
 # Changelog
 
 
+## [v4.0](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.7) - 2021-04-25
+
+- Fixed Title keyword splitting multiple words
+- Fixed Title Keyword Exclusion not working 
+- Fixed auto-login
+
+
+
 ## [v3.9](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v3.7) - 2021-04-24
 
 - Fixed Instructor Exclude not saving
