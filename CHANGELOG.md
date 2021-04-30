@@ -1,5 +1,10 @@
 # Changelog
 
+## [v4.1](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v4.1) - 2021-04-30
+
+- Fixed [#48](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/issues/48)
+Note: I will be having exams, will be slow to respond.I will concentrate on critical issue mostly.
+
 
 ## [v4.0](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v4.0) - 2021-04-25
 

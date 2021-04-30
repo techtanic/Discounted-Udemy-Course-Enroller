@@ -359,24 +359,26 @@ def fetch_cookies():
 
 def get_course_id(url):
     r = s.get(url, allow_redirects=False)
-    soup = bs(r.content, "html5lib")
     if r.status_code in (404, 302):
         return False
 
-    else:
-        try:
-            courseid = soup.find(
-                "body",
-                attrs={
-                    "class": "ud-app-loader ud-component--course-landing-page-free-udlite udemy"
-                },
-            )["data-clp-course-id"]
-        except:
-            courseid = soup.find(
-                "body", attrs={"data-module-id": "course-landing-page/udlite"}
-            )["data-clp-course-id"]
-            # with open("problem.txt","w",encoding="utf-8") as f:
-            # f.write(str(soup))
+    if r.status_code == 301:
+        r = s.get(url)
+
+    soup = bs(r.content, "html5lib")
+    try:
+        courseid = soup.find(
+            "body",
+            attrs={
+                "class": "ud-app-loader ud-component--course-landing-page-free-udlite udemy"
+            },
+        )["data-clp-course-id"]
+    except:
+        courseid = soup.find(
+            "body", attrs={"data-module-id": "course-landing-page/udlite"}
+        )["data-clp-course-id"]
+        # with open("problem.txt","w",encoding="utf-8") as f:
+        # f.write(str(soup))
     return courseid
 
 
