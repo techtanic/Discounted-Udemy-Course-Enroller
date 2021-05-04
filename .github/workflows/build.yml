@@ -5,31 +5,10 @@ on:
   push:
 
 jobs:
-  createrelease:
-    name: Create Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v
-          release_name: Discounted Udemy Course Enroller
-          draft: true
-          prerelease: false
-      - name: Output Release URL File
-        run: echo "${{ steps.create_release.outputs.upload_url }}" > release_url.txt
-      - name: Save Release URL File for publish
-        uses: actions/upload-artifact@v1
-        with:
-          name: release_url
-          path: release_url.txt
 
   build-windows:
     name: Build windows
-    needs: createrelease
+    #needs: createrelease
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v1
@@ -72,3 +51,25 @@ jobs:
 #          asset_path: ./dist/Discounted-Udemy-Course-Enroller-windows.exe
 #          asset_name: Discounted-Udemy-Course-Enroller-windows.exe
 #          asset_content_type: application/vnd.microsoft.portable-executable
+
+#  createrelease:
+#    name: Create Release
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Create Release
+#        id: create_release
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          tag_name: v
+#          release_name: Discounted Udemy Course Enroller
+#          draft: true
+#          prerelease: false
+#      - name: Output Release URL File
+#        run: echo "${{ steps.create_release.outputs.upload_url }}" > release_url.txt
+#      - name: Save Release URL File for publish
+#        uses: actions/upload-artifact@v1
+#        with:
+#          name: release_url
+#          path: release_url.txt

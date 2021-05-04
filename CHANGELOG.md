@@ -1,5 +1,11 @@
 # Changelog
 
+## [v4.2](https://github.com/techtanic/Discounted-Udemy-Course-Enroller)
+
+- Fixed [#55](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/issues/55)
+- Added a better/faster way to detect expired coupons
+
+
 ## [v4.1](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v4.1) - 2021-04-30
 
 - Fixed [#48](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/issues/48)

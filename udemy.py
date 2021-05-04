@@ -215,7 +215,7 @@ def idcoupons():
 
 ########################### Constants
 
-version = "v4.1"
+version = "v4.2"
 
 
 def create_scrape_obj():
@@ -655,7 +655,7 @@ def auto(list_st):
                     ae_c += 1
 
         elif not course_id:
-            main_window["out"].print("Course doesn't exist", text_color="red")
+            main_window["out"].print("Course Expired", text_color="red")
 
         main_window["pout"].update(index + 1)
 
