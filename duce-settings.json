@@ -1,59 +1,52 @@
 {
     "access_token": "",
     "client_id": "",
-    "languages": {
-        "l0": true,
-        "l1": true,
-        "l2": true,
-        "l3": true,
-        "l4": true,
-        "l5": true,
-        "l6": true,
-        "l7": true,
-        "l8": true,
-        "l9": true,
-        "l10": true,
-        "l11": true,
-        "l12": true,
-        "l13": true,
-        "l14": true
-    },
-    "category": {
-        "c0": true,
-        "c1": true,
-        "c2": true,
-        "c3": true,
-        "c4": true,
-        "c5": true,
-        "c6": true,
-        "c7": true,
-        "c8": true,
-        "c9": true,
-        "c10": true,
-        "c11": true,
-        "c12": true
-    },
-    "sites": {
-        "0": true,
-        "1": true,
-        "2": true,
-        "3": true,
-        "4": true,
-        "5": true,
-        "6": true
-    },
     "stay_logged_in": {
         "auto": false,
         "cookie": false
     },
     "min_rating": 0.0,
     "title_exclude": [
-        "",
-        "",
-        "",
-        "",
-        "",
-        ""
     ],
-    "instructor_exclude": []
+    "instructor_exclude": [],
+    "languages": {
+        "Chinese": true,
+        "Dutch": true,
+        "English": true,
+        "French": true,
+        "German": true,
+        "Indonesian": true,
+        "Italian": true,
+        "Japanese": true,
+        "Korean": true,
+        "Polish": true,
+        "Portuguese": true,
+        "Romanian": true,
+        "Spanish": true,
+        "Thai": true,
+        "Turkish": true
+    },
+    "categories": {
+        "Business": true,
+        "Design": true,
+        "Development": true,
+        "Finance & Accounting": true,
+        "Health & Fitness": true,
+        "IT & Software": true,
+        "Lifestyle": true,
+        "Marketing": true,
+        "Music": true,
+        "Office Productivity": true,
+        "Personal Development": true,
+        "Photography & Video": true,
+        "Teaching & Academics": true
+    },
+    "sites": {
+        "Discudemy": true,
+        "Udemy Freebies": true,
+        "Tutorial Bar": true,
+        "Real Discount": true,
+        "Course Vania": true,
+        "IDownloadCoupons": true
+    }
 }

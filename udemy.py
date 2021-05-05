@@ -42,11 +42,11 @@ def discudemy():
         soup = bs(r.content, "html5lib")
         all = soup.find_all("section", "card")
         big_all.extend(all)
-        main_window["p0"].update(page)
-    main_window["p0"].update(0, max=len(big_all))
+        main_window["pDiscudemy"].update(page)
+    main_window["pDiscudemy"].update(0, max=len(big_all))
 
     for index, items in enumerate(big_all):
-        main_window["p0"].update(index + 1)
+        main_window["pDiscudemy"].update(index + 1)
         try:
             title = items.a.text
             url = items.a["href"]
@@ -60,8 +60,8 @@ def discudemy():
             du_links.append(title + "|:|" + soup.find("div", "ui segment").a["href"])
         except AttributeError:
             continue
-    main_window["p0"].update(0, visible=False)
-    main_window["img0"].update(visible=True)
+    main_window["pDiscudemy"].update(0, visible=False)
+    main_window["iDiscudemy"].update(visible=True)
 
 
 def udemy_freebies():
@@ -76,19 +76,19 @@ def udemy_freebies():
         soup = bs(r.content, "html5lib")
         all = soup.find_all("div", "coupon-name")
         big_all.extend(all)
-        main_window["p1"].update(page)
-    main_window["p1"].update(0, max=len(big_all))
+        main_window["pUdemy Freebies"].update(page)
+    main_window["pUdemy Freebies"].update(0, max=len(big_all))
 
     for index, items in enumerate(big_all):
-        main_window["p1"].update(index + 1)
+        main_window["pUdemy Freebies"].update(index + 1)
         title = items.a.text
         url = bs(requests.get(items.a["href"]).content, "html5lib").find(
             "a", class_="button-icon"
         )["href"]
         link = requests.get(url).url
         uf_links.append(title + "|:|" + link)
-    main_window["p1"].update(0, visible=False)
-    main_window["img1"].update(visible=True)
+    main_window["pUdemy Freebies"].update(0, visible=False)
+    main_window["iUdemy Freebies"].update(visible=True)
 
 
 def tutorialbar():
@@ -104,11 +104,11 @@ def tutorialbar():
             "div", class_="content_constructor pb0 pr20 pl20 mobilepadding"
         )
         big_all.extend(all)
-        main_window["p2"].update(page)
-    main_window["p2"].update(0, max=len(big_all))
+        main_window["pTutorial Bar"].update(page)
+    main_window["pTutorial Bar"].update(0, max=len(big_all))
 
     for index, items in enumerate(big_all):
-        main_window["p2"].update(index + 1)
+        main_window["pTutorial Bar"].update(index + 1)
         title = items.a.text
         url = items.a["href"]
 
@@ -117,8 +117,8 @@ def tutorialbar():
         link = soup.find("a", class_="btn_offer_block re_track_btn")["href"]
         if "www.udemy.com" in link:
             tb_links.append(title + "|:|" + link)
-    main_window["p2"].update(0, visible=False)
-    main_window["img2"].update(visible=True)
+    main_window["pTutorial Bar"].update(0, visible=False)
+    main_window["iTutorial Bar"].update(visible=True)
 
 
 def real_discount():
@@ -132,11 +132,11 @@ def real_discount():
         soup = bs(r.content, "html5lib")
         all = soup.find_all("div", class_="card-body")
         big_all.extend(all)
-    main_window["p3"].update(page)
-    main_window["p3"].update(0, max=len(big_all))
+    main_window["pReal Discount"].update(page)
+    main_window["pReal Discount"].update(0, max=len(big_all))
 
     for index, items in enumerate(big_all):
-        main_window["p3"].update(index + 1)
+        main_window["pReal Discount"].update(index + 1)
         title = items.a.h3.text
         url = "https://app.real.discount" + items.a["href"]
         r = requests.get(url)
@@ -150,8 +150,8 @@ def real_discount():
         except:
             pass
 
-    main_window["p3"].update(0, visible=False)
-    main_window["img3"].update(visible=True)
+    main_window["pReal Discount"].update(0, visible=False)
+    main_window["iReal Discount"].update(visible=True)
 
 
 def coursevania():
@@ -169,10 +169,10 @@ def coursevania():
     ).json()
     soup = bs(r["content"], "html5lib")
     all = soup.find_all("div", attrs={"class": "stm_lms_courses__single--title"})
-    main_window["p4"].update(0, max=len(all))
+    main_window["pCourse Vania"].update(0, max=len(all))
 
     for index, item in enumerate(all):
-        main_window["p4"].update(index + 1)
+        main_window["pCourse Vania"].update(index + 1)
         title = item.h5.text
         r = requests.get(item.a["href"])
         soup = bs(r.content, "html5lib")
@@ -181,8 +181,8 @@ def coursevania():
             + "|:|"
             + soup.find("div", attrs={"class": "stm-lms-buy-buttons"}).a["href"]
         )
-    main_window["p4"].update(0, visible=False)
-    main_window["img4"].update(visible=True)
+    main_window["pCourse Vania"].update(0, visible=False)
+    main_window["iCourse Vania"].update(visible=True)
 
 
 def idcoupons():
@@ -197,10 +197,10 @@ def idcoupons():
         soup = bs(r.content, "html5lib")
         all = soup.find_all("a", attrs={"class": "button product_type_external"})
         big_all.extend(all)
-    main_window["p5"].update(0, max=len(big_all))
+    main_window["pIDownloadCoupons"].update(0, max=len(big_all))
 
     for index, item in enumerate(big_all):
-        main_window["p5"].update(index + 1)
+        main_window["pIDownloadCoupons"].update(index + 1)
         title = item["aria-label"]
         link = unquote(item["href"]).split("url=")
         try:
@@ -209,8 +209,8 @@ def idcoupons():
             link = link[0]
         if link.startswith("https://www.udemy.com"):
             idc_links.append(title + "|:|" + link)
-    main_window["p5"].update(0, visible=False)
-    main_window["img5"].update(visible=True)
+    main_window["pIDownloadCoupons"].update(0, visible=False)
+    main_window["iIDownloadCoupons"].update(visible=True)
 
 
 ########################### Constants
@@ -220,58 +220,14 @@ version = "v4.2"
 
 def create_scrape_obj():
     funcs = {
-        "0": threading.Thread(target=discudemy, daemon=True),
-        "1": threading.Thread(target=udemy_freebies, daemon=True),
-        "2": threading.Thread(target=tutorialbar, daemon=True),
-        "3": threading.Thread(target=real_discount, daemon=True),
-        "4": threading.Thread(target=coursevania, daemon=True),
-        "5": threading.Thread(target=idcoupons, daemon=True),
+        "Discudemy": threading.Thread(target=discudemy, daemon=True),
+        "Udemy Freebies": threading.Thread(target=udemy_freebies, daemon=True),
+        "Tutorial Bar": threading.Thread(target=tutorialbar, daemon=True),
+        "Real Discount": threading.Thread(target=real_discount, daemon=True),
+        "Course Vania": threading.Thread(target=coursevania, daemon=True),
+        "IDownloadCoupons": threading.Thread(target=idcoupons, daemon=True),
     }
     return funcs
-
-
-all_sites = {
-    "0": "Discudemy",
-    "1": "Udemy Freebies",
-    "2": "Tutorial Bar",
-    "3": "Real Discount",
-    "4": "Course Vania",
-    "5": "IDownloadCoupons",
-}
-
-all_cat = {
-    "c0": "Business",
-    "c1": "Design",
-    "c2": "Development",
-    "c3": "Finance & Accounting",
-    "c4": "Health & Fitness",
-    "c5": "IT & Software",
-    "c6": "Lifestyle",
-    "c7": "Marketing",
-    "c8": "Music",
-    "c9": "Office Productivity",
-    "c10": "Personal Development",
-    "c11": "Photography & Video",
-    "c12": "Teaching & Academics",
-}
-
-all_lang = {
-    "l0": "Chinese",
-    "l1": "Dutch",
-    "l2": "English",
-    "l3": "French",
-    "l4": "German",
-    "l5": "Indonesian",
-    "l6": "Italian",
-    "l7": "Japanese",
-    "l8": "Korean",
-    "l9": "Polish",
-    "l10": "Portuguese",
-    "l11": "Romanian",
-    "l12": "Spanish",
-    "l13": "Thai",
-    "l14": "Turkish",
-}
 
 
 ################
@@ -303,46 +259,33 @@ def load_config():
             "https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/master/duce-settings.json"
         ).json()
 
-    try:  # v3.5
-        config["sites"]["4"]
+    new_config = requests.get(
+        "https://raw.githubusercontent.com/techtanic/DUCE-CLI/master/duce-cli-settings.json"
+    ).json()
+    try:  # v4.2
+        config["languages"]["l0"]
+        del config["languages"]
+        config["languages"] = new_config["languages"]
     except KeyError:
-        config["sites"]["4"] = True
-
-    try:  # 3.6
-        config["stay_logged_in"]
+        pass
+    try:  # v4.2
+        config["categories"]["c0"]
+        del config["categories"]
+        config["categories"] = new_config["categories"]
     except KeyError:
-        config["stay_logged_in"] = {}
-    try:  # 3.6
-        config["stay_logged_in"]["auto"]
+        pass
+    try:  # v4.2
+        config["sites"]["0"]
+        del config["sites"]
+        config["sites"] = new_config["sites"]
     except KeyError:
-        config["stay_logged_in"]["auto"] = False
-    try:  # 3.6
-        config["stay_logged_in"]["cookie"]
-    except KeyError:
-        config["stay_logged_in"]["cookie"] = False
-    try:  # v3.6
-        config["sites"]["5"]
-    except KeyError:
-        config["sites"]["5"] = True
-
-    try:  # v3.7
-        config["min_rating"]
-    except KeyError:
-        config["min_rating"] = 0.0
-    try:  # v3.7
+        pass
+    try:  #!important
         title_exclude = "\n".join(config["title_exclude"])
     except KeyError:
         config["title_exclude"] = []
         title_exclude = "\n".join(config["title_exclude"])
-    try:  # v3.9
-        config["instructor_exclude"] = config["exclude_instructor"]
-    except KeyError:
-        pass
-    try:  # v3.9
-        del config["exclude_instructor"]
-    except KeyError:
-        pass
-    try:  # v3.9
+    try:  #!Important
         instructor_exclude = "\n".join(config["instructor_exclude"])
     except KeyError:
         config["instructor_exclude"] = []
@@ -359,11 +302,8 @@ def fetch_cookies():
 
 def get_course_id(url):
     r = requests.get(url, allow_redirects=False)
-    if r.status_code in (404, 302):
+    if r.status_code in (404, 302, 301):
         return False
-
-    if r.status_code == 301:
-        r = requests.get(url)
     soup = bs(r.content, "html5lib")
 
     try:
@@ -655,7 +595,7 @@ def auto(list_st):
                     ae_c += 1
 
         elif not course_id:
-            main_window["out"].print("Course Expired", text_color="red")
+            main_window["out"].print(".Course Expired.", text_color="red")
 
         main_window["pout"].update(index + 1)
 
@@ -674,12 +614,12 @@ def auto(list_st):
 def main1():
     try:
         links_ls = []
-        for index in funcs:
-            main_window[f"pcol{index}"].update(visible=True)
+        for key in funcs:
+            main_window[f"pcol{key}"].update(visible=True)
         main_window["main_col"].update(visible=False)
         main_window["scrape_col"].update(visible=True)
-        for index in funcs:
-            funcs[index].start()
+        for key in funcs:
+            funcs[key].start()
         for t in funcs:
             funcs[t].join()
         main_window["scrape_col"].update(visible=False)
@@ -865,82 +805,84 @@ if (
                 )
 
 checkbox_lo = []
-for index in all_sites:
-    checkbox_lo.append(
-        [sg.Checkbox(all_sites[index], key=index, default=config["sites"][str(index)])]
-    )
+for key in config["sites"]:
+    checkbox_lo.append([sg.Checkbox(key, key=key, default=config["sites"][key])])
 
-category_lo = []
-for index in range(len(all_cat)):
+categories_lo = []
+categories_k = list(config["categories"].keys())
+categories_v = list(config["categories"].values())
+for index, _ in enumerate(config["categories"]):
     if index % 3 == 0:
         try:
-            category_lo.append(
+            categories_lo.append(
                 [
                     sg.Checkbox(
-                        all_cat[f"c{index}"],
-                        default=config["category"][f"c{index}"],
-                        key=f"c{index}",
+                        categories_k[index],
+                        default=categories_v[index],
+                        key=categories_k[index],
                         size=(16, 1),
                     ),
                     sg.Checkbox(
-                        all_cat[f"c{index+1}"],
-                        default=config["category"][f"c{index+1}"],
-                        key=f"c{index+1}",
+                        categories_k[index + 1],
+                        default=categories_v[index + 1],
+                        key=categories_k[index + 1],
                         size=(16, 1),
                     ),
                     sg.Checkbox(
-                        all_cat[f"c{index+2}"],
-                        default=config["category"][f"c{index+2}"],
-                        key=f"c{index+2}",
+                        categories_k[index + 2],
+                        default=categories_v[index + 2],
+                        key=categories_k[index + 2],
                         size=(15, 1),
                     ),
                 ]
             )
-        except KeyError:
-            category_lo.append(
+        except:
+            categories_lo.append(
                 [
                     sg.Checkbox(
-                        all_cat[f"c{index}"],
-                        default=config["category"][f"c{index}"],
-                        key=f"c{index}",
+                        categories_k[index],
+                        default=categories_v[index],
+                        key=categories_k[index],
                         size=(17, 1),
                     )
                 ]
             )
 
-language_lo = []
-for index in range(len(all_lang)):
+languages_lo = []
+languages_k = list(config["languages"].keys())
+languages_v = list(config["languages"].values())
+for index,_ in enumerate(config["languages"]):
     if index % 3 == 0:
         try:
-            language_lo.append(
+            languages_lo.append(
                 [
                     sg.Checkbox(
-                        all_lang[f"l{index}"],
-                        default=config["languages"][f"l{index}"],
-                        key=f"l{index}",
+                        languages_k[index],
+                        default=languages_v[index],
+                        key=languages_k[index],
                         size=(8, 1),
                     ),
                     sg.Checkbox(
-                        all_lang[f"l{index+1}"],
-                        default=config["languages"][f"l{index+1}"],
-                        key=f"l{index+1}",
+                        languages_k[index+1],
+                        default=languages_v[index+1],
+                        key=languages_k[index+1],
                         size=(8, 1),
                     ),
                     sg.Checkbox(
-                        all_lang[f"l{index+2}"],
-                        default=config["languages"][f"l{index+2}"],
-                        key=f"l{index+2}",
+                        languages_k[index+2],
+                        default=languages_v[index+2],
+                        key=languages_k[index+2],
                         size=(8, 1),
                     ),
                 ]
             )
         except KeyError:
-            language_lo.append(
+            languages_lo.append(
                 [
                     sg.Checkbox(
-                        all_lang[f"l{index}"],
-                        default=config["languages"][f"l{index}"],
-                        key=f"l{index}",
+                        languages_k[index],
+                        default=languages_v[index],
+                        key=languages_k[index],
                         size=(8, 1),
                     )
                 ]
@@ -958,7 +900,7 @@ main_tab = [
         ),
         sg.Frame(
             "Language",
-            language_lo,
+            languages_lo,
             "#4deeea",
             border_width=4,
             title_location="n",
@@ -968,7 +910,7 @@ main_tab = [
     [
         sg.Frame(
             "Category",
-            category_lo,
+            categories_lo,
             "#4deeea",
             border_width=4,
             title_location="n",
@@ -1036,26 +978,26 @@ advanced_tab = [
 
 
 scrape_col = []
-for site in all_sites:
+for key in config["sites"]:
     scrape_col.append(
         [
             sg.pin(
                 sg.Column(
                     [
                         [
-                            sg.Text(all_sites[site], size=(12, 1)),
+                            sg.Text(key, size=(12, 1)),
                             sg.ProgressBar(
                                 3,
                                 orientation="h",
-                                key=f"p{site}",
+                                key=f"p{key}",
                                 bar_color=("#1c6fba", "#000000"),
                                 border_width=1,
                                 size=(20, 20),
                             ),
-                            sg.Image(data=check_mark, visible=False, key=f"img{site}"),
+                            sg.Image(data=check_mark, visible=False, key=f"i{key}"),
                         ]
                     ],
-                    key=f"pcol{site}",
+                    key=f"pcol{key}",
                     visible=False,
                 )
             )
@@ -1177,12 +1119,12 @@ while True:
 
     elif event == "Start":
 
-        for index in all_lang:
-            config["languages"][index] = values[index]
-        for index in all_cat:
-            config["category"][index] = values[index]
-        for index in all_sites:
-            config["sites"][index] = values[index]
+        for key in config["languages"]:
+            config["languages"][key] = values[key]
+        for key in config["categories"]:
+            config["categories"][key] = values[key]
+        for key in config["sites"]:
+            config["sites"][key] = values[key]
         config["instructor_exclude"] = values["instructor_exclude"].split()
         config["title_exclude"] = values["title_exclude"].split("\n")
         config["min_rating"] = float(values["min_rating"])
@@ -1198,19 +1140,19 @@ while True:
         min_rating = config["min_rating"]
         user_dumb = True
 
-        for i in all_sites:
-            if values[i]:
-                funcs[i] = all_functions[i]
-                sites[i] = all_sites[i]
+        for key in config["sites"]:
+            if values[key]:
+                funcs[key] = all_functions[key]
+                sites[key] = config["sites"][key]
                 user_dumb = False
 
-        for index in all_cat:
-            if values[index]:
-                categories.append(all_cat[index])
+        for key in config["categories"]:
+            if values[key]:
+                categories.append(key)
 
-        for index in all_lang:
-            if values[index]:
-                languages.append(all_lang[index])
+        for key in config["languages"]:
+            if values[key]:
+                languages.append(key)
 
         if user_dumb:
             sg.popup_auto_close(
@@ -1219,10 +1161,10 @@ while True:
                 no_titlebar=True,
             )
         if not user_dumb:
-            for index in all_functions:
-                main_window[f"p{index}"].update(0, visible=True)
-                main_window[f"img{index}"].update(visible=False)
-                main_window[f"pcol{index}"].update(visible=False)
+            #for key in all_functions:
+                #main_window[f"p{key}"].update(0, visible=True)
+                #main_window[f"img{index}"].update(visible=False)
+                #main_window[f"pcol{index}"].update(visible=False)
             threading.Thread(target=main1, daemon=True).start()
 
 main_window.close()
