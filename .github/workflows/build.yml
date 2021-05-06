@@ -23,17 +23,6 @@ jobs:
           pip install pyinstaller
       - name: Build with pyinstaller for windows
         run: pyinstaller -y -F -w -i "DUCE-LOGO.ico" --name "Discounted-Udemy-Course-Enroller-windows" --add-data="pack;pack/"  "udemy.py"
-      - name: Load Release URL File from release job
-        uses: actions/download-artifact@v1
-        with:
-          name: release_url
-      - name: Get Release File Name & Upload URL
-        id: get_release_info
-        shell: bash
-        run: |
-          value=`cat release_url/release_url.txt`
-          echo ::set-output name=upload_url::$value
-
       - name: Save exe
         uses: actions/upload-artifact@v1
         with:
