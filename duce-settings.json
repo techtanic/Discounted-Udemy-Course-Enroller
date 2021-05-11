@@ -6,8 +6,7 @@
         "cookie": false
     },
     "min_rating": 0.0,
-    "title_exclude": [
-    ],
+    "title_exclude": [],
     "instructor_exclude": [],
     "languages": {
         "Chinese": true,

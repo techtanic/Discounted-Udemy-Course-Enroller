@@ -1126,7 +1126,7 @@ while True:
         for key in config["sites"]:
             config["sites"][key] = values[key]
         config["instructor_exclude"] = values["instructor_exclude"].split()
-        config["title_exclude"] = values["title_exclude"].split("\n")
+        config["title_exclude"] = list(filter(None,values["title_exclude"].split("\n")))
         config["min_rating"] = float(values["min_rating"])
         save_settings(config)
 
