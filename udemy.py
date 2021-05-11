@@ -236,7 +236,7 @@ def cookiejar(client_id, access_token):
     return cookies
 
 
-def save_config(config):
+def save_settings(config):
     if True:
         with open("duce-settings.json", "w") as f:
             json.dump(config, f, indent=4)
@@ -245,7 +245,7 @@ def save_config(config):
 #################
 
 
-def load_config():
+def load_settings():
     try:  # v3.6
         os.rename("config.json", "duce-settings.json")
     except FileNotFoundError:
@@ -269,8 +269,8 @@ def load_config():
     except KeyError:
         pass
     try:  # v4.2
-        config["categories"]["c0"]
-        del config["categories"]
+        config["category"]["c0"]
+        del config["category"]
         config["categories"] = new_config["categories"]
     except KeyError:
         pass
@@ -291,7 +291,7 @@ def load_config():
         config["instructor_exclude"] = []
         instructor_exclude = "\n".join(config["instructor_exclude"])
 
-    save_config(config)
+    save_settings(config)
     return config, instructor_exclude, title_exclude
 
 
@@ -659,7 +659,7 @@ def main1():
     main_window["output_col"].Update(visible=False)
 
 
-config, instructor_exclude, title_exclude = load_config()
+config, instructor_exclude, title_exclude = load_settings()
 
 ############## MAIN ############# MAIN############## MAIN ############# MAIN ############## MAIN ############# MAIN ###########
 menu = [["Help", ["Support", "Github", "Discord"]]]
@@ -742,7 +742,7 @@ if (
                     csrftoken = my_cookies["csrftoken"]
                     head, user, currency, s = check_login()
                     config["stay_logged_in"]["auto"] = values["sli_a"]
-                    save_config(config)
+                    save_settings(config)
                     login_window.close()
                     break
 
@@ -792,7 +792,7 @@ if (
             try:
                 cookies = cookiejar(client_id, access_token)
                 head, user, currency, s = check_login()
-                save_config(config)
+                save_settings(config)
                 login_window.close()
                 break
 
@@ -1105,7 +1105,7 @@ while True:
             False,
             False,
         )
-        save_config(config)
+        save_settings(config)
         break
 
     elif event == "Support":
@@ -1128,7 +1128,7 @@ while True:
         config["instructor_exclude"] = values["instructor_exclude"].split()
         config["title_exclude"] = values["title_exclude"].split("\n")
         config["min_rating"] = float(values["min_rating"])
-        save_config(config)
+        save_settings(config)
 
         all_functions = create_scrape_obj()
         funcs = {}
