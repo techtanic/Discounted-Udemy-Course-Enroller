@@ -25,6 +25,7 @@ sg.theme_background_color
 sg.set_options(
     button_color=(sg.theme_background_color(), sg.theme_background_color()),
     border_width=0,
+    font=10,
 )
 
 ############## Scraper
@@ -215,7 +216,7 @@ def idcoupons():
 
 ########################### Constants
 
-version = "v4.2"
+version = "v4.3"
 
 
 def create_scrape_obj():
@@ -383,14 +384,13 @@ def update_courses():
 
 
 def update_available():
-    if version.lstrip("v") < requests.get(
+    release_version = requests.get(
         "https://api.github.com/repos/techtanic/Discounted-Udemy-Course-Enroller/releases/latest"
-    ).json()["tag_name"].lstrip("v"):
-        sg.popup_auto_close(
-            "Update Available", no_titlebar=True, button_color=("white", "blue")
-        )
+    ).json()["tag_name"]
+    if version.lstrip("v") < release_version.lstrip("v"):
+        return f"{release_version} Availabe",f"{release_version} Availabe"
     else:
-        return
+        return f"Login {version}", f"Discounted-Udemy-Course-Enroller {version}"
 
 
 def check_login():
@@ -488,7 +488,6 @@ def auto(list_st):
             coupon_id = get_course_coupon(link)
             cat, lang, avg_rating = affiliate_api(course_id)
             instructor, purchased, amount = course_landing_api(course_id)
-            title_words = tl[0].split()
             if (
                 instructor in instructor_exclude
                 or title_in_exclusion(tl[0], title_exclude)
@@ -596,7 +595,7 @@ def auto(list_st):
 
         elif not course_id:
             main_window["out"].print(".Course Expired.", text_color="red")
-
+            e_c += 1
         main_window["pout"].update(index + 1)
 
     main_window["done_col"].update(visible=True)
@@ -660,6 +659,8 @@ def main1():
 
 
 config, instructor_exclude, title_exclude = load_settings()
+login_title,main_title = update_available()
+
 
 ############## MAIN ############# MAIN############## MAIN ############# MAIN ############## MAIN ############# MAIN ###########
 menu = [["Help", ["Support", "Github", "Discord"]]]
@@ -725,7 +726,7 @@ if (
         [sg.Column(c1, key="col1"), sg.Column(c2, visible=False, key="col2")],
     ]
 
-    login_window = sg.Window("Login", login_layout)
+    login_window = sg.Window(login_title, login_layout)
 
     while True:
         event, values = login_window.read()
@@ -851,7 +852,7 @@ for index, _ in enumerate(config["categories"]):
 languages_lo = []
 languages_k = list(config["languages"].keys())
 languages_v = list(config["languages"].values())
-for index,_ in enumerate(config["languages"]):
+for index, _ in enumerate(config["languages"]):
     if index % 3 == 0:
         try:
             languages_lo.append(
@@ -863,20 +864,20 @@ for index,_ in enumerate(config["languages"]):
                         size=(8, 1),
                     ),
                     sg.Checkbox(
-                        languages_k[index+1],
-                        default=languages_v[index+1],
-                        key=languages_k[index+1],
+                        languages_k[index + 1],
+                        default=languages_v[index + 1],
+                        key=languages_k[index + 1],
                         size=(8, 1),
                     ),
                     sg.Checkbox(
-                        languages_k[index+2],
-                        default=languages_v[index+2],
-                        key=languages_k[index+2],
+                        languages_k[index + 2],
+                        default=languages_v[index + 2],
+                        key=languages_k[index + 2],
                         size=(8, 1),
                     ),
                 ]
             )
-        except KeyError:
+        except IndexError:
             languages_lo.append(
                 [
                     sg.Checkbox(
@@ -884,7 +885,13 @@ for index,_ in enumerate(config["languages"]):
                         default=languages_v[index],
                         key=languages_k[index],
                         size=(8, 1),
-                    )
+                    ),
+                    sg.Checkbox(
+                        languages_k[index + 1],
+                        default=languages_v[index + 1],
+                        key=languages_k[index + 1],
+                        size=(8, 1),
+                    ),
                 ]
             )
 
@@ -1020,12 +1027,11 @@ output_col = [
 ]
 
 done_col = [
-    [sg.Text("       Stats", font=17, text_color="#FFD700")],
+    [sg.Text("       Stats", text_color="#FFD700")],
     [
         sg.Text(
             "Successfully Enrolled:             ",
             key="se_c",
-            font=10,
             text_color="#7CFC00",
         )
     ],
@@ -1033,17 +1039,12 @@ done_col = [
         sg.Text(
             "Amount Saved: $              ",
             key="as_c",
-            font=10,
             text_color="#00FA9A",
         )
     ],
-    [
-        sg.Text(
-            "Already Enrolled:              ", key="ae_c", font=10, text_color="#00FFFF"
-        )
-    ],
-    [sg.Text("Expired Courses:           ", key="e_c", font=10, text_color="#FF0000")],
-    [sg.Text("Excluded Courses:          ", key="ex_c", font=10, text_color="#FF4500")],
+    [sg.Text("Already Enrolled:              ", key="ae_c", text_color="#00FFFF")],
+    [sg.Text("Expired Courses:           ", key="e_c", text_color="#FF0000")],
+    [sg.Text("Excluded Courses:          ", key="ex_c", text_color="#FF4500")],
 ]
 
 main_col = [
@@ -1088,7 +1089,7 @@ main_lo = [
 # ,sg.Button(key='Dummy',image_data=back)
 
 global main_window
-main_window = sg.Window("Discounted-Udemy-Course-Enroller", main_lo, finalize=True)
+main_window = sg.Window(main_title, main_lo, finalize=True)
 threading.Thread(target=update_courses, daemon=True).start()
 update_available()
 while True:
@@ -1126,7 +1127,9 @@ while True:
         for key in config["sites"]:
             config["sites"][key] = values[key]
         config["instructor_exclude"] = values["instructor_exclude"].split()
-        config["title_exclude"] = list(filter(None,values["title_exclude"].split("\n")))
+        config["title_exclude"] = list(
+            filter(None, values["title_exclude"].split("\n"))
+        )
         config["min_rating"] = float(values["min_rating"])
         save_settings(config)
 
@@ -1161,10 +1164,10 @@ while True:
                 no_titlebar=True,
             )
         if not user_dumb:
-            #for key in all_functions:
-                #main_window[f"p{key}"].update(0, visible=True)
-                #main_window[f"img{index}"].update(visible=False)
-                #main_window[f"pcol{index}"].update(visible=False)
+            # for key in all_functions:
+            # main_window[f"p{key}"].update(0, visible=True)
+            # main_window[f"img{index}"].update(visible=False)
+            # main_window[f"pcol{index}"].update(visible=False)
             threading.Thread(target=main1, daemon=True).start()
 
 main_window.close()
