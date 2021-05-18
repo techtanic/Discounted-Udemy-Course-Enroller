@@ -4,7 +4,6 @@
 
 - Added languages: `Hindi` and `Arabic`
 - Better update notifying thing.
-- 
 - Fixed a small bug.(not so small)
 
 ## [v4.2](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v4.2) - 2021-05-06
