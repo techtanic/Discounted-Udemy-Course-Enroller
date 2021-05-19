@@ -7,7 +7,7 @@ import sys
 import threading
 import time
 import traceback
-import webbrowser
+from webbrowser import open
 from urllib.parse import parse_qs, unquote, urlsplit
 
 import browser_cookie3
@@ -243,9 +243,6 @@ def save_settings(config):
             json.dump(config, f, indent=4)
 
 
-#################
-
-
 def load_settings():
     try:  # v3.6
         os.rename("config.json", "duce-settings.json")
@@ -388,7 +385,7 @@ def update_available():
         "https://api.github.com/repos/techtanic/Discounted-Udemy-Course-Enroller/releases/latest"
     ).json()["tag_name"]
     if version.lstrip("v") < release_version.lstrip("v"):
-        return f"{release_version} Availabe",f"{release_version} Availabe"
+        return f"{release_version} Availabe", f"{release_version} Availabe"
     else:
         return f"Login {version}", f"Discounted-Udemy-Course-Enroller {version}"
 
@@ -659,7 +656,7 @@ def main1():
 
 
 config, instructor_exclude, title_exclude = load_settings()
-login_title,main_title = update_available()
+login_title, main_title = update_available()
 
 
 ############## MAIN ############# MAIN############## MAIN ############# MAIN ############## MAIN ############# MAIN ###########
@@ -769,15 +766,13 @@ if (
             login_window["client_id"].update(value=client_id)
 
         elif event == "Github":
-            webbrowser.open(
-                "https://github.com/techtanic/Discounted-Udemy-Course-Enroller"
-            )
+            open("https://github.com/techtanic/Discounted-Udemy-Course-Enroller")
 
         elif event == "Support":
-            webbrowser.open("https://techtanic.github.io/ucg/")
+            open("https://techtanic.github.io/ucg/")
 
         elif event == "Discord":
-            webbrowser.open("https://discord.gg/wFsfhJh4Rh")
+            open("https://discord.gg/wFsfhJh4Rh")
 
         elif event == "Back":
             login_window["col1"].update(visible=True)
@@ -1110,13 +1105,13 @@ while True:
         break
 
     elif event == "Support":
-        webbrowser.open("https://techtanic.github.io/duce/support/#")
+        open("https://techtanic.github.io/duce/support/#")
 
     elif event == "Github":
-        webbrowser.open("https://github.com/techtanic/Discounted-Udemy-Course-Enroller")
+        open("https://github.com/techtanic/Discounted-Udemy-Course-Enroller")
 
     elif event == "Discord":
-        webbrowser.open("https://discord.gg/wFsfhJh4Rh")
+        open("https://discord.gg/wFsfhJh4Rh")
 
     elif event == "Start":
 
