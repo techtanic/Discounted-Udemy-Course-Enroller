@@ -1,5 +1,9 @@
 # Changelog
 
+## v4.4
+- Replaced Cookie login with Email:Password
+-
+
 ## [v4.3](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/tag/v4.3) - 2021-05-20
 
 - Added languages: `Hindi` and `Arabic`

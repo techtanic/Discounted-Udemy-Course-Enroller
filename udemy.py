@@ -216,7 +216,7 @@ def idcoupons():
 
 ########################### Constants
 
-version = "v4.3"
+version = "v4.4 "
 
 
 def create_scrape_obj():
@@ -301,6 +301,8 @@ def fetch_cookies():
 def get_course_id(url):
     r = requests.get(url, allow_redirects=False)
     if r.status_code in (404, 302, 301):
+        return False
+    if "/course/draft/" in url:
         return False
     soup = bs(r.content, "html5lib")
 
