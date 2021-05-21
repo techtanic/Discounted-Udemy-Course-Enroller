@@ -837,7 +837,7 @@ if (
                 login_window.close()
                 break
 
-            except EOFError:
+            except:
                 sg.popup_auto_close(
                     "Login Unsuccessfull",
                     title="Error",
