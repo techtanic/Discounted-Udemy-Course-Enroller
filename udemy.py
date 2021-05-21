@@ -237,7 +237,7 @@ def cookiejar(
     client_id,
     access_token,
     csrf_token,
-):
+    ):
     cookies = dict(
         client_id=client_id,
         access_token=access_token,
@@ -354,7 +354,6 @@ def affiliate_api(courseid):
         "https://www.udemy.com/api-2.0/courses/"
         + courseid
         + "/?fields[course]=locale,primary_category,avg_rating_recent",
-        headers=head,
     ).json()
     return (
         r["primary_category"]["title"],
@@ -367,8 +366,7 @@ def course_landing_api(courseid):
     r = s.get(
         "https://www.udemy.com/api-2.0/course-landing-components/"
         + courseid
-        + "/me/?components=purchase,instructor_bio",
-        headers=head,
+        + "/me/?components=purchase,instructor_bio"
     ).json()
 
     instructor = (
@@ -391,7 +389,7 @@ def course_landing_api(courseid):
 def update_courses():
     while True:
         r = s.get(
-            "https://www.udemy.com/api-2.0/users/me/subscribed-courses/", headers=head
+            "https://www.udemy.com/api-2.0/users/me/subscribed-courses/"
         ).json()
         new_menu = [
             ["Help", ["Support", "Github", "Discord"]],
@@ -416,13 +414,11 @@ def update_available():
 
 def manual_login():
     s = cloudscraper.create_scraper()
-    r = s.get("https://www.udemy.com/join/login-popup/?locale=en_US")
-    soup = bs(r.text, "html5lib")
-    csrf_token = soup.find("input", {"name": "csrfmiddlewaretoken"})["value"]
+    s.get("https://www.udemy.com/join/login-popup/?locale=en_US")
     data = {
         "email": config["email"],
         "password": config["password"],
-        "csrfmiddlewaretoken": csrf_token,
+        "csrfmiddlewaretoken": s.cookies["csrftoken"],
     }
     s.headers.update(
         {"Referer": "https://www.udemy.com/join/login-popup/?locale=en_US"}
@@ -433,10 +429,7 @@ def manual_login():
         allow_redirects=False,
     )
     if r.status_code == 302:
-        print(r.cookies["client_id"])
-        print(r.cookies["access_token"])
-        print(csrf_token)
-        return r.cookies["client_id"], r.cookies["access_token"], csrf_token
+        return s.cookies["client_id"], s.cookies["access_token"], s.cookies["csrftoken"]
     raise Exception()
 
 
@@ -834,8 +827,6 @@ if (
 
             config["email"] = values["email"]
             config["password"] = values["password"]
-            print(config["email"])
-            print(config["password"])
             try:
                 head, user, currency, s = check_login(manual_login())
                 config["stay_logged_in"]["manual"] = values["sli_m"]
