@@ -414,11 +414,13 @@ def update_available():
 
 def manual_login():
     s = cloudscraper.create_scraper()
-    s.get("https://www.udemy.com/join/login-popup/?locale=en_US")
+    r=s.get("https://www.udemy.com/join/login-popup/?locale=en_US")
+    soup = bs(r.text, "html5lib")
+    csrf_token = soup.find("input", {"name": "csrfmiddlewaretoken"})["value"]
     data = {
         "email": config["email"],
         "password": config["password"],
-        "csrfmiddlewaretoken": s.cookies["csrftoken"],
+        "csrfmiddlewaretoken": csrf_token,
     }
     s.headers.update(
         {"Referer": "https://www.udemy.com/join/login-popup/?locale=en_US"}
@@ -429,8 +431,8 @@ def manual_login():
         allow_redirects=False,
     )
     if r.status_code == 302:
-        return s.cookies["client_id"], s.cookies["access_token"], s.cookies["csrftoken"]
-    raise Exception()
+        return r.cookies["client_id"], r.cookies["access_token"], csrf_token
+    raise Exception("error")
 
 
 def check_login(client_id, access_token, csrf_token):
@@ -828,13 +830,14 @@ if (
             config["email"] = values["email"]
             config["password"] = values["password"]
             try:
-                head, user, currency, s = check_login(manual_login())
+                client_id,access_token,csrf_token=manual_login()
+                head, user, currency, s = check_login(client_id,access_token,csrf_token)
                 config["stay_logged_in"]["manual"] = values["sli_m"]
                 save_settings(config)
                 login_window.close()
                 break
 
-            except:
+            except EOFError:
                 sg.popup_auto_close(
                     "Login Unsuccessfull",
                     title="Error",
