@@ -1,4 +1,3 @@
-from decimal import Decimal
 import json
 import os
 import random
@@ -7,10 +6,12 @@ import sys
 import threading
 import time
 import traceback
-from webbrowser import open as web
+from decimal import Decimal
 from urllib.parse import parse_qs, unquote, urlsplit
+from webbrowser import open as web
 
 import browser_cookie3
+import cloudscraper
 import PySimpleGUI as sg
 import requests
 from bs4 import BeautifulSoup as bs
@@ -232,8 +233,16 @@ def create_scrape_obj():
 
 
 ################
-def cookiejar(client_id, access_token):
-    cookies = dict(client_id=client_id, access_token=access_token)
+def cookiejar(
+    client_id,
+    access_token,
+    csrf_token,
+):
+    cookies = dict(
+        client_id=client_id,
+        access_token=access_token,
+        csrf_token=csrf_token,
+    )
     return cookies
 
 
@@ -244,14 +253,9 @@ def save_settings(config):
 
 
 def load_settings():
-    try:  # v3.6
-        os.rename("config.json", "duce-settings.json")
-    except FileNotFoundError:
-        pass
     try:
         with open("duce-settings.json") as f:
             config = json.load(f)
-
     except FileNotFoundError:
         config = requests.get(
             "https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/master/duce-settings.json"
@@ -278,6 +282,21 @@ def load_settings():
         config["sites"] = new_config["sites"]
     except KeyError:
         pass
+
+    try:  # v4.3
+        del config["access_token"]
+        del config["client_id"]
+        config["email"] = ""
+        config["password"] = ""
+    except:
+        pass
+    try:  # v4.3
+        config["stay_logged_in"]["cookie"]
+        del config["stay_logged_in"]["cookie"]
+        config["stay_logged_in"]["manual"] = False
+    except:
+        pass
+
     try:  #!important
         title_exclude = "\n".join(config["title_exclude"])
     except KeyError:
@@ -387,12 +406,41 @@ def update_available():
         "https://api.github.com/repos/techtanic/Discounted-Udemy-Course-Enroller/releases/latest"
     ).json()["tag_name"]
     if version.lstrip("v") < release_version.lstrip("v"):
-        return f" Update {release_version} Availabe", f"Update {release_version} Availabe"
+        return (
+            f" Update {release_version} Availabe",
+            f"Update {release_version} Availabe",
+        )
     else:
         return f"Login {version}", f"Discounted-Udemy-Course-Enroller {version}"
 
 
-def check_login():
+def manual_login():
+    s = cloudscraper.create_scraper()
+    r = s.get("https://www.udemy.com/join/login-popup/?locale=en_US")
+    soup = bs(r.text, "html5lib")
+    csrf_token = soup.find("input", {"name": "csrfmiddlewaretoken"})["value"]
+    data = {
+        "email": config["email"],
+        "password": config["password"],
+        "csrfmiddlewaretoken": csrf_token,
+    }
+    s.headers.update(
+        {"Referer": "https://www.udemy.com/join/login-popup/?locale=en_US"}
+    )
+    r = s.post(
+        "https://www.udemy.com/join/login-popup/?locale=en_US",
+        data=data,
+        allow_redirects=False,
+    )
+    if r.status_code == 302:
+        print(r.cookies["client_id"])
+        print(r.cookies["access_token"])
+        print(csrf_token)
+        return r.cookies["client_id"], r.cookies["access_token"], csrf_token
+    raise Exception()
+
+
+def check_login(client_id, access_token, csrf_token):
     head = {
         "authorization": "Bearer " + access_token,
         "accept": "application/json, text/plain, */*",
@@ -412,11 +460,12 @@ def check_login():
         "https://www.udemy.com/api-2.0/contexts/me/?me=True&Config=True", headers=head
     ).json()
     currency = r["Config"]["price_country"]["currency"]
-    user = ""
     user = r["me"]["display_name"]
 
     s = requests.session()
+    cookies = cookiejar(client_id, access_token, csrf_token)
     s.cookies.update(cookies)
+    s.headers.update(head)
     s.keep_alive = False
 
     return head, user, currency, s
@@ -445,7 +494,6 @@ def free_checkout(coupon, courseid):
 
     r = s.post(
         "https://www.udemy.com/payment/checkout-submit/",
-        headers=head,
         data=payload,
         verify=False,
     )
@@ -456,7 +504,6 @@ def free_enroll(courseid):
 
     s.get(
         "https://www.udemy.com/course/subscribe/?courseId=" + str(courseid),
-        headers=head,
         verify=False,
     )
 
@@ -464,7 +511,6 @@ def free_enroll(courseid):
         "https://www.udemy.com/api-2.0/users/me/subscribed-courses/"
         + str(courseid)
         + "/?fields%5Bcourse%5D=%40default%2Cbuyable_object_type%2Cprimary_subcategory%2Cis_private",
-        headers=head,
         verify=False,
     )
     return r.json()
@@ -668,28 +714,24 @@ login_error = False
 try:
     if config["stay_logged_in"]["auto"]:
         my_cookies, cookies = fetch_cookies()
-        access_token = my_cookies["access_token"]
-        csrftoken = my_cookies["csrftoken"]
-        head, user, currency, s = check_login()
+        head, user, currency, s = check_login(
+            my_cookies["client_id"], my_cookies["access_token"], my_cookies["csrftoken"]
+        )
 
-    elif config["stay_logged_in"]["cookie"]:
-        access_token = config["access_token"]
-        client_id = config["client_id"]
-        csrftoken = ""
-        cookies = cookiejar(client_id, access_token)
-        head, user, currency, s = check_login()
+    elif config["stay_logged_in"]["manual"]:
+        head, user, currency, s = check_login(manual_login())
 
 except:
     login_error = True
 if (
-    not config["stay_logged_in"]["auto"] and not config["stay_logged_in"]["cookie"]
+    not config["stay_logged_in"]["auto"] and not config["stay_logged_in"]["manual"]
 ) or login_error:
 
     c1 = [
         [
             sg.Button(key="a_login", image_data=auto_login),
             sg.T(""),
-            sg.B(key="c_login", image_data=cookie_login),
+            sg.B(key="m_login", image_data=manual_login_),
         ],
         [
             sg.Checkbox(
@@ -699,18 +741,26 @@ if (
     ]
     c2 = [
         [
-            sg.T("Access Token"),
-            sg.InputText(default_text="", key="access_token", size=(20, 1), pad=(5, 5)),
+            sg.T("Email"),
+            sg.InputText(
+                default_text=config["email"], key="email", size=(20, 1), pad=(5, 5)
+            ),
         ],
         [
-            sg.T("Client ID"),
-            sg.InputText(default_text="", key="client_id", size=(25, 1), pad=(5, 5)),
+            sg.T("Password"),
+            sg.InputText(
+                default_text=config["password"],
+                key="password",
+                size=(20, 1),
+                pad=(5, 5),
+                password_char="*",
+            ),
         ],
         [
             sg.Checkbox(
                 "Stay logged-in",
-                default=config["stay_logged_in"]["cookie"],
-                key="sli_c",
+                default=config["stay_logged_in"]["manual"],
+                key="sli_m",
             )
         ],
         [
@@ -738,9 +788,11 @@ if (
             try:
                 my_cookies, cookies = fetch_cookies()
                 try:
-                    access_token = my_cookies["access_token"]
-                    csrftoken = my_cookies["csrftoken"]
-                    head, user, currency, s = check_login()
+                    head, user, currency, s = check_login(
+                        my_cookies["client_id"],
+                        my_cookies["access_token"],
+                        my_cookies["csrftoken"],
+                    )
                     config["stay_logged_in"]["auto"] = values["sli_a"]
                     save_settings(config)
                     login_window.close()
@@ -758,14 +810,12 @@ if (
                 e = traceback.format_exc()
                 sg.popup_scrolled(e, title="Unknown Error")
 
-        elif event == "c_login":
+        elif event == "m_login":
             login_window["col1"].update(visible=False)
             login_window["col2"].update(visible=True)
 
-            access_token = config["access_token"]
-            client_id = config["client_id"]
-            login_window["access_token"].update(value=access_token)
-            login_window["client_id"].update(value=client_id)
+            login_window["email"].update(value=config["email"])
+            login_window["password"].update(value=config["password"])
 
         elif event == "Github":
             web("https://github.com/techtanic/Discounted-Udemy-Course-Enroller")
@@ -782,14 +832,13 @@ if (
 
         elif event == "Login":
 
-            access_token = values["access_token"]
-            client_id = values["client_id"]
-            config["access_token"] = access_token
-            config["client_id"] = client_id
-            csrftoken = ""
+            config["email"] = values["email"]
+            config["password"] = values["password"]
+            print(config["email"])
+            print(config["password"])
             try:
-                cookies = cookiejar(client_id, access_token)
-                head, user, currency, s = check_login()
+                head, user, currency, s = check_login(manual_login())
+                config["stay_logged_in"]["manual"] = values["sli_m"]
                 save_settings(config)
                 login_window.close()
                 break
@@ -1061,7 +1110,7 @@ main_col = [
     ],
 ]
 
-if config["stay_logged_in"]["auto"] or config["stay_logged_in"]["cookie"]:
+if config["stay_logged_in"]["auto"] or config["stay_logged_in"]["manual"]:
     logout_btn_lo = sg.Button(key="Logout", image_data=logout)
 else:
     logout_btn_lo = sg.Button(key="Logout", image_data=logout, visible=False)
@@ -1099,7 +1148,7 @@ while True:
         break
 
     elif event == "Logout":
-        config["stay_logged_in"]["auto"], config["stay_logged_in"]["cookie"] = (
+        config["stay_logged_in"]["auto"], config["stay_logged_in"]["manual"] = (
             False,
             False,
         )

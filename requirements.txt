@@ -5,3 +5,4 @@ PySimpleGUI
 bs4
 html5lib
 argparse
+cloudscraper

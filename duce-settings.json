@@ -1,9 +1,7 @@
 {
-    "access_token": "",
-    "client_id": "",
     "stay_logged_in": {
         "auto": false,
-        "cookie": false
+        "manual": false
     },
     "min_rating": 0.0,
     "title_exclude": [],
@@ -49,5 +47,7 @@
         "Real Discount": true,
         "Course Vania": true,
         "IDownloadCoupons": true
-    }
+    },
+    "email": "",
+    "password": ""
 }
