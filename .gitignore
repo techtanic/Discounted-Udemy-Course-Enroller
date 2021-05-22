@@ -11,3 +11,4 @@ build/
 dist/
 test/
 pyins.json
+prob.text

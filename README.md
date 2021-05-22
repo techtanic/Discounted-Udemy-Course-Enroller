@@ -53,4 +53,8 @@ BTC `14JNjiNoiKcbCHcxcqUxgJcVgyDfhGbxQF`
 
 Originally: https://github.com/AmmeySaini/Udemy-Paid-Courses-Grabber
 
+# Thanks to them
+
+<a href="https://integrately.com?ref=un36q3&utm_campaign=Website Referral" target="_blank"><img src="https://integrately-images.s3-us-west-2.amazonaws.com/we-automate-with-integrately-light.svg" width="120" alt="Integrately - Integration platform" title="Click to learn more"/></a>
+
 [Back to top](#)
