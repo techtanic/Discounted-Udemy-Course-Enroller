@@ -1,5 +1,4 @@
 import json
-import os
 import random
 import re
 import sys
@@ -217,7 +216,7 @@ def idcoupons():
 
 ########################### Constants
 
-version = "v4.4 "
+version = "v4.5"
 
 
 def create_scrape_obj():
@@ -237,7 +236,7 @@ def cookiejar(
     client_id,
     access_token,
     csrf_token,
-    ):
+):
     cookies = dict(
         client_id=client_id,
         access_token=access_token,
@@ -246,70 +245,69 @@ def cookiejar(
     return cookies
 
 
-def save_settings(config):
+def save_settings(settings):
     if True:
         with open("duce-settings.json", "w") as f:
-            json.dump(config, f, indent=4)
+            json.dump(settings, f, indent=4)
 
 
 def load_settings():
     try:
         with open("duce-settings.json") as f:
-            config = json.load(f)
+            settings = json.load(f)
     except FileNotFoundError:
-        config = requests.get(
+        settings = requests.get(
             "https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/master/duce-settings.json"
         ).json()
+    try:  #!important
+        title_exclude = "\n".join(settings["title_exclude"])
+    except KeyError:
+        settings["title_exclude"] = []
+        title_exclude = "\n".join(settings["title_exclude"])
+    try:  #!Important
+        instructor_exclude = "\n".join(settings["instructor_exclude"])
+    except KeyError:
+        settings["instructor_exclude"] = []
+        instructor_exclude = "\n".join(settings["instructor_exclude"])
 
-    new_config = requests.get(
+    new_settings = requests.get(
         "https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/master/duce-settings.json"
     ).json()
+
     try:  # v4.2
-        config["languages"]["l0"]
-        del config["languages"]
-        config["languages"] = new_config["languages"]
+        settings["languages"]["l0"]
+        del settings["languages"]
+        settings["languages"] = new_settings["languages"]
     except KeyError:
         pass
     try:  # v4.2
-        config["category"]["c0"]
-        del config["category"]
-        config["categories"] = new_config["categories"]
+        settings["category"]["c0"]
+        del settings["category"]
+        settings["categories"] = new_settings["categories"]
     except KeyError:
         pass
     try:  # v4.2
-        config["sites"]["0"]
-        del config["sites"]
-        config["sites"] = new_config["sites"]
+        settings["sites"]["0"]
+        del settings["sites"]
+        settings["sites"] = new_settings["sites"]
     except KeyError:
         pass
 
     try:  # v4.3
-        del config["access_token"]
-        del config["client_id"]
-        config["email"] = ""
-        config["password"] = ""
+        del settings["access_token"]
+        del settings["client_id"]
+        settings["email"] = ""
+        settings["password"] = ""
     except:
         pass
     try:  # v4.3
-        config["stay_logged_in"]["cookie"]
-        del config["stay_logged_in"]["cookie"]
-        config["stay_logged_in"]["manual"] = False
+        settings["stay_logged_in"]["cookie"]
+        del settings["stay_logged_in"]["cookie"]
+        settings["stay_logged_in"]["manual"] = False
     except:
         pass
-
-    try:  #!important
-        title_exclude = "\n".join(config["title_exclude"])
-    except KeyError:
-        config["title_exclude"] = []
-        title_exclude = "\n".join(config["title_exclude"])
-    try:  #!Important
-        instructor_exclude = "\n".join(config["instructor_exclude"])
-    except KeyError:
-        config["instructor_exclude"] = []
-        instructor_exclude = "\n".join(config["instructor_exclude"])
-
-    save_settings(config)
-    return config, instructor_exclude, title_exclude
+    save_settings(settings)
+    return settings, instructor_exclude, title_exclude
 
 
 def fetch_cookies():
@@ -388,9 +386,7 @@ def course_landing_api(courseid):
 
 def update_courses():
     while True:
-        r = s.get(
-            "https://www.udemy.com/api-2.0/users/me/subscribed-courses/"
-        ).json()
+        r = s.get("https://www.udemy.com/api-2.0/users/me/subscribed-courses/").json()
         new_menu = [
             ["Help", ["Support", "Github", "Discord"]],
             [f'Total Courses: {r["count"]}'],
@@ -414,16 +410,19 @@ def update_available():
 
 def manual_login():
     s = cloudscraper.create_scraper()
-    r=s.get("https://www.udemy.com/join/login-popup/?locale=en_US")
+    r = s.get("https://www.udemy.com/join/login-popup/?locale=en_US")
     soup = bs(r.text, "html5lib")
     csrf_token = soup.find("input", {"name": "csrfmiddlewaretoken"})["value"]
     data = {
-        "email": config["email"],
-        "password": config["password"],
+        "email": settings["email"],
+        "password": settings["password"],
         "csrfmiddlewaretoken": csrf_token,
     }
     s.headers.update(
-        {"Referer": "https://www.udemy.com/join/login-popup/?locale=en_US"}
+        {
+            "Referer": "https://www.udemy.com/join/login-popup/?locale=en_US",
+            "user-agent": "APIs-Google (+https://developers.google.com/webmasters/APIs-Google.html)",
+        }
     )
     r = s.post(
         "https://www.udemy.com/join/login-popup/?locale=en_US",
@@ -431,8 +430,16 @@ def manual_login():
         allow_redirects=False,
     )
     if r.status_code == 302:
-        return r.cookies["client_id"], r.cookies["access_token"], csrf_token
-    raise Exception("error")
+        return "", r.cookies["client_id"], r.cookies["access_token"], csrf_token
+    else:
+        soup = bs(r.content, "html5lib")
+        txt = soup.find("div", class_="alert alert-danger js-error-alert").text.strip()
+        if txt[0] == "Y":
+            return "Too many logins per hour try later","","",""
+        elif txt[0] == "T":
+            return "Email or password incorrect","","",""
+        else:
+            return txt,"","",""
 
 
 def check_login(client_id, access_token, csrf_token):
@@ -693,12 +700,12 @@ def main1():
 
     except:
         e = traceback.format_exc()
-        sg.popup_scrolled(e, title="Unknown Error")
+        sg.popup_scrolled(e, title=f"Unknown Error {version}")
 
     main_window["output_col"].Update(visible=False)
 
 
-config, instructor_exclude, title_exclude = load_settings()
+settings, instructor_exclude, title_exclude = load_settings()
 login_title, main_title = update_available()
 
 
@@ -707,19 +714,21 @@ menu = [["Help", ["Support", "Github", "Discord"]]]
 
 login_error = False
 try:
-    if config["stay_logged_in"]["auto"]:
+    if settings["stay_logged_in"]["auto"]:
         my_cookies, cookies = fetch_cookies()
         head, user, currency, s = check_login(
             my_cookies["client_id"], my_cookies["access_token"], my_cookies["csrftoken"]
         )
 
-    elif config["stay_logged_in"]["manual"]:
-        head, user, currency, s = check_login(manual_login())
+    elif settings["stay_logged_in"]["manual"]:
+        txt,client_id,access_token,csrf_token=manual_login()
+        if not txt:
+            head, user, currency, s = check_login(client_id,access_token,csrf_token)
 
 except:
     login_error = True
 if (
-    not config["stay_logged_in"]["auto"] and not config["stay_logged_in"]["manual"]
+    not settings["stay_logged_in"]["auto"] and not settings["stay_logged_in"]["manual"]
 ) or login_error:
 
     c1 = [
@@ -730,7 +739,9 @@ if (
         ],
         [
             sg.Checkbox(
-                "Stay logged-in", default=config["stay_logged_in"]["auto"], key="sli_a"
+                "Stay logged-in",
+                default=settings["stay_logged_in"]["auto"],
+                key="sli_a",
             )
         ],
     ]
@@ -738,13 +749,13 @@ if (
         [
             sg.T("Email"),
             sg.InputText(
-                default_text=config["email"], key="email", size=(20, 1), pad=(5, 5)
+                default_text=settings["email"], key="email", size=(20, 1), pad=(5, 5)
             ),
         ],
         [
             sg.T("Password"),
             sg.InputText(
-                default_text=config["password"],
+                default_text=settings["password"],
                 key="password",
                 size=(20, 1),
                 pad=(5, 5),
@@ -754,7 +765,7 @@ if (
         [
             sg.Checkbox(
                 "Stay logged-in",
-                default=config["stay_logged_in"]["manual"],
+                default=settings["stay_logged_in"]["manual"],
                 key="sli_m",
             )
         ],
@@ -788,8 +799,8 @@ if (
                         my_cookies["access_token"],
                         my_cookies["csrftoken"],
                     )
-                    config["stay_logged_in"]["auto"] = values["sli_a"]
-                    save_settings(config)
+                    settings["stay_logged_in"]["auto"] = values["sli_a"]
+                    save_settings(settings)
                     login_window.close()
                     break
 
@@ -803,14 +814,14 @@ if (
 
             except Exception as e:
                 e = traceback.format_exc()
-                sg.popup_scrolled(e, title="Unknown Error")
+                sg.popup_scrolled(e, title=f"Unknown Error {version}")
 
         elif event == "m_login":
             login_window["col1"].update(visible=False)
             login_window["col2"].update(visible=True)
 
-            login_window["email"].update(value=config["email"])
-            login_window["password"].update(value=config["password"])
+            login_window["email"].update(value=settings["email"])
+            login_window["password"].update(value=settings["password"])
 
         elif event == "Github":
             web("https://github.com/techtanic/Discounted-Udemy-Course-Enroller")
@@ -827,32 +838,38 @@ if (
 
         elif event == "Login":
 
-            config["email"] = values["email"]
-            config["password"] = values["password"]
+            settings["email"] = values["email"]
+            settings["password"] = values["password"]
             try:
-                client_id,access_token,csrf_token=manual_login()
-                head, user, currency, s = check_login(client_id,access_token,csrf_token)
-                config["stay_logged_in"]["manual"] = values["sli_m"]
-                save_settings(config)
-                login_window.close()
-                break
-
-            except:
-                sg.popup_auto_close(
-                    "Login Unsuccessfull",
+                txt,client_id, access_token, csrf_token = manual_login()
+                if not txt:
+                    head, user, currency, s = check_login(
+                        client_id, access_token, csrf_token
+                    )
+                    settings["stay_logged_in"]["manual"] = values["sli_m"]
+                    save_settings(settings)
+                    login_window.close()
+                    break
+                else:
+                    sg.popup_auto_close(
+                    txt,
                     title="Error",
                     auto_close_duration=5,
                     no_titlebar=True,
-                )
+                        )
+
+            except:
+                e = traceback.format_exc()
+                sg.popup_scrolled(e, title=f"Unknown Error {version}")
 
 checkbox_lo = []
-for key in config["sites"]:
-    checkbox_lo.append([sg.Checkbox(key, key=key, default=config["sites"][key])])
+for key in settings["sites"]:
+    checkbox_lo.append([sg.Checkbox(key, key=key, default=settings["sites"][key])])
 
 categories_lo = []
-categories_k = list(config["categories"].keys())
-categories_v = list(config["categories"].values())
-for index, _ in enumerate(config["categories"]):
+categories_k = list(settings["categories"].keys())
+categories_v = list(settings["categories"].values())
+for index, _ in enumerate(settings["categories"]):
     if index % 3 == 0:
         try:
             categories_lo.append(
@@ -890,9 +907,9 @@ for index, _ in enumerate(config["categories"]):
             )
 
 languages_lo = []
-languages_k = list(config["languages"].keys())
-languages_v = list(config["languages"].values())
-for index, _ in enumerate(config["languages"]):
+languages_k = list(settings["languages"].keys())
+languages_v = list(settings["languages"].values())
+for index, _ in enumerate(settings["languages"]):
     if index % 3 == 0:
         try:
             languages_lo.append(
@@ -983,7 +1000,7 @@ rating_lo = [
     [
         sg.Spin(
             [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0],
-            initial_value=config["min_rating"],
+            initial_value=settings["min_rating"],
             key="min_rating",
             font=25,
         ),
@@ -1025,7 +1042,7 @@ advanced_tab = [
 
 
 scrape_col = []
-for key in config["sites"]:
+for key in settings["sites"]:
     scrape_col.append(
         [
             sg.pin(
@@ -1104,7 +1121,7 @@ main_col = [
     ],
 ]
 
-if config["stay_logged_in"]["auto"] or config["stay_logged_in"]["manual"]:
+if settings["stay_logged_in"]["auto"] or settings["stay_logged_in"]["manual"]:
     logout_btn_lo = sg.Button(key="Logout", image_data=logout)
 else:
     logout_btn_lo = sg.Button(key="Logout", image_data=logout, visible=False)
@@ -1142,11 +1159,11 @@ while True:
         break
 
     elif event == "Logout":
-        config["stay_logged_in"]["auto"], config["stay_logged_in"]["manual"] = (
+        settings["stay_logged_in"]["auto"], settings["stay_logged_in"]["manual"] = (
             False,
             False,
         )
-        save_settings(config)
+        save_settings(settings)
         break
 
     elif event == "Support":
@@ -1160,40 +1177,40 @@ while True:
 
     elif event == "Start":
 
-        for key in config["languages"]:
-            config["languages"][key] = values[key]
-        for key in config["categories"]:
-            config["categories"][key] = values[key]
-        for key in config["sites"]:
-            config["sites"][key] = values[key]
-        config["instructor_exclude"] = values["instructor_exclude"].split()
-        config["title_exclude"] = list(
+        for key in settings["languages"]:
+            settings["languages"][key] = values[key]
+        for key in settings["categories"]:
+            settings["categories"][key] = values[key]
+        for key in settings["sites"]:
+            settings["sites"][key] = values[key]
+        settings["instructor_exclude"] = values["instructor_exclude"].split()
+        settings["title_exclude"] = list(
             filter(None, values["title_exclude"].split("\n"))
         )
-        config["min_rating"] = float(values["min_rating"])
-        save_settings(config)
+        settings["min_rating"] = float(values["min_rating"])
+        save_settings(settings)
 
         all_functions = create_scrape_obj()
         funcs = {}
         sites = {}
         categories = []
         languages = []
-        instructor_exclude = config["instructor_exclude"]
-        title_exclude = config["title_exclude"]
-        min_rating = config["min_rating"]
+        instructor_exclude = settings["instructor_exclude"]
+        title_exclude = settings["title_exclude"]
+        min_rating = settings["min_rating"]
         user_dumb = True
 
-        for key in config["sites"]:
+        for key in settings["sites"]:
             if values[key]:
                 funcs[key] = all_functions[key]
-                sites[key] = config["sites"][key]
+                sites[key] = settings["sites"][key]
                 user_dumb = False
 
-        for key in config["categories"]:
+        for key in settings["categories"]:
             if values[key]:
                 categories.append(key)
 
-        for key in config["languages"]:
+        for key in settings["languages"]:
             if values[key]:
                 languages.append(key)
 

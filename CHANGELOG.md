@@ -1,5 +1,10 @@
 # Changelog
 
+## v4.5
+- Fixed Manual login
+- Manual "Login unsuccessful" show more details
+- Shows version in error window
+
 ## v4.4
 - Replaced Cookie login with Email:Password
 - Fixed 4 bugs
