@@ -2,7 +2,7 @@ name: Build
 
 on:
   workflow_dispatch:
-  #push:
+  push:
 
 jobs:
 
@@ -22,7 +22,7 @@ jobs:
           pip install -r requirements.txt -U
           pip install pyinstaller
       - name: Build with pyinstaller for windows
-        run: pyinstaller -y -F -w -i "DUCE-LOGO.ico" --name "Discounted-Udemy-Course-Enroller-windows" --add-data="pack;pack/" --add-data "path_for_cloudscraper_folder;./cloudscraper/" "udemy.py"
+        run: pyinstaller -y -F -w -i "DUCE-LOGO.ico" --name "Discounted-Udemy-Course-Enroller-windows" --add-data="pack;pack/" --add-data "c:\hostedtoolcache\windows\python\3.8.10\x64\lib\site-packages\cloudscraper;./cloudscraper/" "udemy.py"
       - name: Save exe
         uses: actions/upload-artifact@v1
         with:

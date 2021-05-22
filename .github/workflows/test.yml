@@ -20,6 +20,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install cloudscraper
-          pip show cloudscraper
+          c:\hostedtoolcache\windows\python\3.8.10\x64\lib\site-packages\cloudscraper
       - name: Build with pyinstaller for windows
-        run: pyinstaller -y -F -w -i "DUCE-LOGO.ico" --name "Discounted-Udemy-Course-Enroller-windows" --add-data="pack;pack/" --add-data "path_for_cloudscraper_folder;./cloudscraper/" "udemy.py"
+        run: pyinstaller -y -F -w -i "DUCE-LOGO.ico" --name "Discounted-Udemy-Course-Enroller-windows" --add-data="pack;pack/" --add-data "c:\hostedtoolcache\windows\python\3.8.10\x64\lib\site-packages\cloudscraper;./cloudscraper/" "udemy.py"
