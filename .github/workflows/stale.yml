@@ -1,6 +1,7 @@
 name: 'Close stale issues and PRs'
 on:
   issue_comment:
+  issues:
   workflow_dispatch:
   schedule:
     - cron: '0 */2 * * *'
