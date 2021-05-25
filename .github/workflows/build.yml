@@ -37,3 +37,9 @@ jobs:
         with:
           name: DUCE-CLI-windows.exe
           path: ./dist/DUCE-CLI-windows.exe
+      - name: Upload DUCE
+        uses: actions/upload-artifact@v2
+        with:
+          name: DUCE-windows
+          path: ./dist/
+        
