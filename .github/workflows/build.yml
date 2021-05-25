@@ -35,5 +35,5 @@ jobs:
       - name: Upload CLI.exe
         uses: actions/upload-artifact@v1
         with:
-          name: DUCE-GUI-windows.exe
+          name: DUCE-CLI-windows.exe
           path: ./dist/DUCE-CLI-windows.exe
