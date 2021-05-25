@@ -9,7 +9,7 @@ jobs:
     name: Build windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Set up Python 3.8
         uses: actions/setup-python@v2
         with:
@@ -28,12 +28,12 @@ jobs:
         run: pyinstaller -y -F -c -i "CLI/DUCE-LOGO.ico" --name "DUCE-CLI-windows" --add-data="CLI/colors.py;." --add-data "c:\hostedtoolcache\windows\python\3.8.10\x64\lib\site-packages\cloudscraper;./cloudscraper/" "CLI/duce.py"
 
       - name: Upload GUI.exe
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: DUCE-GUI-windows.exe
           path: ./dist/DUCE-GUI-windows.exe
       - name: Upload CLI.exe
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: DUCE-CLI-windows.exe
           path: ./dist/DUCE-CLI-windows.exe
