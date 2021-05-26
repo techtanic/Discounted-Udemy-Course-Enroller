@@ -1,1 +1,4 @@
-/gh-pages
+GUI/pack/__pycache__/
+CLI/__pycache__/
+.vscode/
+GUI/test.py

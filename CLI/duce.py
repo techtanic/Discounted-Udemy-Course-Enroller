@@ -1,4 +1,5 @@
 import json
+import os
 import random
 import re
 import threading
@@ -7,13 +8,12 @@ import traceback
 from decimal import Decimal
 from urllib.parse import parse_qs, unquote, urlsplit
 
-
-import requests
 import cloudscraper
+import requests
 from bs4 import BeautifulSoup as bs
 from tqdm import tqdm
 
-from .colors import *
+from colors import *
 
 # DUCE-CLI
 
@@ -237,9 +237,9 @@ def load_settings():
 
     except FileNotFoundError:
         settings = requests.get(
-            "https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/master/CLI/duce-cli-settings.json"
+            "https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/master/duce-cli-settings.json"
         ).json()
-        
+
     try:  # v1.2
         del settings["access_token"]
         del settings["client_id"]

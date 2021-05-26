@@ -16,7 +16,7 @@ import PySimpleGUI as sg
 import requests
 from bs4 import BeautifulSoup as bs
 
-from .pack.base64 import *
+from pack.base64 import *
 
 # DUCE
 
@@ -248,13 +248,16 @@ def cookiejar(
 
 def save_settings(settings):
     if True:
-        with open("duce-settings.json", "w") as f:
+        with open("duce-gui-settings.json", "w") as f:
             json.dump(settings, f, indent=4)
 
 
 def load_settings():
+    print(os.getcwd())
     try:
-        os.rename("duce-settings.json", "duce-gui-settings.json")
+        os.rename(
+            "duce-settings.json", "duce-gui-settings.json"
+        )
     except:
         pass
     try:
@@ -262,12 +265,12 @@ def load_settings():
             settings = json.load(f)
     except FileNotFoundError:
         settings = requests.get(
-            "https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/master/GUI/duce-settings.json"
+            "https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/master/duce-gui-settings.json"
         ).json()
 
     title_exclude = "\n".join(settings["title_exclude"])
     instructor_exclude = "\n".join(settings["instructor_exclude"])
-    
+
     try:  # v4.3
         del settings["access_token"]
         del settings["client_id"]
