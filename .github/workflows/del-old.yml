@@ -8,8 +8,6 @@ jobs:
     steps:
       - uses: dev-drprasad/delete-older-releases@v0.2.0
         with:
-          repo: <owner>/<repoName> # defaults to current repo
-          keep_latest: 3
-          delete_tag_pattern: beta # defaults to ""
+          keep_latest: 1  
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
