@@ -253,11 +253,8 @@ def save_settings(settings):
 
 
 def load_settings():
-    print(os.getcwd())
     try:
-        os.rename(
-            "duce-settings.json", "duce-gui-settings.json"
-        )
+        os.rename("duce-settings.json", "duce-gui-settings.json")
     except:
         pass
     try:
