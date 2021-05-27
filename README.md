@@ -40,12 +40,12 @@ Everything you need can be on the website.
 <tbody>
   <tr>
     <td class="tg-nrix"><span style="font-weight:bold">Windows exe</span></td>
-    <td class="tg-zmmf"><a href="https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/latest/download/DUCE-GUI-windows.exe" target="_blank" rel="noopener noreferrer">LINK</a></td>
+    <td class="tg-9wq8"><a href="https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/latest/download/DUCE-GUI-windows.exe" target="_blank" rel="noopener noreferrer">LINK</a></td>
     <td class="tg-9wq8"><a href="https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/latest/download/DUCE-CLI-windows.exe" target="_blank" rel="noopener noreferrer">LINK</a></td>
     <td class="tg-9wq8" rowspan="2"><a href="https://github.com/techtanic/Discounted-Udemy-Course-Enroller/tree/master/G-COLAB#readme" target="_blank" rel="noopener noreferrer">LINK</a></td>
   </tr>
   <tr>
-    <td class="tg-nrix"><span style="font-weight:bold">Python code</span></td>
+    <td class="tg-9wq8"><span style="font-weight:bold">Python code</span></td>
     <td class="tg-9wq8"><a href="https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/techtanic/Discounted-Udemy-Course-Enroller/tree/master/GUI" target="_blank" rel="noopener noreferrer">LINK</a></td>
     <td class="tg-9wq8"><a href="https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/techtanic/Discounted-Udemy-Course-Enroller/tree/master/CLI" target="_blank" rel="noopener noreferrer">LINK</a></td>
   </tr>
