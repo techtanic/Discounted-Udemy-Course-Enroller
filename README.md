@@ -14,20 +14,9 @@
 
 >Software to enroll in available Udemy Paid/Free courses having coupons automatically to your Udemy account.
 
-Checkout the website: [techtanic.github.io/duce](https://techtanic.github.io/duce/)
-Everything you need can be on the website.
+Everything you need can be on the website.: [techtanic.github.io/duce](https://techtanic.github.io/duce/)
 
-<style type="text/css">
-.tg  {border-collapse:collapse;border-color:#bbb;border-spacing:0;}
-.tg td{background-color:#E0FFEB;border-color:#bbb;border-style:solid;border-width:0px;color:#594F4F;
-  font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:20px 20px;word-break:normal;}
-.tg th{background-color:#9DE0AD;border-color:#bbb;border-style:solid;border-width:0px;color:#493F3F;
-  font-family:Arial, sans-serif;font-size:14px;font-weight:normal;overflow:hidden;padding:20px 20px;word-break:normal;}
-.tg .tg-9wq8{border-color:inherit;text-align:center;vertical-align:middle}
-.tg .tg-6yw6{background-color:#000000;text-align:center;vertical-align:middle}
-.tg .tg-nrix{text-align:center;vertical-align:middle}
-.tg .tg-zmmf{border-color:inherit;font-family:serif !important;;text-align:center;vertical-align:middle}
-</style>
+
 <table class="tg">
 <thead>
   <tr>
