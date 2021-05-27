@@ -17,29 +17,40 @@
 Checkout the website: [techtanic.github.io/duce](https://techtanic.github.io/duce/)
 Everything you need can be on the website.
 
-<h2><details>
-<summary>Screenshots</summary>
-
-![Login](https://cdn.discordapp.com/attachments/823472016999972884/834051177792274452/unknown.png)
-
-![Cookie Login](https://cdn.discordapp.com/attachments/823472016999972884/834051201342373888/unknown.png)
-
-![Discounted Udemy Course Enroller](https://cdn.discordapp.com/attachments/823472016999972884/834051568554737674/unknown.png)
-
-![Coupon Scraping](https://cdn.discordapp.com/attachments/823472016999972884/834051762255560704/unknown.png)
-
-![Enrolling](https://cdn.discordapp.com/attachments/823472016999972884/824187751075282974/unknown.png)
-</details>
-
-
-## Key Features
-
-- Beautiful GUI.
-- One click login.
-- One click to add all available courses with coupons to your udemy account.
-- Uses popular sites for coupons.
-- Many more features
-
+<style type="text/css">
+.tg  {border-collapse:collapse;border-color:#bbb;border-spacing:0;}
+.tg td{background-color:#E0FFEB;border-color:#bbb;border-style:solid;border-width:0px;color:#594F4F;
+  font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:20px 20px;word-break:normal;}
+.tg th{background-color:#9DE0AD;border-color:#bbb;border-style:solid;border-width:0px;color:#493F3F;
+  font-family:Arial, sans-serif;font-size:14px;font-weight:normal;overflow:hidden;padding:20px 20px;word-break:normal;}
+.tg .tg-9wq8{border-color:inherit;text-align:center;vertical-align:middle}
+.tg .tg-6yw6{background-color:#000000;text-align:center;vertical-align:middle}
+.tg .tg-nrix{text-align:center;vertical-align:middle}
+.tg .tg-zmmf{border-color:inherit;font-family:serif !important;;text-align:center;vertical-align:middle}
+</style>
+<table class="tg">
+<thead>
+  <tr>
+    <th class="tg-6yw6"></th>
+    <th class="tg-9wq8"><span style="font-weight:bold">GUI</span></th>
+    <th class="tg-9wq8"><span style="font-weight:bold">CLI</span></th>
+    <th class="tg-9wq8"><span style="font-weight:bold">COLAB</span></th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td class="tg-nrix"><span style="font-weight:bold">Windows exe</span></td>
+    <td class="tg-zmmf"><a href="https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/latest/download/DUCE-GUI-windows.exe" target="_blank" rel="noopener noreferrer">LINK</a></td>
+    <td class="tg-9wq8"><a href="https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/latest/download/DUCE-CLI-windows.exe" target="_blank" rel="noopener noreferrer">LINK</a></td>
+    <td class="tg-9wq8" rowspan="2"><a href="https://github.com/techtanic/Discounted-Udemy-Course-Enroller/tree/master/G-COLAB#readme" target="_blank" rel="noopener noreferrer">LINK</a></td>
+  </tr>
+  <tr>
+    <td class="tg-nrix"><span style="font-weight:bold">Python code</span></td>
+    <td class="tg-9wq8"><a href="https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/techtanic/Discounted-Udemy-Course-Enroller/tree/master/GUI" target="_blank" rel="noopener noreferrer">LINK</a></td>
+    <td class="tg-9wq8"><a href="https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/techtanic/Discounted-Udemy-Course-Enroller/tree/master/CLI" target="_blank" rel="noopener noreferrer">LINK</a></td>
+  </tr>
+</tbody>
+</table>
 
 ## Disclaimer
 ![](https://cdn.discordapp.com/attachments/749247352073617518/785906195767754753/unknown.png)
@@ -48,9 +59,3 @@ Everything you need can be on the website.
 BTC `bc1qdyjwj0eqxjk5hxejah4gyclrumwtqs3hqp63uz` 
 
 BTC `14JNjiNoiKcbCHcxcqUxgJcVgyDfhGbxQF`
-
-## Credits 
-
-Originally: https://github.com/AmmeySaini/Udemy-Paid-Courses-Grabber
-
-[Back to top](#)
