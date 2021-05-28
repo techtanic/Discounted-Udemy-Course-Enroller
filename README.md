@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://github.com/techtanic/Discounted-Udemy-Course-Enroller/blob/master/DUCE-LOGO.png?raw=true">
+    <img src="https://cdn.discordapp.com/attachments/823472016999972884/847787981045760010/Group_2_2_1.png">
     <br/>
     <img src="https://forthebadge.com/images/badges/made-with-python.svg">
     <br/>
@@ -17,29 +17,12 @@
 Everything you need can be on the website.: [techtanic.github.io/duce](https://techtanic.github.io/duce/)
 
 # Downloads
-<table class="tg">
-<thead>
-  <tr>
-    <th class="tg-6yw6"></th>
-    <th class="tg-9wq8"><span style="font-weight:bold">GUI</span></th>
-    <th class="tg-9wq8"><span style="font-weight:bold">CLI</span></th>
-    <th class="tg-9wq8"><span style="font-weight:bold">COLAB</span></th>
-  </tr>
-</thead>
-<tbody>
-  <tr>
-    <td class="tg-nrix"><span style="font-weight:bold">Windows exe</span></td>
-    <td class="tg-9wq8"><a href="https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/latest/download/DUCE-GUI-windows.exe" target="_blank" rel="noopener noreferrer">LINK</a></td>
-    <td class="tg-9wq8"><a href="https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/latest/download/DUCE-CLI-windows.exe" target="_blank" rel="noopener noreferrer">LINK</a></td>
-    <td class="tg-9wq8" rowspan="2"><a href="https://github.com/techtanic/Discounted-Udemy-Course-Enroller/tree/master/G-COLAB#readme" target="_blank" rel="noopener noreferrer">LINK</a></td>
-  </tr>
-  <tr>
-    <td class="tg-9wq8"><span style="font-weight:bold">Python code</span></td>
-    <td class="tg-9wq8"><a href="https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/techtanic/Discounted-Udemy-Course-Enroller/tree/master/GUI" target="_blank" rel="noopener noreferrer">LINK</a></td>
-    <td class="tg-9wq8"><a href="https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/techtanic/Discounted-Udemy-Course-Enroller/tree/master/CLI" target="_blank" rel="noopener noreferrer">LINK</a></td>
-  </tr>
-</tbody>
-</table>
+|GUI|CLI|COLAB|
+|:----:|:----:|:-----:|
+| 
+[![](https://img.shields.io/static/v1?message=Download&logo=windows&labelColor=5c5c5c&color=1182c3&label=%20&style=for-the-badge)](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/latest/download/DUCE-GUI-windows.exe) | [![](https://img.shields.io/static/v1?message=Download&logo=windows&labelColor=5c5c5c&color=1182c3&label=%20&style=for-the-badge)](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/latest/download/DUCE-CLI-windows.exe) |  
+[![](https://img.shields.io/static/v1?message=Open%20in%20Colab&logo=Google-Colab&labelColor=5c5c5c&color=1182c3&label=%20&style=for-the-badge)](https://colab.research.google.com/github/techtanic/Discounted-Udemy-Course-Enroller/blob/master/G-COLAB/DUCE.ipynb) |
+| [![](https://img.shields.io/static/v1?message=Code&logo=python&labelColor=bdbdbd&color=1182c3&label=%20&style=for-the-badge)](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/techtanic/Discounted-Udemy-Course-Enroller/tree/master/GUI) | [![](https://img.shields.io/static/v1?message=Code&logo=python&labelColor=bdbdbd&color=1182c3&label=%20&style=for-the-badge)](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/techtanic/Discounted-Udemy-Course-Enroller/tree/master/CLI) | [![](https://img.shields.io/static/v1?message=Code&logo=python&labelColor=bdbdbd&color=1182c3&label=%20&style=for-the-badge)](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/techtanic/Discounted-Udemy-Course-Enroller/tree/master/COLAB) |
 
 ## Disclaimer
 ![](https://cdn.discordapp.com/attachments/749247352073617518/785906195767754753/unknown.png)
