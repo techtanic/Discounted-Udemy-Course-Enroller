@@ -19,7 +19,7 @@ Everything you need can be on the website.: [techtanic.github.io/duce](https://t
 # Downloads
 
 <table>
-<thead>
+<thead algin="center">
   <tr>
     <th>GUI</th>
     <th>CLI</th>
