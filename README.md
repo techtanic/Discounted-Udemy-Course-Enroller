@@ -18,7 +18,7 @@ Everything you need can be on the website.: [techtanic.github.io/duce](https://t
 
 # Downloads
 
-<table>
+<table algin="center">
 <thead algin="center">
   <tr>
     <th>GUI</th>
