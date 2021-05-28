@@ -18,7 +18,7 @@ Everything you need can be on the website.: [techtanic.github.io/duce](https://t
 
 # Downloads
 
-<table algin="center">
+<table>
 <thead algin="center">
   <tr>
     <th>GUI</th>
@@ -26,7 +26,7 @@ Everything you need can be on the website.: [techtanic.github.io/duce](https://t
     <th>COLAB</th>
   </tr>
 </thead>
-<tbody>
+<tbody algin="center">
   <tr>
     <td><a href="https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/latest/download/DUCE-GUI-windows.exe">
          <img alt="Qries" src="https://img.shields.io/static/v1?message=Download&logo=windows&labelColor=5c5c5c&color=1182c3&label=%20&style=for-the-badge"
