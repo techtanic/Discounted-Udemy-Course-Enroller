@@ -19,14 +19,14 @@ Everything you need can be on the website.: [techtanic.github.io/duce](https://t
 # Downloads
 
 <table>
-<thead algin="center">
+<thead>
   <tr>
     <th>GUI</th>
     <th>CLI</th>
     <th>COLAB</th>
   </tr>
 </thead>
-<tbody algin="center">
+<tbody>
   <tr>
     <td><a href="https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/latest/download/DUCE-GUI-windows.exe">
          <img alt="Qries" src="https://img.shields.io/static/v1?message=Download&logo=windows&labelColor=5c5c5c&color=1182c3&label=%20&style=for-the-badge"
