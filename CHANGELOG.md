@@ -1,7 +1,7 @@
 # Changelog
 
 ## v1.1
-- Fixed ReadDiscount and CourseVania
+- Fixed RealDiscount and CourseVania
 - Added Russian Language filter
 
 ## v1.0
