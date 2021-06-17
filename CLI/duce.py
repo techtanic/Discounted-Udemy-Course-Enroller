@@ -124,11 +124,8 @@ def real_discount():
         r = requests.get(url)
         soup = bs(r.content, "html5lib")
         try:
-            link = soup.select_one(
-                "#panel > div:nth-child(4) > div:nth-child(1) > div.col-lg-7.col-md-12.col-sm-12.col-xs-12 > a"
-            )["href"]
-            if link.startswith("https://www.udemy.com"):
-                rd_links.append(title + "|:|" + link)
+            link = soup.select_one("a[href^='https://www.udemy.com']")["href"]
+            rd_links.append(title + "|:|" + link)
         except:
             pass
     rd_bar.close()
@@ -140,7 +137,7 @@ def coursevania():
     cv_links = []
     r = requests.get("https://coursevania.com/courses/")
     soup = bs(r.content, "html5lib")
-    nonce = soup.find_all("script")[22].text[30:]
+    nonce = soup.find_all("script")[20].text[30:]
     nonce = json.loads(nonce[: len(nonce) - 6])["load_content"]
     r = requests.get(
         "https://coursevania.com/wp-admin/admin-ajax.php?&template=courses/grid&args={%22posts_per_page%22:%2230%22}&action=stm_lms_load_content&nonce="
@@ -193,7 +190,7 @@ def idcoupons():
 
 # Constants
 
-version = "v1.0"
+version = "v1.1"
 
 
 def create_scrape_obj():
@@ -224,12 +221,6 @@ def cookiejar(
     return cookies
 
 
-def save_settings(settings):
-    if True:
-        with open("duce-cli-settings.json", "w") as f:
-            json.dump(settings, f, indent=4)
-
-
 def load_settings():
     try:
         with open("duce-cli-settings.json") as f:
@@ -240,20 +231,20 @@ def load_settings():
             "https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/master/duce-cli-settings.json"
         ).json()
 
-    try:  # v1.2
-        del settings["access_token"]
-        del settings["client_id"]
-        settings["email"] = ""
-        settings["password"] = ""
-    except:
-        pass
-
-    instructor_exclude = "\n".join(settings["instructor_exclude"])
     title_exclude = "\n".join(settings["title_exclude"])
+    instructor_exclude = "\n".join(settings["instructor_exclude"])
 
-    save_settings(settings)
+    try:
+        settings["languages"]["Russian"]
+    except KeyError:
+        settings["languages"]["Russian"] = True
 
     return settings, instructor_exclude, title_exclude
+
+
+def save_settings():
+    with open("duce-cli-settings.json", "w") as f:
+        json.dump(settings, f, indent=4)
 
 
 def get_course_id(url):
@@ -392,7 +383,7 @@ def check_login(email, password):
     currency = r["Config"]["price_country"]["currency"]
     user = r["me"]["display_name"]
     settings["email"], settings["password"] = email, password
-    save_settings(settings)
+    save_settings()
     return head, user, currency, s, ""
 
 

@@ -144,14 +144,10 @@ def real_discount():
         r = requests.get(url)
         soup = bs(r.content, "html5lib")
         try:
-            link = soup.select_one(
-                "#panel > div:nth-child(4) > div:nth-child(1) > div.col-lg-7.col-md-12.col-sm-12.col-xs-12 > a"
-            )["href"]
-            if link.startswith("https://www.udemy.com"):
-                rd_links.append(title + "|:|" + link)
+            link = soup.select_one("a[href^='https://www.udemy.com']")["href"]
+            rd_links.append(title + "|:|" + link)
         except:
             pass
-
     main_window["pReal Discount"].update(0, visible=False)
     main_window["iReal Discount"].update(visible=True)
 
@@ -162,7 +158,7 @@ def coursevania():
     cv_links = []
     r = requests.get("https://coursevania.com/courses/")
     soup = bs(r.content, "html5lib")
-    nonce = soup.find_all("script")[22].text[30:]
+    nonce = soup.find_all("script")[20].text[30:]
     nonce = json.loads(nonce[: len(nonce) - 6])["load_content"]
     r = requests.get(
         "https://coursevania.com/wp-admin/admin-ajax.php?&template=courses/grid&args={%22posts_per_page%22:%2230%22}&action=stm_lms_load_content&nonce="
@@ -217,7 +213,7 @@ def idcoupons():
 
 ########################### Constants
 
-version = "v1.0"
+version = "v1.1"
 
 
 def create_scrape_obj():
@@ -246,12 +242,6 @@ def cookiejar(
     return cookies
 
 
-def save_settings(settings):
-    if True:
-        with open("duce-gui-settings.json", "w") as f:
-            json.dump(settings, f, indent=4)
-
-
 def load_settings():
     try:
         os.rename("duce-settings.json", "duce-gui-settings.json")
@@ -261,28 +251,26 @@ def load_settings():
         with open("duce-gui-settings.json") as f:
             settings = json.load(f)
     except FileNotFoundError:
-        settings = requests.get(
-            "https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/master/duce-gui-settings.json"
-        ).json()
+        settings = dict(
+            requests.get(
+                "https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/master/duce-gui-settings.json"
+            ).json()
+        )
 
     title_exclude = "\n".join(settings["title_exclude"])
     instructor_exclude = "\n".join(settings["instructor_exclude"])
 
-    try:  # v4.3
-        del settings["access_token"]
-        del settings["client_id"]
-        settings["email"] = ""
-        settings["password"] = ""
-    except:
-        pass
-    try:  # v4.3
-        settings["stay_logged_in"]["cookie"]
-        del settings["stay_logged_in"]["cookie"]
-        settings["stay_logged_in"]["manual"] = False
-    except:
-        pass
-    save_settings(settings)
+    try:
+        settings["languages"]["Russian"]
+    except KeyError:
+        settings["languages"]["Russian"] = True
+
     return settings, instructor_exclude, title_exclude
+
+
+def save_settings():
+    with open("duce-gui-settings.json", "w") as f:
+        json.dump(settings, f, indent=4)
 
 
 def fetch_cookies():
@@ -775,7 +763,7 @@ if (
                         my_cookies["csrftoken"],
                     )
                     settings["stay_logged_in"]["auto"] = values["sli_a"]
-                    save_settings(settings)
+                    save_settings()
                     login_window.close()
                     break
 
@@ -822,7 +810,7 @@ if (
                         client_id, access_token, csrf_token
                     )
                     settings["stay_logged_in"]["manual"] = values["sli_m"]
-                    save_settings(settings)
+                    save_settings()
                     login_window.close()
                     break
                 else:
@@ -1138,7 +1126,7 @@ while True:
             False,
             False,
         )
-        save_settings(settings)
+        save_settings()
         break
 
     elif event == "Support":
@@ -1163,7 +1151,7 @@ while True:
             filter(None, values["title_exclude"].split("\n"))
         )
         settings["min_rating"] = float(values["min_rating"])
-        save_settings(settings)
+        save_settings()
 
         all_functions = create_scrape_obj()
         funcs = {}
