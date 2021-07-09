@@ -137,8 +137,8 @@ def coursevania():
     cv_links = []
     r = requests.get("https://coursevania.com/courses/")
     soup = bs(r.content, "html5lib")
-    nonce = soup.find_all("script")[20].text[30:]
-    nonce = json.loads(nonce[: len(nonce) - 6])["load_content"]
+    nonce = soup.find_all("script")[22].text[30:]
+    nonce = json.loads(nonce.strip().strip(";"))["load_content"]
     r = requests.get(
         "https://coursevania.com/wp-admin/admin-ajax.php?&template=courses/grid&args={%22posts_per_page%22:%2230%22}&action=stm_lms_load_content&nonce="
         + nonce
@@ -190,7 +190,7 @@ def idcoupons():
 
 # Constants
 
-version = "v1.1"
+version = "v1.2"
 
 
 def create_scrape_obj():
