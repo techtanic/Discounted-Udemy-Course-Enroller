@@ -113,13 +113,13 @@ def real_discount():
     for page in range(1, 4):
         r = requests.get("https://app.real.discount/stores/Udemy?page=" + str(page))
         soup = bs(r.content, "html5lib")
-        all = soup.find_all("div", class_="card-body")
+        all = soup.find_all("div", class_="col-xl-4 col-md-6")
         big_all.extend(all)
     rd_bar = tqdm(total=len(big_all), desc="Real Discount")
 
     for index, items in enumerate(big_all):
         rd_bar.update(1)
-        title = items.a.h3.text
+        title = items.h3.text
         url = "https://app.real.discount" + items.a["href"]
         r = requests.get(url)
         soup = bs(r.content, "html5lib")

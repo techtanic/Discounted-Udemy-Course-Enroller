@@ -132,7 +132,7 @@ def real_discount():
     for page in range(1, 4):
         r = requests.get("https://app.real.discount/stores/Udemy?page=" + str(page))
         soup = bs(r.content, "html5lib")
-        all = soup.find_all("div", class_="card-body")
+        all = soup.find_all("div", class_="col-xl-4 col-md-6")
         big_all.extend(all)
     main_window["pReal Discount"].update(page)
     main_window["pReal Discount"].update(0, max=len(big_all))
