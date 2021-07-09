@@ -9,7 +9,7 @@
 - Run on colab save your pc resources.
 
 ## Usage:
-1. Click -->  [![](https://img.shields.io/static/v1?message=Open%20in%20Colab&logo=Google-Colab&labelColor=5c5c5c&color=1182c3&label=%20&style=for-the-badge)](https://colab.research.google.com/github/techtanic/Discounted-Udemy-Course-Enroller/blob/master/G-COLAB/DUCE.ipynb)
+1. Click -->  [![](https://img.shields.io/static/v1?message=Open%20in%20Colab&logo=Google-Colab&labelColor=5c5c5c&color=1182c3&label=%20&style=for-the-badge)](https://colab.research.google.com/github/techtanic/Discounted-Udemy-Course-Enroller/blob/master/COLAB/DUCE.ipynb)
 
 
 2. ![](https://cdn.discordapp.com/attachments/823472016999972884/844843004841295881/unknown.png)
