@@ -190,7 +190,7 @@ def idcoupons():
 
 # Constants
 
-version = "v1.2"
+version = "v1.3"
 
 
 def create_scrape_obj():
@@ -238,7 +238,7 @@ def load_settings():
         settings["languages"]["Russian"]
     except KeyError:
         settings["languages"]["Russian"] = True
-
+    settings.setdefault("save_txt", True) #v1.3
     return settings, instructor_exclude, title_exclude
 
 
@@ -302,8 +302,8 @@ def course_landing_api(courseid):
 
     instructor = (
         r["instructor_bio"]["data"]["instructors_info"][0]["absolute_url"]
-        .lstrip("/user/")
-        .rstrip("/")
+        .removeprefix("/user/")
+        .removesuffix("/")
     )
     try:
         purchased = r["purchase"]["data"]["purchase_date"]
@@ -318,9 +318,9 @@ def course_landing_api(courseid):
 
 
 def update_available():
-    if version.lstrip("v") < requests.get(
+    if version.removeprefix("v") < requests.get(
         "https://api.github.com/repos/techtanic/Discounted-Udemy-Course-Enroller/releases/latest"
-    ).json()["tag_name"].lstrip("v"):
+    ).json()["tag_name"].removeprefix("v"):
         print(by + fr + "  Update Available  ")
     else:
         return
@@ -434,9 +434,13 @@ def free_enroll(courseid):
 def auto(list_st):
 
     se_c, ae_c, e_c, ex_c, as_c = 0, 0, 0, 0, 0
-    for index, link in enumerate(list_st):
+    if settings["save_txt"]:
+        if not os.path.exists("Courses/"):
+            os.makedirs("Courses/")
+        txt_file = open(f"Courses/"+time.strftime("%Y-%m-%d--%H-%M"),"w")
+    for index, combo in enumerate(list_st):
 
-        tl = link.split("|:|")
+        tl = combo.split("|:|")
         print(fy + str(index) + " " + tl[0], end=" ")
         link = tl[1]
         print(fb + link)
@@ -479,7 +483,8 @@ def auto(list_st):
                                 print(fg + "Successfully Enrolled\n")
                                 se_c += 1
                                 as_c += amount
-
+                                if settings["save_txt"]: txt_file.write(combo + "\n")
+                                
                             elif js["status"] == "failed":
                                 # print(js)
                                 print(fr + "Coupon Expired\n")
@@ -515,7 +520,7 @@ def auto(list_st):
                                 print(fg + "Successfully Subscribed\n")
                                 se_c += 1
                                 as_c += amount
-
+                                if settings["save_txt"]: txt_file.write(combo + "\n")
                         except:
                             print(fr + "COUPON MIGHT HAVE EXPIRED\n")
                             e_c += 1

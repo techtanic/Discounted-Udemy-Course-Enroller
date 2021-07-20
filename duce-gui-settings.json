@@ -50,5 +50,6 @@
         "IDownloadCoupons": true
     },
     "email": "",
-    "password": ""
+    "password": "",
+    "save_txt": true
 }

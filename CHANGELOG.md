@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.3
+- Added Save to txt file option in CLI and GUI
+- Fixed some logic
+
+
 ## v1.2
 - Fixed RealDiscount and CourseVania
 

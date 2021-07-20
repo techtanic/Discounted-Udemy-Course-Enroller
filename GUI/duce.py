@@ -213,7 +213,7 @@ def idcoupons():
 
 ########################### Constants
 
-version = "v1.2"
+version = "v1.3"
 
 
 def create_scrape_obj():
@@ -264,7 +264,7 @@ def load_settings():
         settings["languages"]["Russian"]
     except KeyError:
         settings["languages"]["Russian"] = True
-
+    settings.setdefault("save_txt",True) #v1.3
     return settings, instructor_exclude, title_exclude
 
 
@@ -332,8 +332,8 @@ def course_landing_api(courseid):
 
     instructor = (
         r["instructor_bio"]["data"]["instructors_info"][0]["absolute_url"]
-        .lstrip("/user/")
-        .rstrip("/")
+        .removeprefix("/user/")
+        .removesuffix("/")
     )
     try:
         purchased = r["purchase"]["data"]["purchase_date"]
@@ -362,7 +362,7 @@ def update_available():
     release_version = requests.get(
         "https://api.github.com/repos/techtanic/Discounted-Udemy-Course-Enroller/releases/latest"
     ).json()["tag_name"]
-    if version.lstrip("v") < release_version.lstrip("v"):
+    if version.removeprefix("v") < release_version.removeprefix("v"):
         return (
             f" Update {release_version} Availabe",
             f"Update {release_version} Availabe",
@@ -487,9 +487,13 @@ def free_enroll(courseid):
 def auto(list_st):
     main_window["pout"].update(0, max=len(list_st))
     se_c, ae_c, e_c, ex_c, as_c = 0, 0, 0, 0, 0
-    for index, link in enumerate(list_st):
+    if settings["save_txt"]:
+        if not os.path.exists("Courses/"):
+            os.makedirs("Courses/")
+        txt_file = open(f"Courses/"+time.strftime("%Y-%m-%d--%H-%M"),"w")
+    for index, combo in enumerate(list_st):
 
-        tl = link.split("|:|")
+        tl = combo.split("|:|")
         main_window["out"].print(str(index) + " " + tl[0], text_color="yellow", end=" ")
         link = tl[1]
         main_window["out"].print(link, text_color="blue")
@@ -543,6 +547,7 @@ def auto(list_st):
                                 main_window["out"].print()
                                 se_c += 1
                                 as_c += amount
+                                if settings["save_txt"]: txt_file.write(combo + "\n")
                             elif js["status"] == "failed":
                                 # print(js)
                                 main_window["out"].print(
@@ -590,6 +595,8 @@ def auto(list_st):
                                 main_window["out"].print()
                                 se_c += 1
                                 as_c += amount
+                                
+                                if settings["save_txt"]: txt_file.write(combo + "\n")
 
                         except:
                             main_window["out"].print(
@@ -1001,6 +1008,7 @@ advanced_tab = [
             font=25,
         )
     ],
+    [sg.Checkbox("Save enrolled courses in txt", key="save_txt", default=settings["save_txt"])]
 ]
 
 
