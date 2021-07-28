@@ -1,0 +1,8 @@
+requests
+browser_cookie3
+BeautifulSoup4
+PySimpleGUI
+bs4
+html5lib
+argparse
+cloudscraper
