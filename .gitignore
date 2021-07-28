@@ -3,3 +3,4 @@ CLI/__pycache__/
 .vscode/
 test/
 test.txt
+GUI/__pycache__/
