@@ -1,6 +1,7 @@
 name: 'Close stale issues and PRs'
 on:
   issue_comment:
+  issues:
   workflow_dispatch:
   schedule:
     - cron: '0 */2 * * *'
@@ -9,7 +10,7 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v3
+      - uses: actions/stale@main
         with:
           stale-issue-message: 'This Issue has been automatically marked as stale because it has not had recent activity. It will be closed if no further activity occurs.'
           stale-issue-label: 'Status: Awaiting Response'

@@ -1,13 +1,5 @@
-pack/__pycache__/
-output/
-__pycache__/
-exe-config.json
+GUI/pack/__pycache__/
+CLI/__pycache__/
 .vscode/
-config.json
-txt.txt
-pyins.txt
-Udemy-Course-Grabber-x64-bit.spec
-build/
-dist/
 test/
-pyins.json
+test.txt

@@ -5,60 +5,41 @@ on:
   push:
 
 jobs:
-
   build-windows:
     name: Build windows
-    #needs: createrelease
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v1
-      - name: Set up Python 3.8
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.9
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
+          python-version: 3.9
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r GUI/requirements.txt -U
+          pip install -r CLI/requirements.txt -U
           pip install pyinstaller
-      - name: Build with pyinstaller for windows
-        run: pyinstaller -y -F -w -i "DUCE-LOGO.ico" --name "Discounted-Udemy-Course-Enroller-windows" --add-data="pack;pack/"  "udemy.py"
-      - name: Save exe
-        uses: actions/upload-artifact@v1
+
+      - name: Build GUI
+        run: pyinstaller -y -F -w -i "GUI/DUCE-LOGO.ico" --name "DUCE-GUI-windows" --add-data="GUI/pack;pack/" --add-data "c:\hostedtoolcache\windows\python\3.9.6\x64\lib\site-packages\cloudscraper;./cloudscraper/" "GUI/duce.py"
+
+      - name: Build CLI
+        run: pyinstaller -y -F -c -i "CLI/DUCE-LOGO.ico" --name "DUCE-CLI-windows" --add-data="CLI/colors.py;." --add-data "c:\hostedtoolcache\windows\python\3.9.6\x64\lib\site-packages\cloudscraper;./cloudscraper/" "CLI/duce.py"
+
+      - name: Upload GUI.exe
+        uses: actions/upload-artifact@v2
         with:
-          name: Discounted-Udemy-Course-Enroller-windows.exe
-          path: ./dist/Discounted-Udemy-Course-Enroller-windows.exe
-
-#      - name: Upload Release Asset
-#      
-#        id: upload-release-asset
-#        uses: actions/upload-release-asset@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          upload_url: ${{ steps.get_release_info.outputs.upload_url }}
-#          asset_path: ./dist/Discounted-Udemy-Course-Enroller-windows.exe
-#          asset_name: Discounted-Udemy-Course-Enroller-windows.exe
-#          asset_content_type: application/vnd.microsoft.portable-executable
-
-#  createrelease:
-#    name: Create Release
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Create Release
-#        id: create_release
-#        uses: actions/create-release@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          tag_name: v
-#          release_name: Discounted Udemy Course Enroller
-#          draft: true
-#          prerelease: false
-#      - name: Output Release URL File
-#        run: echo "${{ steps.create_release.outputs.upload_url }}" > release_url.txt
-#      - name: Save Release URL File for publish
-#        uses: actions/upload-artifact@v1
-#        with:
-#          name: release_url
-#          path: release_url.txt
+          name: DUCE-GUI-windows.exe
+          path: ./dist/DUCE-GUI-windows.exe
+      - name: Upload CLI.exe
+        uses: actions/upload-artifact@v2
+        with:
+          name: DUCE-CLI-windows.exe
+          path: ./dist/DUCE-CLI-windows.exe
+      - name: Upload DUCE
+        uses: actions/upload-artifact@v2
+        with:
+          name: DUCE-windows
+          path: ./dist/
+        
