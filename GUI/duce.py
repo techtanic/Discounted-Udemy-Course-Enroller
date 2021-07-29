@@ -200,7 +200,7 @@ def idcoupons():
     for index, item in enumerate(big_all):
         main_window["pIDownloadCoupons"].update(index + 1)
         title = item["aria-label"]
-        link = unquote(item["href"]).split("url=")
+        link = unquote(item["href"]).split("ulp=")
         try:
             link = link[1]
         except IndexError:

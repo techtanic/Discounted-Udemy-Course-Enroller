@@ -178,7 +178,7 @@ def idcoupons():
     for index, item in enumerate(big_all):
         idc_bar.update(1)
         title = item["aria-label"]
-        link = unquote(item["href"]).split("url=")
+        link = unquote(item["href"]).split("ulp=")
         try:
             link = link[1]
         except IndexError:
