@@ -188,9 +188,25 @@ def idcoupons():
     idc_bar.close()
 
 
+def enext() -> list:
+    en_links = []
+    r = requests.get("https://e-next.in/e/udemycoupons.php")
+    soup = bs(r.content, "html.parser")
+    big_all = soup.find_all("p", {"class": "p2"})
+    big_all.pop(0)
+    en_bar = tqdm(total=len(big_all), desc="E-next")
+    for i in big_all:
+        en_bar.update(1)
+        title = i.text.strip().removesuffix("Enroll Now free").strip()
+        link = i.a["href"]
+        en_links.append(title + "|:|" + link)
+
+    en_bar.close()
+
+
 # Constants
 
-version = "v1.3"
+version = "v1.4"
 
 
 def create_scrape_obj():
@@ -201,6 +217,7 @@ def create_scrape_obj():
         "Real Discount": threading.Thread(target=real_discount, daemon=True),
         "Course Vania": threading.Thread(target=coursevania, daemon=True),
         "IDownloadCoupons": threading.Thread(target=idcoupons, daemon=True),
+        "E-next": threading.Thread(target=enext, daemon=True),
     }
     return funcs
 
@@ -238,7 +255,9 @@ def load_settings():
         settings["languages"]["Russian"]
     except KeyError:
         settings["languages"]["Russian"] = True
-    settings.setdefault("save_txt", True) #v1.3
+    settings.setdefault("save_txt", True)  # v1.3
+    settings["sites"].setdefault("E-next", True)  # v1.4
+    settings.setdefault("discounted_only", False)  # v1.4
     return settings, instructor_exclude, title_exclude
 
 
@@ -334,12 +353,12 @@ def check_login(email, password):
     data = {
         "email": email,
         "password": password,
+        "locale": "en_US",
         "csrfmiddlewaretoken": csrf_token,
     }
     s.headers.update(
         {
             "Referer": "https://www.udemy.com/join/login-popup/?locale=en_US",
-            "user-agent": "APIs-Google (+https://developers.google.com/webmasters/APIs-Google.html)",
         }
     )
     r = s.post(
@@ -437,7 +456,7 @@ def auto(list_st):
     if settings["save_txt"]:
         if not os.path.exists("Courses/"):
             os.makedirs("Courses/")
-        txt_file = open(f"Courses/"+time.strftime("%Y-%m-%d--%H-%M"),"w")
+        txt_file = open(f"Courses/" + time.strftime("%Y-%m-%d--%H-%M"), "w")
     for index, combo in enumerate(list_st):
 
         tl = combo.split("|:|")
@@ -483,8 +502,11 @@ def auto(list_st):
                                 print(fg + "Successfully Enrolled\n")
                                 se_c += 1
                                 as_c += amount
-                                if settings["save_txt"]: txt_file.write(combo + "\n")
-                                
+                                if settings["save_txt"]:
+                                    txt_file.write(combo + "\n")
+                                    txt_file.flush()
+                                    os.fsync(txt_file.fileno())
+
                             elif js["status"] == "failed":
                                 # print(js)
                                 print(fr + "Coupon Expired\n")
@@ -520,7 +542,10 @@ def auto(list_st):
                                 print(fg + "Successfully Subscribed\n")
                                 se_c += 1
                                 as_c += amount
-                                if settings["save_txt"]: txt_file.write(combo + "\n")
+                                if settings["save_txt"]:
+                                    txt_file.write(combo + "\n")
+                                    txt_file.flush()
+                                    os.fsync(txt_file.fileno())
                         except:
                             print(fr + "COUPON MIGHT HAVE EXPIRED\n")
                             e_c += 1
@@ -560,30 +585,19 @@ def main1():
             funcs[t].join()
         time.sleep(1)
 
-        try:  # du_links
-            links_ls += du_links
-        except:
-            pass
-        try:  # uf_links
-            links_ls += uf_links
-        except:
-            pass
-        try:  # tb_links
-            links_ls += tb_links
-        except:
-            pass
-        try:  # rd_links
-            links_ls += rd_links
-        except:
-            pass
-        try:  # cv_links
-            links_ls += cv_links
-        except:
-            pass
-        try:  # idc_links
-            links_ls += idc_links
-        except:
-            pass
+        for link_list in [
+            "du_links",
+            "uf_links",
+            "tb_links",
+            "rd_links",
+            "cv_links",
+            "idc_links",
+            "en_links",
+        ]:
+            try:
+                links_ls += eval(link_list)
+            except:
+                pass
 
         auto(links_ls)
 
