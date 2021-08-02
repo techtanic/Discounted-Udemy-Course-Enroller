@@ -1,6 +1,6 @@
 # Changelog
 
-##v1.4
+## v1.4
 - Added `e-next.in`
 - Added Discounted only filter
 - Hopeful fix for `Amount saved` not showing
