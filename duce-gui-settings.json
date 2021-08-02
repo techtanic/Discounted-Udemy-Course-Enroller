@@ -47,9 +47,11 @@
         "Tutorial Bar": true,
         "Real Discount": true,
         "Course Vania": true,
-        "IDownloadCoupons": true
+        "IDownloadCoupons": true,
+        "E-next": true
     },
     "email": "",
     "password": "",
-    "save_txt": true
+    "save_txt": true,
+    "discounted_only": false
 }

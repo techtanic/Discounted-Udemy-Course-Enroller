@@ -35,7 +35,7 @@ def discudemy():
     du_links = []
     big_all = []
     head = {
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.72 Safari/537.36 Edg/90.0.818.42",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36 Edg/92.0.902.55",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
     }
 
@@ -183,6 +183,7 @@ def coursevania():
     main_window["pCourse Vania"].update(0, visible=False)
     main_window["iCourse Vania"].update(visible=True)
 
+
 def idcoupons():
 
     global idc_links
@@ -211,9 +212,25 @@ def idcoupons():
     main_window["iIDownloadCoupons"].update(visible=True)
 
 
+def enext() -> list:
+    en_links = []
+    r = requests.get("https://e-next.in/e/udemycoupons.php")
+    soup = bs(r.content, "html.parser")
+    big_all = soup.find_all("p", {"class": "p2"})
+    big_all.pop(0)
+    main_window["pE-next"].update(0, max=len(big_all))
+    for i in big_all:
+        main_window["pE-next"].update(index + 1)
+        title = i.text.strip().removesuffix("Enroll Now free").strip()
+        link = i.a["href"]
+        en_links.append(title + "|:|" + link)
+    main_window["pE-next"].update(0, visible=False)
+    main_window["iE-next"].update(visible=True)
+
+
 ########################### Constants
 
-version = "v1.3"
+version = "v1.4"
 
 
 def create_scrape_obj():
@@ -224,6 +241,7 @@ def create_scrape_obj():
         "Real Discount": threading.Thread(target=real_discount, daemon=True),
         "Course Vania": threading.Thread(target=coursevania, daemon=True),
         "IDownloadCoupons": threading.Thread(target=idcoupons, daemon=True),
+        "E-next": threading.Thread(target=enext, daemon=True),
     }
     return funcs
 
@@ -260,11 +278,10 @@ def load_settings():
     title_exclude = "\n".join(settings["title_exclude"])
     instructor_exclude = "\n".join(settings["instructor_exclude"])
 
-    try:
-        settings["languages"]["Russian"]
-    except KeyError:
-        settings["languages"]["Russian"] = True
-    settings.setdefault("save_txt",True) #v1.3
+    settings.setdefault("save_txt", True)  # v1.3
+    settings["sites"].setdefault("E-next", True)  # v1.4
+    settings.setdefault("discounted_only", False)  # v1.4
+
     return settings, instructor_exclude, title_exclude
 
 
@@ -343,7 +360,7 @@ def course_landing_api(courseid):
         amount = r["purchase"]["data"]["list_price"]["amount"]
     except:
         print(r["purchase"]["data"])
-
+    print()
     return instructor, purchased, Decimal(amount)
 
 
@@ -379,13 +396,11 @@ def manual_login():
     data = {
         "email": settings["email"],
         "password": settings["password"],
+        "locale": "en_US",
         "csrfmiddlewaretoken": csrf_token,
     }
     s.headers.update(
-        {
-            "Referer": "https://www.udemy.com/join/login-popup/?locale=en_US",
-            "user-agent": "APIs-Google (+https://developers.google.com/webmasters/APIs-Google.html)",
-        }
+        {"Referer": "https://www.udemy.com/join/login-popup/?locale=en_US"}
     )
     r = s.post(
         "https://www.udemy.com/join/login-popup/?locale=en_US",
@@ -410,7 +425,7 @@ def check_login(client_id, access_token, csrf_token):
         "authorization": "Bearer " + access_token,
         "accept": "application/json, text/plain, */*",
         "x-requested-with": "XMLHttpRequest",
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.72 Safari/537.36 Edg/90.0.818.42",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36 Edg/92.0.902.55",
         "x-forwarded-for": str(
             ".".join(map(str, (random.randint(0, 255) for _ in range(4))))
         ),
@@ -490,7 +505,7 @@ def auto(list_st):
     if settings["save_txt"]:
         if not os.path.exists("Courses/"):
             os.makedirs("Courses/")
-        txt_file = open(f"Courses/"+time.strftime("%Y-%m-%d--%H-%M"),"w")
+        txt_file = open(f"Courses/" + time.strftime("%Y-%m-%d--%H-%M"), "w")
     for index, combo in enumerate(list_st):
 
         tl = combo.split("|:|")
@@ -547,7 +562,10 @@ def auto(list_st):
                                 main_window["out"].print()
                                 se_c += 1
                                 as_c += amount
-                                if settings["save_txt"]: txt_file.write(combo + "\n")
+                                if settings["save_txt"]:
+                                    txt_file.write(combo + "\n")
+                                    txt_file.flush()
+                                    os.fsync(txt_file.fileno())
                             elif js["status"] == "failed":
                                 # print(js)
                                 main_window["out"].print(
@@ -586,6 +604,12 @@ def auto(list_st):
                             time.sleep(3.5)
 
                     elif not coupon_id:
+                        if settings["discounted_only"]:
+                            main_window["out"].print(
+                                "Free course excluded", text_color="light blue"
+                            )
+                            ex_c += 1
+                            continue
                         js = free_enroll(course_id)
                         try:
                             if js["_class"] == "course":
@@ -595,8 +619,11 @@ def auto(list_st):
                                 main_window["out"].print()
                                 se_c += 1
                                 as_c += amount
-                                
-                                if settings["save_txt"]: txt_file.write(combo + "\n")
+
+                                if settings["save_txt"]:
+                                    txt_file.write(combo + "\n")
+                                    txt_file.flush()
+                                    os.fsync(txt_file.fileno())
 
                         except:
                             main_window["out"].print(
@@ -641,30 +668,19 @@ def main1():
         main_window["scrape_col"].update(visible=False)
         main_window["output_col"].update(visible=True)
 
-        try:  # du_links
-            links_ls += du_links
-        except:
-            pass
-        try:  # uf_links
-            links_ls += uf_links
-        except:
-            pass
-        try:  # tb_links
-            links_ls += tb_links
-        except:
-            pass
-        try:  # rd_links
-            links_ls += rd_links
-        except:
-            pass
-        try:  # cv_links
-            links_ls += cv_links
-        except:
-            pass
-        try:  # idc_links
-            links_ls += idc_links
-        except:
-            pass
+        for link_list in [
+            "du_links",
+            "uf_links",
+            "tb_links",
+            "rd_links",
+            "cv_links",
+            "idc_links",
+            "en_links",
+        ]:
+            try:
+                links_ls += eval(link_list)
+            except:
+                pass
 
         auto(links_ls)
 
@@ -797,7 +813,7 @@ if (
             web("https://github.com/techtanic/Discounted-Udemy-Course-Enroller")
 
         elif event == "Support":
-            web("https://techtanic.github.io/ucg/")
+            web("https://techtanic.github.io/duce/")
 
         elif event == "Discord":
             web("https://discord.gg/wFsfhJh4Rh")
@@ -1008,7 +1024,16 @@ advanced_tab = [
             font=25,
         )
     ],
-    [sg.Checkbox("Save enrolled courses in txt", key="save_txt", default=settings["save_txt"])]
+    [
+        sg.Checkbox(
+            "Save enrolled courses in txt", key="save_txt", default=settings["save_txt"]
+        )
+    ],
+    [
+        sg.Checkbox(
+            "Enroll in Discounted courses only", key="discounted_only", default=settings["discounted_only"]
+        )
+    ],
 ]
 
 
@@ -1065,7 +1090,7 @@ done_col = [
     ],
     [
         sg.Text(
-            "Amount Saved: $              ",
+            "Amount Saved: $                                         ",
             key="as_c",
             text_color="#00FA9A",
         )
@@ -1159,6 +1184,8 @@ while True:
             filter(None, values["title_exclude"].split("\n"))
         )
         settings["min_rating"] = float(values["min_rating"])
+        settings["save_txt"] = values["save_txt"]
+        settings["discounted_only"] = values["discounted_only"]
         save_settings()
 
         all_functions = create_scrape_obj()

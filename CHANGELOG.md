@@ -1,5 +1,13 @@
 # Changelog
 
+##v1.4
+- Added `e-next.in`
+- Added Discounted only filter
+- Hopeful fix for `Amount saved` not showing
+- Hopeful fix for Manual login
+- Fixed not saving courses to file on unexpected exit.
+- Simplified some logic (Duce's and mine also)
+
 ## v1.3
 - Added Save to txt file option in CLI and GUI
 - Fixed some logic
