@@ -20,7 +20,7 @@ Steps to reproduce the behavior:
 **Screenshots**
 add screenshots to help explain your problem.
 
-**System Info:**
+**Info:**
  - OS: [e.g. iOS]
- - d [e.g. chrome, safari]
+ - GUI/CLI/Colab
  - Version [e.g. 22]
