@@ -4,4 +4,4 @@ bs4
 html5lib
 colorama
 tqdm
-cloudscraper
+git+https://github.com/VeNoMouS/cloudscraper@dev
