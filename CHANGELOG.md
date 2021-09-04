@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.5
+- Fixed login problem.
+- Fixed my ego.
+
 ## v1.4
 - Added `e-next.in`
 - Added Discounted only filter
