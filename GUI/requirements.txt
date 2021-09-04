@@ -5,4 +5,4 @@ PySimpleGUI
 bs4
 html5lib
 argparse
-cloudscraper
+git+https://github.com/VeNoMouS/cloudscraper@dev

@@ -35,7 +35,7 @@ def discudemy():
     du_links = []
     big_all = []
     head = {
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36 Edg/92.0.902.55",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36 Edg/92.0.902.84",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
     }
 
@@ -230,7 +230,7 @@ def enext() -> list:
 
 ########################### Constants
 
-version = "v1.4"
+version = "v1.5"
 
 
 def create_scrape_obj():
@@ -389,43 +389,55 @@ def update_available():
 
 
 def manual_login():
-    s = cloudscraper.create_scraper()
-    r = s.get("https://www.udemy.com/join/login-popup/?locale=en_US")
-    soup = bs(r.text, "html5lib")
-    csrf_token = soup.find("input", {"name": "csrfmiddlewaretoken"})["value"]
-    data = {
-        "email": settings["email"],
-        "password": settings["password"],
-        "locale": "en_US",
-        "csrfmiddlewaretoken": csrf_token,
-    }
-    s.headers.update(
-        {"Referer": "https://www.udemy.com/join/login-popup/?locale=en_US"}
-    )
-    r = s.post(
-        "https://www.udemy.com/join/login-popup/?locale=en_US",
-        data=data,
-        allow_redirects=False,
-    )
-    if r.status_code == 302:
-        return "", r.cookies["client_id"], r.cookies["access_token"], csrf_token
-    else:
-        soup = bs(r.content, "html5lib")
-        txt = soup.find("div", class_="alert alert-danger js-error-alert").text.strip()
-        if txt[0] == "Y":
-            return "Too many logins per hour try later", "", "", ""
-        elif txt[0] == "T":
-            return "Email or password incorrect", "", "", ""
-        else:
-            return txt, "", "", ""
+    for retry in range(3):
+        s = requests.Session()
 
+        r = s.get(
+            "https://www.udemy.com/join/signup-popup/",
+        )
+        soup = bs(r.text, "html5lib")
+
+        csrf_token = soup.find("input", {"name": "csrfmiddlewaretoken"})["value"]
+
+        data = {
+            "email": settings["email"],
+            "password": settings["password"],
+            "locale": "en_US",
+            "csrfmiddlewaretoken": csrf_token,
+        }
+        s = cloudscraper.create_scraper()
+
+        s.cookies.update(r.cookies)
+        s.headers.update({"Referer": "https://www.udemy.com/join/signup-popup/"})
+        try:
+            r = s.post(
+                "https://www.udemy.com/join/login-popup/?locale=en_US",
+                data=data,
+                allow_redirects=False,
+            )
+        except cloudscraper.exceptions.CloudflareChallengeError:
+            continue
+        if r.status_code == 302:
+            return "", r.cookies["client_id"], r.cookies["access_token"], csrf_token
+        else:
+            soup = bs(r.content, "html5lib")
+            txt = soup.find(
+                "div", class_="alert alert-danger js-error-alert"
+            ).text.strip()
+            if txt[0] == "Y":
+                return "Too many logins per hour try later", "", "", ""
+            elif txt[0] == "T":
+                return "Email or password incorrect", "", "", ""
+            else:
+                return txt, "", "", ""
+
+    return "Cloudflare is blocking your requests try again after an hour", "", "", ""
 
 def check_login(client_id, access_token, csrf_token):
     head = {
         "authorization": "Bearer " + access_token,
         "accept": "application/json, text/plain, */*",
         "x-requested-with": "XMLHttpRequest",
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36 Edg/92.0.902.55",
         "x-forwarded-for": str(
             ".".join(map(str, (random.randint(0, 255) for _ in range(4))))
         ),
@@ -1031,7 +1043,9 @@ advanced_tab = [
     ],
     [
         sg.Checkbox(
-            "Enroll in Discounted courses only", key="discounted_only", default=settings["discounted_only"]
+            "Enroll in Discounted courses only",
+            key="discounted_only",
+            default=settings["discounted_only"],
         )
     ],
 ]

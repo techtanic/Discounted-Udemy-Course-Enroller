@@ -206,7 +206,7 @@ def enext() -> list:
 
 # Constants
 
-version = "v1.4"
+version = "v1.5"
 
 
 def create_scrape_obj():
@@ -346,64 +346,87 @@ def update_available():
 
 
 def check_login(email, password):
-    s = cloudscraper.create_scraper()
-    r = s.get("https://www.udemy.com/join/login-popup/?locale=en_US")
-    soup = bs(r.text, "html5lib")
-    csrf_token = soup.find("input", {"name": "csrfmiddlewaretoken"})["value"]
-    data = {
-        "email": email,
-        "password": password,
-        "locale": "en_US",
-        "csrfmiddlewaretoken": csrf_token,
-    }
-    s.headers.update(
-        {
-            "Referer": "https://www.udemy.com/join/login-popup/?locale=en_US",
+    for retry in range(3):
+        s = requests.Session()
+
+        r = s.get(
+            "https://www.udemy.com/join/signup-popup/",
+        )
+        soup = bs(r.text, "html5lib")
+
+        csrf_token = soup.find("input", {"name": "csrfmiddlewaretoken"})["value"]
+
+        data = {
+            "email": email,
+            "password": password,
+            "locale": "en_US",
+            "csrfmiddlewaretoken": csrf_token,
         }
-    )
-    r = s.post(
-        "https://www.udemy.com/join/login-popup/?locale=en_US",
-        data=data,
-        allow_redirects=False,
-    )
-    if not r.status_code == 302:
-        soup = bs(r.content, "html5lib")
-        txt = soup.find("div", class_="alert alert-danger js-error-alert").text.strip()
-        if txt[0] == "Y":
-            return "", "", "", "", "Too many logins per hour try later"
-        elif txt[0] == "T":
-            return "", "", "", "", "Email or password incorrect"
+        s = cloudscraper.create_scraper()
+
+        s.cookies.update(r.cookies)
+        s.headers.update({"Referer": "https://www.udemy.com/join/signup-popup/"})
+        try:
+            r = s.post(
+                "https://www.udemy.com/join/login-popup/?locale=en_US",
+                data=data,
+                allow_redirects=False,
+            )
+        except cloudscraper.exceptions.CloudflareChallengeError:
+            continue
+        if r.status_code == 302:
+
+            cookies = cookiejar(
+                r.cookies["client_id"], r.cookies["access_token"], csrf_token
+            )
+
+            head = {
+                "authorization": "Bearer " + r.cookies["access_token"],
+                "accept": "application/json, text/plain, */*",
+                "x-requested-with": "XMLHttpRequest",
+                "x-forwarded-for": str(
+                    ".".join(map(str, (random.randint(0, 255) for _ in range(4))))
+                ),
+                "x-udemy-authorization": "Bearer " + r.cookies["access_token"],
+                "content-type": "application/json;charset=UTF-8",
+                "origin": "https://www.udemy.com",
+                "referer": "https://www.udemy.com/",
+                "dnt": "1",
+            }
+
+            s = requests.session()
+            s.cookies.update(cookies)
+            s.headers.update(head)
+            s.keep_alive = False
+
+            r = s.get(
+                "https://www.udemy.com/api-2.0/contexts/me/?me=True&Config=True"
+            ).json()
+            currency = r["Config"]["price_country"]["currency"]
+            user = r["me"]["display_name"]
+            settings["email"], settings["password"] = email, password
+            save_settings()
+            return head, user, currency, s, ""
+
         else:
-            return "", "", "", "", txt
+            soup = bs(r.content, "html5lib")
+            txt = soup.find(
+                "div", class_="alert alert-danger js-error-alert"
+            ).text.strip()
+            if txt[0] == "Y":
+                return "", "", "", "", "Too many logins per hour try later"
+            elif txt[0] == "T":
+                return "", "", "", "", "Email or password incorrect"
+            else:
+                return "", "", "", "", txt
 
-    cookies = cookiejar(r.cookies["client_id"], r.cookies["access_token"], csrf_token)
-
-    head = {
-        "authorization": "Bearer " + r.cookies["access_token"],
-        "accept": "application/json, text/plain, */*",
-        "x-requested-with": "XMLHttpRequest",
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.128 Safari/537.36 Edg/89.0.774.77",
-        "x-forwarded-for": str(
-            ".".join(map(str, (random.randint(0, 255) for _ in range(4))))
-        ),
-        "x-udemy-authorization": "Bearer " + r.cookies["access_token"],
-        "content-type": "application/json;charset=UTF-8",
-        "origin": "https://www.udemy.com",
-        "referer": "https://www.udemy.com/",
-        "dnt": "1",
-    }
-
-    s = requests.session()
-    s.cookies.update(cookies)
-    s.headers.update(head)
-    s.keep_alive = False
-
-    r = s.get("https://www.udemy.com/api-2.0/contexts/me/?me=True&Config=True").json()
-    currency = r["Config"]["price_country"]["currency"]
-    user = r["me"]["display_name"]
-    settings["email"], settings["password"] = email, password
-    save_settings()
-    return head, user, currency, s, ""
+    return (
+        "",
+        "",
+        "",
+        "",
+        "Cloudflare is blocking your requests try again after an hour",
+    )
 
 
 def title_in_exclusion(title, t_x):
