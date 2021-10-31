@@ -1,5 +1,5 @@
 requests
-browser_cookie3
+git+https://github.com/borisbabic/browser_cookie3.git
 BeautifulSoup4
 PySimpleGUI
 bs4
