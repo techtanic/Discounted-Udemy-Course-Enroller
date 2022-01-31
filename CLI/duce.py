@@ -30,24 +30,16 @@ def discudemy():
     for page in range(1, 4):
         r = requests.get("https://www.discudemy.com/all/" + str(page), headers=head)
         soup = bs(r.content, "html5lib")
-        all = soup.find_all("section", "card")
-        big_all.extend(all)
+        small_all = soup.find_all("a", {"class": "card-header"})
+        big_all.extend(small_all)
     du_bar = tqdm(total=len(big_all), desc="Discudemy")
-    for index, items in enumerate(big_all):
+    for index, item in enumerate(big_all):
         du_bar.update(1)
-        try:
-            title = items.a.text
-            url = items.a["href"]
-
-            r = requests.get(url, headers=head)
-            soup = bs(r.content, "html5lib")
-            next = soup.find("div", "ui center aligned basic segment")
-            url = next.a["href"]
-            r = requests.get(url, headers=head)
-            soup = bs(r.content, "html5lib")
-            du_links.append(title + "|:|" + soup.find("div", "ui segment").a["href"])
-        except AttributeError:
-            continue
+        title = item.string
+        url = item["href"].split("/")[4]
+        r = requests.get("https://www.discudemy.com/go/" + url, headers=head)
+        soup = bs(r.content, "html5lib")
+        du_links.append(title + "|:|" + soup.find("a", id="couponLink").string)
     du_bar.close()
 
 
@@ -61,17 +53,16 @@ def udemy_freebies():
             "https://www.udemyfreebies.com/free-udemy-courses/" + str(page)
         )
         soup = bs(r.content, "html5lib")
-        all = soup.find_all("div", "coupon-name")
-        big_all.extend(all)
+        small_all = soup.find_all("a", {"class": "theme-img"})
+        big_all.extend(small_all)
     uf_bar = tqdm(total=len(big_all), desc="Udemy Freebies")
 
-    for index, items in enumerate(big_all):
+    for index, item in enumerate(big_all):
         uf_bar.update(1)
-        title = items.a.text
-        url = bs(requests.get(items.a["href"]).content, "html5lib").find(
-            "a", class_="button-icon"
-        )["href"]
-        link = requests.get(url).url
+        title = item.img["alt"]
+        link = requests.get(
+            "https://www.udemyfreebies.com/out/" + item["href"].split("/")[4]
+        ).url
         uf_links.append(title + "|:|" + link)
     uf_bar.close()
 
@@ -85,17 +76,16 @@ def tutorialbar():
     for page in range(1, 4):
         r = requests.get("https://www.tutorialbar.com/all-courses/page/" + str(page))
         soup = bs(r.content, "html5lib")
-        all = soup.find_all(
-            "div", class_="content_constructor pb0 pr20 pl20 mobilepadding"
+        small_all = soup.find_all(
+            "h3", class_="mb15 mt0 font110 mobfont100 fontnormal lineheight20"
         )
-        big_all.extend(all)
+        big_all.extend(small_all)
     tb_bar = tqdm(total=len(big_all), desc="Tutorial Bar")
 
-    for index, items in enumerate(big_all):
+    for index, item in enumerate(big_all):
         tb_bar.update(1)
-        title = items.a.text
-        url = items.a["href"]
-
+        title = item.a.string
+        url = item.a["href"]
         r = requests.get(url)
         soup = bs(r.content, "html5lib")
         link = soup.find("a", class_="btn_offer_block re_track_btn")["href"]
@@ -110,24 +100,25 @@ def real_discount():
     rd_links = []
     big_all = []
 
-    for page in range(1, 4):
-        r = requests.get("https://app.real.discount/stores/Udemy?page=" + str(page))
+    for page in range(1, 3):
+        r = requests.get("https://real.discount/stores/Udemy?page=" + str(page))
         soup = bs(r.content, "html5lib")
-        all = soup.find_all("div", class_="col-xl-4 col-md-6")
-        big_all.extend(all)
+        small_all = soup.find_all("div", class_="col-xl-4 col-md-6")
+        big_all.extend(small_all)
     rd_bar = tqdm(total=len(big_all), desc="Real Discount")
 
-    for index, items in enumerate(big_all):
+    for index, item in enumerate(big_all):
         rd_bar.update(1)
-        title = items.h3.text
-        url = "https://app.real.discount" + items.a["href"]
+        title = item.a.h3.string
+        url = "https://real.discount" + item.a["href"]
         r = requests.get(url)
         soup = bs(r.content, "html5lib")
-        try:
-            link = soup.select_one("a[href^='https://www.udemy.com']")["href"]
-            rd_links.append(title + "|:|" + link)
-        except:
-            pass
+        link = soup.find("div", class_="col-xs-12 col-md-12 col-sm-12 text-center").a[
+            "href"
+        ]
+        if link.startswith("http://click.linksynergy.com"):
+            link = parse_qs(link)["RD_PARM1"][0]
+        rd_links.append(title + "|:|" + link)
     rd_bar.close()
 
 
@@ -137,26 +128,32 @@ def coursevania():
     cv_links = []
     r = requests.get("https://coursevania.com/courses/")
     soup = bs(r.content, "html5lib")
-    nonce = soup.find_all("script")[22].text[30:]
-    nonce = json.loads(nonce.strip().strip(";"))["load_content"]
+
+    nonce = json.loads(
+        [
+            script.string
+            for script in soup.find_all("script")
+            if script.string and "load_content" in script.string
+        ][0].strip("_mlv = norsecat;\n")
+    )["load_content"]
+
     r = requests.get(
         "https://coursevania.com/wp-admin/admin-ajax.php?&template=courses/grid&args={%22posts_per_page%22:%2230%22}&action=stm_lms_load_content&nonce="
         + nonce
         + "&sort=date_high"
     ).json()
-    soup = bs(r["content"], "html5lib")
-    all = soup.find_all("div", attrs={"class": "stm_lms_courses__single--title"})
-    cv_bar = tqdm(total=len(all), desc="Course Vania")
 
-    for index, item in enumerate(all):
+    soup = bs(r["content"], "html5lib")
+    small_all = soup.find_all("div", {"class": "stm_lms_courses__single--title"})
+    cv_bar = tqdm(total=len(small_all), desc="Course Vania")
+
+    for index, item in enumerate(small_all):
         cv_bar.update(1)
-        title = item.h5.text
+        title = item.h5.string
         r = requests.get(item.a["href"])
         soup = bs(r.content, "html5lib")
         cv_links.append(
-            title
-            + "|:|"
-            + soup.find("div", attrs={"class": "stm-lms-buy-buttons"}).a["href"]
+            title + "|:|" + soup.find("div", {"class": "stm-lms-buy-buttons"}).a["href"]
         )
     cv_bar.close()
 
@@ -166,47 +163,44 @@ def idcoupons():
     global idc_links
     idc_links = []
     big_all = []
-    for page in range(1, 4):
+    for page in range(1, 6):
         r = requests.get(
             "https://idownloadcoupon.com/product-category/udemy-2/page/" + str(page)
         )
         soup = bs(r.content, "html5lib")
-        all = soup.find_all("a", attrs={"class": "button product_type_external"})
-        big_all.extend(all)
+        small_all = soup.find_all("a", attrs={"class": "button product_type_external"})
+        big_all.extend(small_all)
     idc_bar = tqdm(total=len(big_all), desc="IDownloadCoupons")
 
     for index, item in enumerate(big_all):
         idc_bar.update(1)
         title = item["aria-label"]
-        link = unquote(item["href"]).split("url=")
-        try:
-            link = link[1]
-        except IndexError:
-            link = link[0]
-        if link.startswith("https://www.udemy.com"):
-            idc_links.append(title + "|:|" + link)
+        link = unquote(item["href"])
+        if link.startswith("https://ad.admitad.com"):
+            link = parse_qs(link)["ulp"][0]
+        elif link.startswith("https://click.linksynergy.com"):
+            link = parse_qs(link)["murl"][0]
+        idc_links.append(title + "|:|" + link)
     idc_bar.close()
 
 
 def enext() -> list:
     en_links = []
     r = requests.get("https://e-next.in/e/udemycoupons.php")
-    soup = bs(r.content, "html.parser")
-    big_all = soup.find_all("p", {"class": "p2"})
-    big_all.pop(0)
+    soup = bs(r.content, "html5lib")
+    big_all = soup.find("div", {"class": "scroll-box"}).find_all("p", {"class": "p2"})
     en_bar = tqdm(total=len(big_all), desc="E-next")
     for i in big_all:
         en_bar.update(1)
-        title = i.text.strip().removesuffix("Enroll Now free").strip()
+        title = i.text[11:].strip().removesuffix("Enroll Now free").strip()
         link = i.a["href"]
         en_links.append(title + "|:|" + link)
-
     en_bar.close()
 
 
 # Constants
 
-version = "v1.5"
+version = "v1.6"
 
 
 def create_scrape_obj():
@@ -302,13 +296,17 @@ def affiliate_api(courseid):
     r = s.get(
         "https://www.udemy.com/api-2.0/courses/"
         + courseid
-        + "/?fields[course]=locale,primary_category,avg_rating_recent",
-        headers=head,
+        + "/?fields[course]=locale,primary_category,avg_rating_recent,visible_instructors",
     ).json()
+
+    instructor = (
+        r["visible_instructors"][0]["url"].removeprefix("/user/").removesuffix("/")
+    )
     return (
         r["primary_category"]["title"],
         r["locale"]["simple_english_title"],
         round(r["avg_rating_recent"], 1),
+        instructor,
     )
 
 
@@ -316,24 +314,27 @@ def course_landing_api(courseid):
     r = s.get(
         "https://www.udemy.com/api-2.0/course-landing-components/"
         + courseid
-        + "/me/?components=purchase,instructor_bio"
+        + "/me/?components=purchase"
     ).json()
 
-    instructor = (
-        r["instructor_bio"]["data"]["instructors_info"][0]["absolute_url"]
-        .removeprefix("/user/")
-        .removesuffix("/")
-    )
     try:
         purchased = r["purchase"]["data"]["purchase_date"]
     except:
         purchased = False
+
     try:
         amount = r["purchase"]["data"]["list_price"]["amount"]
     except:
         print(r["purchase"]["data"])
+    return purchased, Decimal(amount)
 
-    return instructor, purchased, Decimal(amount)
+
+def remove_duplicates(l):
+    l = l[::-1]
+    for i in l:
+        while l.count(i) > 1:
+            l.remove(i)
+    return l[::-1]
 
 
 def update_available():
@@ -346,9 +347,9 @@ def update_available():
 
 
 def check_login(email, password):
-    for retry in range(3):
-        s = requests.Session()
+    for retry in range(0, 2):
 
+        s = cloudscraper.CloudScraper()
         r = s.get(
             "https://www.udemy.com/join/signup-popup/",
         )
@@ -357,14 +358,12 @@ def check_login(email, password):
         csrf_token = soup.find("input", {"name": "csrfmiddlewaretoken"})["value"]
 
         data = {
+            "csrfmiddlewaretoken": csrf_token,
+            "locale": "en_US",
             "email": email,
             "password": password,
-            "locale": "en_US",
-            "csrfmiddlewaretoken": csrf_token,
         }
-        s = cloudscraper.create_scraper()
 
-        s.cookies.update(r.cookies)
         s.headers.update({"Referer": "https://www.udemy.com/join/signup-popup/"})
         try:
             r = s.post(
@@ -490,8 +489,8 @@ def auto(list_st):
 
         if course_id:
             coupon_id = get_course_coupon(link)
-            cat, lang, avg_rating = affiliate_api(course_id)
-            instructor, purchased, amount = course_landing_api(course_id)
+            cat, lang, avg_rating, instructor = affiliate_api(course_id)
+            purchased, amount = course_landing_api(course_id)
             if (
                 instructor in instructor_exclude
                 or title_in_exclusion(tl[0], title_exclude)
@@ -622,7 +621,7 @@ def main1():
             except:
                 pass
 
-        auto(links_ls)
+        auto(remove_duplicates(links_ls))
 
     except:
         e = traceback.format_exc()

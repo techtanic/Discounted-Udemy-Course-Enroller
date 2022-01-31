@@ -54,7 +54,7 @@ def discudemy():
         url = item["href"].split("/")[4]
         r = requests.get("https://www.discudemy.com/go/" + url, headers=head)
         soup = bs(r.content, "html5lib")
-        du_links.append(title + "|:|" + soup.find("div", "ui segment").a["href"])
+        du_links.append(title + "|:|" + soup.find("a", id="couponLink").string)
 
     main_window["pDiscudemy"].update(0, visible=False)
     main_window["iDiscudemy"].update(visible=True)
@@ -95,10 +95,10 @@ def tutorialbar():
     for page in range(1, 4):
         r = requests.get("https://www.tutorialbar.com/all-courses/page/" + str(page))
         soup = bs(r.content, "html5lib")
-        all = soup.find_all(
+        small_all = soup.find_all(
             "h3", class_="mb15 mt0 font110 mobfont100 fontnormal lineheight20"
         )
-        big_all.extend(all)
+        big_all.extend(small_all)
         main_window["pTutorial Bar"].update(page)
     main_window["pTutorial Bar"].update(0, max=len(big_all))
 
@@ -121,11 +121,11 @@ def real_discount():
     rd_links = []
     big_all = []
 
-    for page in range(1, 4):
+    for page in range(1, 3):
         r = requests.get("https://real.discount/stores/Udemy?page=" + str(page))
         soup = bs(r.content, "html5lib")
-        all = soup.find_all("div", class_="col-xl-4 col-md-6")
-        big_all.extend(all)
+        small_all = soup.find_all("div", class_="col-xl-4 col-md-6")
+        big_all.extend(small_all)
     main_window["pReal Discount"].update(page)
     main_window["pReal Discount"].update(0, max=len(big_all))
 
@@ -141,8 +141,6 @@ def real_discount():
         if link.startswith("http://click.linksynergy.com"):
             link = parse_qs(link)["RD_PARM1"][0]
 
-        print(title + "||" + link)
-
         rd_links.append(title + "|:|" + link)
     main_window["pReal Discount"].update(0, visible=False)
     main_window["iReal Discount"].update(visible=True)
@@ -155,9 +153,13 @@ def coursevania():
     r = requests.get("https://coursevania.com/courses/")
     soup = bs(r.content, "html5lib")
 
-    nonce = json.loads(soup.find_all("script")[22].string.strip("_mlv = norsecat;\n"))[
-        "load_content"
-    ]
+    nonce = json.loads(
+        [
+            script.string
+            for script in soup.find_all("script")
+            if script.string and "load_content" in script.string
+        ][0].strip("_mlv = norsecat;\n")
+    )["load_content"]
 
     r = requests.get(
         "https://coursevania.com/wp-admin/admin-ajax.php?&template=courses/grid&args={%22posts_per_page%22:%2230%22}&action=stm_lms_load_content&nonce="
@@ -186,13 +188,13 @@ def idcoupons():
     global idc_links
     idc_links = []
     big_all = []
-    for page in range(1, 4):
+    for page in range(1, 6):
         r = requests.get(
             "https://idownloadcoupon.com/product-category/udemy-2/page/" + str(page)
         )
         soup = bs(r.content, "html5lib")
-        all = soup.find_all("a", attrs={"class": "button product_type_external"})
-        big_all.extend(all)
+        small_all = soup.find_all("a", attrs={"class": "button product_type_external"})
+        big_all.extend(small_all)
     main_window["pIDownloadCoupons"].update(0, max=len(big_all))
 
     for index, item in enumerate(big_all):
@@ -203,7 +205,6 @@ def idcoupons():
             link = parse_qs(link)["ulp"][0]
         elif link.startswith("https://click.linksynergy.com"):
             link = parse_qs(link)["murl"][0]
-        print(link)
         idc_links.append(title + "|:|" + link)
     main_window["pIDownloadCoupons"].update(0, visible=False)
     main_window["iIDownloadCoupons"].update(visible=True)
@@ -216,7 +217,6 @@ def enext() -> list:
     big_all = soup.find("div", {"class": "scroll-box"}).find_all("p", {"class": "p2"})
     main_window["pE-next"].update(0, max=len(big_all))
     for i in big_all:
-
         main_window["pE-next"].update(index + 1)
         title = i.text[11:].strip().removesuffix("Enroll Now free").strip()
         link = i.a["href"]
@@ -227,7 +227,7 @@ def enext() -> list:
 
 ########################### Constants
 
-version = "v1.5"
+version = "v1.6"
 
 
 def create_scrape_obj():
@@ -328,12 +328,17 @@ def affiliate_api(courseid):
     r = s.get(
         "https://www.udemy.com/api-2.0/courses/"
         + courseid
-        + "/?fields[course]=locale,primary_category,avg_rating_recent",
+        + "/?fields[course]=locale,primary_category,avg_rating_recent,visible_instructors",
     ).json()
+
+    instructor = (
+        r["visible_instructors"][0]["url"].removeprefix("/user/").removesuffix("/")
+    )
     return (
         r["primary_category"]["title"],
         r["locale"]["simple_english_title"],
         round(r["avg_rating_recent"], 1),
+        instructor,
     )
 
 
@@ -341,24 +346,27 @@ def course_landing_api(courseid):
     r = s.get(
         "https://www.udemy.com/api-2.0/course-landing-components/"
         + courseid
-        + "/me/?components=purchase,instructor_bio"
+        + "/me/?components=purchase"
     ).json()
 
-    instructor = (
-        r["instructor_bio"]["data"]["instructors_info"][0]["absolute_url"]
-        .removeprefix("/user/")
-        .removesuffix("/")
-    )
     try:
         purchased = r["purchase"]["data"]["purchase_date"]
     except:
         purchased = False
+
     try:
         amount = r["purchase"]["data"]["list_price"]["amount"]
     except:
         print(r["purchase"]["data"])
-    print()
-    return instructor, purchased, Decimal(amount)
+    return purchased, Decimal(amount)
+
+
+def remove_duplicates(l):
+    l = l[::-1]
+    for i in l:
+        while l.count(i) > 1:
+            l.remove(i)
+    return l[::-1]
 
 
 def update_courses():
@@ -386,7 +394,7 @@ def update_available():
 
 
 def manual_login():
-    for retry in range(0,2):
+    for retry in range(0, 2):
 
         s = cloudscraper.CloudScraper()
         r = s.get(
@@ -399,8 +407,8 @@ def manual_login():
         data = {
             "csrfmiddlewaretoken": csrf_token,
             "locale": "en_US",
-            "email": "rfrf445fr@gmail.com",
-            "password": "1234test",
+            "email": settings["email"],
+            "password": settings["password"],
         }
 
         s.headers.update({"Referer": "https://www.udemy.com/join/signup-popup/"})
@@ -427,6 +435,7 @@ def manual_login():
                 return txt, "", "", ""
 
     return "Cloudflare is blocking your requests try again after an hour", "", "", ""
+
 
 def check_login(client_id, access_token, csrf_token):
     head = {
@@ -521,8 +530,8 @@ def auto(list_st):
         course_id = get_course_id(link)
         if course_id:
             coupon_id = get_course_coupon(link)
-            cat, lang, avg_rating = affiliate_api(course_id)
-            instructor, purchased, amount = course_landing_api(course_id)
+            cat, lang, avg_rating, instructor = affiliate_api(course_id)
+            purchased, amount = course_landing_api(course_id)
             if (
                 instructor in instructor_exclude
                 or title_in_exclusion(tl[0], title_exclude)
@@ -688,7 +697,7 @@ def main1():
             except:
                 pass
 
-        auto(links_ls)
+        auto(remove_duplicates(links_ls))
 
     except:
         e = traceback.format_exc()
