@@ -50,8 +50,8 @@
         "IDownloadCoupons": true,
         "E-next": true
     },
-    "email": "rfrf445fr@gmail.com",
-    "password": "1234test",
+    "email": "",
+    "password": "",
     "save_txt": true,
     "discounted_only": false
 }

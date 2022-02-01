@@ -1,8 +1,8 @@
 requests
 git+https://github.com/borisbabic/browser_cookie3.git
-BeautifulSoup4
 PySimpleGUI
 bs4
 html5lib
+pyopenssl
 argparse
-git+https://github.com/VeNoMouS/cloudscraper@dev
+cloudscraper

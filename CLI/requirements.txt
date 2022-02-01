@@ -2,5 +2,6 @@ requests
 bs4
 html5lib
 colorama
+pyopenssl
 tqdm
-git+https://github.com/VeNoMouS/cloudscraper@dev
+cloudscraper
