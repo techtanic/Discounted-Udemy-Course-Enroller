@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.6
+- Fixed Login issues
+- Fixed `CourseVania`
+- Fixed Enrolling
+- Some minor fixes
+
 ## v1.5
 - Fixed login problem.
 - Fixed my ego.
