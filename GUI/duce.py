@@ -9,8 +9,7 @@ import traceback
 from decimal import Decimal
 from urllib.parse import parse_qs, unquote, urlsplit
 from webbrowser import open as web
-
-import browser_cookie3
+from pack import browser_cookie3
 import cloudscraper
 import PySimpleGUI as sg
 import requests
