@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.7
+- Fixed Auto-Login
+
 ## v1.6
 - Fixed Login issues
 - Fixed `CourseVania`

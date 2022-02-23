@@ -226,7 +226,7 @@ def enext() -> list:
 
 ########################### Constants
 
-version = "v1.6"
+version = "v1.7"
 
 
 def create_scrape_obj():
@@ -613,7 +613,7 @@ def auto(list_st):
                                     e_c += 1
 
                             if slp != "":
-                                slp += 5
+                                slp += 3
                                 main_window["out"].print(
                                     ">>> Pausing execution of script for "
                                     + str(slp)

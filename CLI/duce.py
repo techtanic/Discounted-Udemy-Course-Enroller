@@ -200,7 +200,7 @@ def enext() -> list:
 
 # Constants
 
-version = "v1.6"
+version = "v1.7"
 
 
 def create_scrape_obj():
