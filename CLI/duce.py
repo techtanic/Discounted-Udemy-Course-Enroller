@@ -186,13 +186,14 @@ def idcoupons():
 
 def enext() -> list:
     en_links = []
+
     r = requests.get("https://e-next.in/e/udemycoupons.php")
     soup = bs(r.content, "html5lib")
-    big_all = soup.find("div", {"class": "scroll-box"}).find_all("p", {"class": "p2"})
+    big_all = soup.find_all("div", {"class": "col-8"})
     en_bar = tqdm(total=len(big_all), desc="E-next")
     for i in big_all:
         en_bar.update(1)
-        title = i.text[11:].strip().removesuffix("Enroll Now free").strip()
+        title = i.text.strip("09876543210# \n").removesuffix("Enroll Now free").strip()
         link = i.a["href"]
         en_links.append(title + "|:|" + link)
     en_bar.close()
@@ -200,7 +201,7 @@ def enext() -> list:
 
 # Constants
 
-version = "v1.7"
+version = "v1.8"
 
 
 def create_scrape_obj():
@@ -353,10 +354,7 @@ def check_login(email, password):
         r = s.get(
             "https://www.udemy.com/join/signup-popup/",
         )
-        soup = bs(r.text, "html5lib")
-
-        csrf_token = soup.find("input", {"name": "csrfmiddlewaretoken"})["value"]
-
+        csrf_token = r.cookies["csrftoken"]
         data = {
             "csrfmiddlewaretoken": csrf_token,
             "locale": "en_US",

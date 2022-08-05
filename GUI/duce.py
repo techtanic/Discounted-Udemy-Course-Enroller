@@ -151,13 +151,12 @@ def coursevania():
     cv_links = []
     r = requests.get("https://coursevania.com/courses/")
     soup = bs(r.content, "html5lib")
-
     nonce = json.loads(
         [
             script.string
             for script in soup.find_all("script")
             if script.string and "load_content" in script.string
-        ][0].strip("_mlv = norsecat;\n")
+        ][0].strip("_mlv =	norsecat;\n")
     )["load_content"]
 
     r = requests.get(
@@ -194,6 +193,7 @@ def idcoupons():
         soup = bs(r.content, "html5lib")
         small_all = soup.find_all("a", attrs={"class": "button product_type_external"})
         big_all.extend(small_all)
+        main_window["pIDownloadCoupons"].update(page)
     main_window["pIDownloadCoupons"].update(0, max=len(big_all))
 
     for index, item in enumerate(big_all):
@@ -213,11 +213,11 @@ def enext() -> list:
     en_links = []
     r = requests.get("https://e-next.in/e/udemycoupons.php")
     soup = bs(r.content, "html5lib")
-    big_all = soup.find("div", {"class": "scroll-box"}).find_all("p", {"class": "p2"})
+    big_all = soup.find_all("div", {"class": "col-8"})
     main_window["pE-next"].update(0, max=len(big_all))
     for i in big_all:
         main_window["pE-next"].update(index + 1)
-        title = i.text[11:].strip().removesuffix("Enroll Now free").strip()
+        title = i.text.strip("09876543210# \n").removesuffix("Enroll Now free").strip()
         link = i.a["href"]
         en_links.append(title + "|:|" + link)
     main_window["pE-next"].update(0, visible=False)
@@ -226,7 +226,7 @@ def enext() -> list:
 
 ########################### Constants
 
-version = "v1.7"
+version = "v1.8"
 
 
 def create_scrape_obj():
@@ -385,8 +385,8 @@ def update_available():
     ).json()["tag_name"]
     if version.removeprefix("v") < release_version.removeprefix("v"):
         return (
-            f" Update {release_version} Availabe",
-            f"Update {release_version} Availabe",
+            f" Update {release_version} Available",
+            f"Update {release_version} Available",
         )
     else:
         return f"Login {version}", f"Discounted-Udemy-Course-Enroller {version}"
@@ -396,13 +396,13 @@ def manual_login():
     for retry in range(0, 2):
 
         s = cloudscraper.CloudScraper()
-        
+
         r = s.get(
             "https://www.udemy.com/join/signup-popup/",
         )
-        soup = bs(r.text, "html5lib")
-        
-        csrf_token = soup.find("input", {"name": "csrfmiddlewaretoken"})["value"]
+
+        csrf_token = r.cookies["csrftoken"]
+
         data = {
             "csrfmiddlewaretoken": csrf_token,
             "locale": "en_US",
@@ -410,10 +410,14 @@ def manual_login():
             "password": settings["password"],
         }
 
-        s.headers.update({"Referer": "https://www.udemy.com/join/signup-popup/"})
-        r = s.get("https://www.udemy.com/join/login-popup/?locale=en_US")
+        ss = requests.session()
+        ss.cookies.update(s.cookies)
+        ss.headers.update(s.headers)
+        ss.headers.update({"Referer": "https://www.udemy.com/join/signup-popup/"})
+        r = ss.get("https://www.udemy.com/join/login-popup/?locale=en_US")
+
         try:
-            r = s.post(
+            r = ss.post(
                 "https://www.udemy.com/join/login-popup/?locale=en_US",
                 data=data,
                 allow_redirects=False,
@@ -424,8 +428,8 @@ def manual_login():
             return "", r.cookies["client_id"], r.cookies["access_token"], csrf_token
         else:
             soup = bs(r.content, "html5lib")
-            with open("test.txt", "w") as f:
-                f.write(r.text)
+            # with open("test.txt", "w") as f:
+            #     f.write(r.text)
             txt = soup.find(
                 "div", class_="alert alert-danger js-error-alert"
             ).text.strip()
@@ -524,7 +528,10 @@ def auto(list_st):
         if not os.path.exists("Courses/"):
             os.makedirs("Courses/")
         txt_file = open(f"Courses/" + time.strftime("%Y-%m-%d--%H-%M"), "w")
-    for index, combo in enumerate(list_st):
+    # for index, combo in enumerate(list_st):
+    index = 0
+    while index < len(list_st):
+        combo = list_st[index]
         tl = combo.split("|:|")
         main_window["out"].print(str(index) + " " + tl[0], text_color="yellow", end=" ")
         link = tl[1]
@@ -622,6 +629,8 @@ def auto(list_st):
                                 )
                                 time.sleep(slp)
                                 main_window["out"].print()
+                                continue
+
                             else:
                                 time.sleep(3.5)
 
@@ -662,10 +671,12 @@ def auto(list_st):
             elif not course_id:
                 main_window["out"].print(".Course Expired.", text_color="red")
                 e_c += 1
+            index += 1
             main_window["pout"].update(index + 1)
         except:
             e = traceback.format_exc()
             print(e)
+
     main_window["done_col"].update(visible=True)
 
     main_window["se_c"].update(value=f"Successfully Enrolled: {se_c}")
@@ -815,7 +826,7 @@ if (
                     break
 
                 except Exception as e:
-                    
+
                     e = traceback.format_exc()
                     print(e)
                     sg.popup_auto_close(
