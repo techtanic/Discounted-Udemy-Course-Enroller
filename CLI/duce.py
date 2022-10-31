@@ -100,24 +100,17 @@ def real_discount():
     rd_links = []
     big_all = []
 
-    for page in range(1, 3):
-        r = requests.get("https://real.discount/stores/Udemy?page=" + str(page))
-        soup = bs(r.content, "html5lib")
-        small_all = soup.find_all("div", class_="col-xl-4 col-md-6")
-        big_all.extend(small_all)
+    r = requests.get(
+        "https://www.real.discount/api-web/all-courses/?store=Udemy&page=https://www.real.discount/api-web/all-courses/?store=&page=1&per_page=40&orderby=date&free=1&editorschoices=0"
+    ).json()
+
+    big_all.extend(r["results"])
     rd_bar = tqdm(total=len(big_all), desc="Real Discount")
 
     for index, item in enumerate(big_all):
         rd_bar.update(1)
-        title = item.a.h3.string
-        url = "https://real.discount" + item.a["href"]
-        r = requests.get(url)
-        soup = bs(r.content, "html5lib")
-        link = soup.find("div", class_="col-xs-12 col-md-12 col-sm-12 text-center").a[
-            "href"
-        ]
-        if link.startswith("http://click.linksynergy.com"):
-            link = parse_qs(link)["RD_PARM1"][0]
+        title = item["name"]
+        link = item["url"]
         rd_links.append(title + "|:|" + link)
     rd_bar.close()
 
@@ -185,16 +178,15 @@ def idcoupons():
 
 
 def enext() -> list:
+    global en_links
     en_links = []
-
-    r = requests.get("https://e-next.in/e/udemycoupons.php")
-    soup = bs(r.content, "html5lib")
-    big_all = soup.find_all("div", {"class": "col-8"})
+    r = requests.get("https://e-next.in/e/udemy-free-courses/udemy.json").json()
+    big_all =r
     en_bar = tqdm(total=len(big_all), desc="E-next")
     for i in big_all:
         en_bar.update(1)
-        title = i.text.strip("09876543210# \n").removesuffix("Enroll Now free").strip()
-        link = i.a["href"]
+        title = i["title"]
+        link = i["site"]
         en_links.append(title + "|:|" + link)
     en_bar.close()
 
@@ -275,9 +267,8 @@ def get_course_id(url):
             attrs={"data-content-group": "Landing Page"},
         )["data-course-id"]
     except:
-        courseid = soup.find(
-            "body", attrs={"data-module-id": "course-landing-page/udlite"}
-        )["data-clp-course-id"]
+
+        courseid = soup.find("body")["data-clp-course-id"]
         # with open("problem.txt","w",encoding="utf-8") as f:
         # f.write(str(soup))
     return courseid

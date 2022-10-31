@@ -1,5 +1,10 @@
 # Changelog
 
+# v1.8 [not released yet]
+- Fixed Course not enrolling
+- Fixed real discount
+- Fixed enext
+
 ## v1.7
 - Fixed Auto-Login
 

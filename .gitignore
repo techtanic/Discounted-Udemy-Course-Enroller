@@ -11,3 +11,5 @@ Courses/
 p_test.py
 *.pyc
 noob_text.py
+GUI/.test.py
+GUI/problem.txt

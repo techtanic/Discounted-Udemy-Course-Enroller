@@ -14,6 +14,7 @@ import cloudscraper
 import PySimpleGUI as sg
 import requests
 from bs4 import BeautifulSoup as bs
+from icecream import ic
 
 from pack.base64 import *
 
@@ -43,17 +44,17 @@ def discudemy():
         soup = bs(r.content, "html5lib")
         small_all = soup.find_all("a", {"class": "card-header"})
         big_all.extend(small_all)
-        main_window["pDiscudemy"].update(page)
-    main_window["pDiscudemy"].update(0, max=len(big_all))
+        main_window["pDiscudemy"].update(page)  # type: ignore
+    main_window["pDiscudemy"].update(0, max=len(big_all))  # type: ignore
 
     for index, item in enumerate(big_all):
-        main_window["pDiscudemy"].update(index + 1)
+        main_window["pDiscudemy"].update(index + 1)  # type: ignore
 
         title = item.string
         url = item["href"].split("/")[4]
         r = requests.get("https://www.discudemy.com/go/" + url, headers=head)
         soup = bs(r.content, "html5lib")
-        du_links.append(title + "|:|" + soup.find("a", id="couponLink").string)
+        du_links.append(title + "|:|" + soup.find("a", id="couponLink").string)  # type: ignore
 
     main_window["pDiscudemy"].update(0, visible=False)
     main_window["iDiscudemy"].update(visible=True)
@@ -120,27 +121,21 @@ def real_discount():
     rd_links = []
     big_all = []
 
-    for page in range(1, 3):
-        r = requests.get("https://real.discount/stores/Udemy?page=" + str(page))
-        soup = bs(r.content, "html5lib")
-        small_all = soup.find_all("div", class_="col-xl-4 col-md-6")
-        big_all.extend(small_all)
-    main_window["pReal Discount"].update(page)
+    r = requests.get(
+        "https://www.real.discount/api-web/all-courses/?store=Udemy&page=https://www.real.discount/api-web/all-courses/?store=&page=1&per_page=40&orderby=date&free=1&editorschoices=0"
+    ).json()
+
+    big_all.extend(r["results"])
+
     main_window["pReal Discount"].update(0, max=len(big_all))
 
     for index, item in enumerate(big_all):
         main_window["pReal Discount"].update(index + 1)
-        title = item.a.h3.string
-        url = "https://real.discount" + item.a["href"]
-        r = requests.get(url)
-        soup = bs(r.content, "html5lib")
-        link = soup.find("div", class_="col-xs-12 col-md-12 col-sm-12 text-center").a[
-            "href"
-        ]
-        if link.startswith("http://click.linksynergy.com"):
-            link = parse_qs(link)["RD_PARM1"][0]
-
+        title = item["name"]
+        link = item["url"]
+        # ic(title, link)
         rd_links.append(title + "|:|" + link)
+
     main_window["pReal Discount"].update(0, visible=False)
     main_window["iReal Discount"].update(visible=True)
 
@@ -211,14 +206,14 @@ def idcoupons():
 
 def enext() -> list:
     en_links = []
-    r = requests.get("https://e-next.in/e/udemycoupons.php")
-    soup = bs(r.content, "html5lib")
-    big_all = soup.find_all("div", {"class": "col-8"})
+
+    r = requests.get("https://e-next.in/e/udemy-free-courses/udemy.json").json()
+    big_all = r
     main_window["pE-next"].update(0, max=len(big_all))
     for i in big_all:
         main_window["pE-next"].update(index + 1)
-        title = i.text.strip("09876543210# \n").removesuffix("Enroll Now free").strip()
-        link = i.a["href"]
+        title = i["title"]
+        link = i["site"]
         en_links.append(title + "|:|" + link)
     main_window["pE-next"].update(0, visible=False)
     main_window["iE-next"].update(visible=True)
@@ -305,9 +300,7 @@ def get_course_id(url):
             attrs={"data-content-group": "Landing Page"},
         )["data-course-id"]
     except:
-        courseid = soup.find(
-            "body", attrs={"data-module-id": "course-landing-page/udlite"}
-        )["data-clp-course-id"]
+        courseid = soup.find("body")["data-clp-course-id"]
         # with open("problem.txt","w",encoding="utf-8") as f:
         # f.write(str(soup))
     return courseid
@@ -531,6 +524,7 @@ def auto(list_st):
     # for index, combo in enumerate(list_st):
     index = 0
     while index < len(list_st):
+        ic()
         combo = list_st[index]
         tl = combo.split("|:|")
         main_window["out"].print(str(index) + " " + tl[0], text_color="yellow", end=" ")

@@ -6,3 +6,4 @@ html5lib
 pyopenssl
 argparse
 cloudscraper
+icecream
