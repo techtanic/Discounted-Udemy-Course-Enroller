@@ -21,10 +21,10 @@ jobs:
           pip install pyinstaller
 
       - name: Build GUI
-        run: pyinstaller -y -F -w -i "GUI/DUCE-LOGO.ico" --name "DUCE-GUI-windows" --add-data="GUI/pack;pack/" --add-data "c:\hostedtoolcache\windows\python\3.10.5\x64\lib\site-packages\cloudscraper;./cloudscraper/" "GUI/duce.py"
+        run: pyinstaller -y -F -w -i "GUI/DUCE-LOGO.ico" --name "DUCE-GUI-windows" --add-data="GUI/pack;pack/" --add-data "c:\hostedtoolcache\windows\python\3.10.8\x64\lib\site-packages\cloudscraper;./cloudscraper/" "GUI/duce.py"
 
       - name: Build CLI
-        run: pyinstaller -y -F -c -i "CLI/DUCE-LOGO.ico" --name "DUCE-CLI-windows" --add-data="CLI/colors.py;." --add-data "c:\hostedtoolcache\windows\python\3.10.5\x64\lib\site-packages\cloudscraper;./cloudscraper/" "CLI/duce.py"
+        run: pyinstaller -y -F -c -i "CLI/DUCE-LOGO.ico" --name "DUCE-CLI-windows" --add-data="CLI/colors.py;." --add-data "c:\hostedtoolcache\windows\python\3.10.8\x64\lib\site-packages\cloudscraper;./cloudscraper/" "CLI/duce.py"
 
       - name: Upload GUI.exe
         uses: actions/upload-artifact@v3
