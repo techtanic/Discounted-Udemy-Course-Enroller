@@ -467,7 +467,7 @@ def auto(list_st):
     if settings["save_txt"]:
         if not os.path.exists("Courses/"):
             os.makedirs("Courses/")
-        txt_file = open(f"Courses/" + time.strftime("%Y-%m-%d--%H-%M"), "w")
+        txt_file = open(f"Courses/" + time.strftime("%Y-%m-%d--%H-%M")+".txt", "w")
     for index, combo in enumerate(list_st):
 
         tl = combo.split("|:|")
