@@ -181,7 +181,7 @@ def enext() -> list:
     global en_links
     en_links = []
     r = requests.get("https://e-next.in/e/udemy-free-courses/udemy.json").json()
-    big_all =r
+    big_all = r
     en_bar = tqdm(total=len(big_all), desc="E-next")
     for i in big_all:
         en_bar.update(1)
