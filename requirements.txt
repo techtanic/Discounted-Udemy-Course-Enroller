@@ -1,0 +1,7 @@
+PySimpleGUI
+bs4
+requests
+html5lib
+cloudscraper
+pyopenssl
+browser_cookie3

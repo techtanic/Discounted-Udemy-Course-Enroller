@@ -1,9 +1,0 @@
-requests
-git+https://github.com/borisbabic/browser_cookie3.git
-PySimpleGUI
-bs4
-html5lib
-pyopenssl
-argparse
-cloudscraper
-icecream

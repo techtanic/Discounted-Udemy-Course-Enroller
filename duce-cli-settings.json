@@ -39,7 +39,7 @@
         "Udemy Freebies": true,
         "Tutorial Bar": true,
         "Real Discount": true,
-        "Course Vania": false,
+        "Course Vania": true,
         "IDownloadCoupons": true,
         "E-next": true
     },
@@ -51,8 +51,7 @@
     ],
     "title_exclude": [
         "keyword1",
-        "not_case_sensitive",
-        "enjoy_it"
+        "noT_case_SensitiVe"
     ],
     "email": "",
     "password": "",
