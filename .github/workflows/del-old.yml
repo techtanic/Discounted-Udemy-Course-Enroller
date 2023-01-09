@@ -5,7 +5,7 @@ on:
 jobs:
   stale:
     runs-on: ubuntu-latest
-    steps: 
+    steps:
       - run: ls
       #- uses: dev-drprasad/delete-older-releases@v0.2.0
       #  with:

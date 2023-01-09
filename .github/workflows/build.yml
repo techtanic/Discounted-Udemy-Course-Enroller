@@ -12,19 +12,18 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.10" # or '3.8'
+          python-version: "3.10"
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r GUI/requirements.txt -U
-          pip install -r CLI/requirements.txt -U
+          pip install -r requirements.txt -U
           pip install pyinstaller
 
       - name: Build GUI
-        run: pyinstaller -y -F -w -i "GUI/DUCE-LOGO.ico" --name "DUCE-GUI-windows" --add-data="GUI/pack;pack/" --add-data "c:\hostedtoolcache\windows\python\3.10.8\x64\lib\site-packages\cloudscraper;./cloudscraper/" "GUI/duce.py"
+        run: pyinstaller -y -F -w -i "extra/DUCE-LOGO.ico"  --clean --name "DUCE-GUI-windows" --add-data "base.py;." --add-data "colors.py;." --add-data "README.md;." --add-data "LICENSE;."  "gui.py"
 
       - name: Build CLI
-        run: pyinstaller -y -F -c -i "CLI/DUCE-LOGO.ico" --name "DUCE-CLI-windows" --add-data="CLI/colors.py;." --add-data "c:\hostedtoolcache\windows\python\3.10.8\x64\lib\site-packages\cloudscraper;./cloudscraper/" "CLI/duce.py"
+        run: pyinstaller -y -F -c -i "extra/DUCE-LOGO.ico"  --clean --name "DUCE-CLI-windows" --add-data "base.py;." --add-data "colors.py;." --add-data "README.md;." --add-data "LICENSE;."  "cli.py"
 
       - name: Upload GUI.exe
         uses: actions/upload-artifact@v3

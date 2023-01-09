@@ -570,7 +570,6 @@ global main_window
 main_window = sg.Window(main_title, main_lo, finalize=True)
 threading.Thread(target=update_courses, args=(udemy.client,), daemon=True).start()
 while True:
-
     event, values = main_window.read()
     if event == "Dummy":
         print(values)
@@ -606,7 +605,7 @@ while True:
         #     udemy.settings["categories"][key] = values[key]
         # for key in udemy.settings["sites"]:
         #     udemy.settings["sites"][key] = values[key]
-        for setting in ["language", "category", "site"]:
+        for setting in ["languages", "categories", "sites"]:
             for key in udemy.settings[setting]:
                 udemy.settings[setting][key] = values[key]
 
@@ -618,6 +617,7 @@ while True:
         udemy.settings["save_txt"] = values["save_txt"]
         udemy.settings["discounted_only"] = values["discounted_only"]
         udemy.save_settings()
+
         user_dumb = udemy.is_user_dumb()
         if user_dumb:
             sg.popup_auto_close(
