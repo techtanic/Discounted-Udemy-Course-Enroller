@@ -1,5 +1,7 @@
 import traceback
-
+import threading
+import time
+from tqdm import tqdm
 from base import VERSION, LoginException, Scraper, Udemy, scraper_dict
 from colors import *
 
@@ -90,3 +92,4 @@ if user_dumb:
 if not user_dumb:
     scraper = Scraper(udemy.sites)
     scrape()
+input()
