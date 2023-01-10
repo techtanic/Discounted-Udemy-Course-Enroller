@@ -4,16 +4,15 @@ import random
 import re
 import threading
 import time
-from decimal import Decimal
-from http.cookiejar import CookieJar
 import traceback
-from typing import Tuple
+from decimal import Decimal
 from urllib.parse import parse_qs, unquote, urlsplit
 
 import browser_cookie3
 import cloudscraper
 import requests
 from bs4 import BeautifulSoup as bs
+
 from colors import *
 
 VERSION = "v1.8"

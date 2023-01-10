@@ -1,24 +1,6 @@
-import json
-import os
-import random
-import re
-import threading
-import time
 import traceback
-from decimal import Decimal
-from urllib.parse import parse_qs, unquote, urlsplit
 
-import cloudscraper
-import requests
-from bs4 import BeautifulSoup as bs
-from tqdm import tqdm
-from base import (
-    VERSION,
-    LoginException,
-    Scraper,
-    Udemy,
-    scraper_dict,
-)
+from base import VERSION, LoginException, Scraper, Udemy, scraper_dict
 from colors import *
 
 # DUCE-CLI
@@ -58,7 +40,7 @@ def scrape():
         udemy.scraped_links = scraper.get_scraped_courses(create_scraping_thread)
         print("\n")
         udemy.enrol()
-        
+
         print(f"Successfully Enrolled: {udemy.successfully_enrolled_c}")
         print(f"Amount Saved: {round(udemy.amount_saved_c,2)} {udemy.currency.upper()}")
         print(f"Already Enrolled: {udemy.already_enrolled_c}")

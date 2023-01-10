@@ -7,14 +7,7 @@ from webbrowser import open as web
 import PySimpleGUI as sg
 import requests
 
-from base import (
-    LINKS,
-    VERSION,
-    LoginException,
-    Scraper,
-    Udemy,
-    scraper_dict,
-)
+from base import LINKS, VERSION, LoginException, Scraper, Udemy, scraper_dict
 from images import *
 
 sg.set_global_icon(icon)
