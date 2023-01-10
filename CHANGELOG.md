@@ -1,6 +1,6 @@
 # Changelog
 
-# v1.8
+## v1.8
 
 - Refactored code
 - Fixed Course not enrolling

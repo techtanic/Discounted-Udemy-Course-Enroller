@@ -357,14 +357,17 @@ class Udemy:
         self.cookie_jar = cookies
 
     def get_course_id(self, url: str):
-
+        # url="https://www.udemy.com/course/microsoft-az-102-practice-test?couponCode=04718D908CFD4CBE19BB"
         r = requests.get(url)
         soup = bs(r.content, "html5lib")
-        course_id = (
-            soup.find("meta", {"itemprop": "image"})["content"]
-            .split("/")[5]
-            .split("_")[0]
-        )
+        try:
+            course_id = (
+                soup.find("meta", {"itemprop": "image"})["content"]
+                .split("/")[5]
+                .split("_")[0]
+            )
+        except IndexError:
+            course_id = ""
         return course_id, r.url
 
     def extract_course_coupon(self, url: str) -> bool | str:
@@ -749,7 +752,7 @@ class Udemy:
                     self.already_enrolled_c += 1
 
             elif not course_id:
-                self.print("Coupon Expired", color="red")
+                self.print("Course Expired", color="red")
                 self.expired_c += 1
             index += 1
             # main_window["pout"].update(index + 1)
