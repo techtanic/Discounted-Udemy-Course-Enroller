@@ -1,4 +1,3 @@
-
 @import url("https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700,800,900&display=swap");
 
 html {
@@ -79,7 +78,7 @@ h4,
 h5,
 h6 {
   font-weight: 600;
-  color: #8e24aa  ;
+  color: #8e24aa;
   margin: 0px;
 }
 
@@ -1862,6 +1861,7 @@ p {
 
 .time-line .row {
   position: relative;
+  justify-content: flex-start !important;
 }
 
 .time-line::after {
@@ -2248,14 +2248,14 @@ p {
   color: #ce93d8;
 }
 
-.copyleft{
+.copyleft {
   color: #536dfe;
 }
-.copyleft:hover{
+
+.copyleft:hover {
   color: #6f4bf0;
 }
 
-.row{
-
+.row {
   justify-content: space-evenly !important;
 }
