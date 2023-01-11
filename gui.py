@@ -15,7 +15,7 @@ sg.change_look_and_feel("dark")
 sg.theme_background_color
 sg.set_options(
     button_color=(sg.theme_background_color(), sg.theme_background_color()),
-    border_width=2,
+    border_width=0,
     font=10,
 )
 

@@ -475,12 +475,12 @@ class Udemy:
             .removeprefix("v")
         )
         c_version = VERSION.removeprefix("v")
-        if c_version == r_version:
+        if c_version < r_version:
             return (
                 f" Update {r_version} Available",
                 f"Update {r_version} Available",
             )
-        elif c_version < r_version:
+        elif c_version == r_version:
             return f"Login {c_version}", f"Discounted-Udemy-Course-Enroller {c_version}"
         else:
             return (
