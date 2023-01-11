@@ -2254,3 +2254,8 @@ p {
 .copyleft:hover{
   color: #6f4bf0;
 }
+
+.row{
+
+  justify-content: space-evenly !important;
+}
