@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup as bs
 
 from colors import *
 
-VERSION = "v1.8"
+VERSION = "v1.9"
 
 
 scraper_dict: dict = {
@@ -265,7 +265,8 @@ class Scraper:
                 )
                 soup = bs(r.content, "html5lib")
                 small_all = soup.find_all(
-                    "a", attrs={"class": "button product_type_external"}
+                    "a",
+                    attrs={"class": "button wp-element-button product_type_external"},
                 )
                 big_all.extend(small_all)
             self.idc_length = len(big_all)
@@ -307,7 +308,7 @@ class Scraper:
 class Udemy:
     def __init__(self, interface: str):
         self.interface = interface
-        self.client = requests.session()
+        self.client = cloudscraper.CloudScraper()
 
     def print(self, content: str, color: str, **kargs):
         colours_dict = {
@@ -357,7 +358,7 @@ class Udemy:
 
     def get_course_id(self, url: str):
         # url="https://www.udemy.com/course/microsoft-az-102-practice-test?couponCode=04718D908CFD4CBE19BB"
-        r = requests.get(url)
+        r = cloudscraper.CloudScraper().get(url)
         soup = bs(r.content, "html5lib")
         try:
             course_id = (
@@ -432,11 +433,8 @@ class Udemy:
             amount (Decimal)),
             coupon_valid (bool),
         """
-        url = (
-            "https://www.udemy.com/api-2.0/course-landing-components/"
-            + course_id
-            + "/me/?components=purchase"
-        )
+        url = f"https://www.udemy.com/api-2.0/course-landing-components/{course_id}/me/?components=purchase"
+
         if coupon_id:
             url += f",redeem_coupon&couponCode={coupon_id}"
 
@@ -451,11 +449,13 @@ class Udemy:
         except KeyError:
             print(r)
         coupon_valid = False
+        if "redeem_coupon" not in r:
+            coupon_id = False
         if coupon_id:
             if r["redeem_coupon"]["discount_attempts"][0]["status"] == "applied":
                 coupon_valid = True
 
-        return purchased, Decimal(amount), coupon_valid
+        return purchased, Decimal(amount), coupon_valid, coupon_id
 
     def remove_duplicates(self):
         self.d_c = 0
@@ -511,8 +511,18 @@ class Udemy:
         s.cookies.update(r.cookies)
         s.headers.update(
             {
-                "Referer": "https://www.udemy.com/join/signup-popup/",
                 "User-Agent": "okhttp/4.9.2 UdemyAndroid 8.9.2(499) (phone)",
+                "Accept": "application/json, text/plain, */*",
+                "Accept-Language": "en-GB,en;q=0.5",
+                "Referer": "https://www.udemy.com/join/login-popup/?locale=en_US&response_type=html&next=https%3A%2F%2Fwww.udemy.com%2F",
+                "Origin": "https://www.udemy.com",
+                "DNT": "1",
+                "Connection": "keep-alive",
+                "Sec-Fetch-Dest": "empty",
+                "Sec-Fetch-Mode": "cors",
+                "Sec-Fetch-Site": "same-origin",
+                "Pragma": "no-cache",
+                "Cache-Control": "no-cache",
             }
         )
         # r = s.get("https://www.udemy.com/join/login-popup/?response_type=json")
@@ -539,31 +549,56 @@ class Udemy:
         """Get Session info
         Sets Client Session, currency and name
         """
+        s = cloudscraper.CloudScraper()
+        # headers = {
+        #     "authorization": "Bearer " + self.cookie_dict["access_token"],
+        #     "accept": "application/json, text/plain, */*",
+        #     "x-requested-with": "XMLHttpRequest",
+        #     "x-forwarded-for": str(
+        #         ".".join(map(str, (random.randint(0, 255) for _ in range(4))))
+        #     ),
+        #     "x-udemy-authorization": "Bearer " + self.cookie_dict["access_token"],
+        #     "content-type": "application/json;charset=UTF-8",
+        #     "origin": "https://www.udemy.com",
+        #     "referer": "https://www.udemy.com/",
+        #     "dnt": "1",
+        #     "User-Agent": "okhttp/4.9.2 UdemyAndroid 8.9.2(499) (phone)",
+        # }
+
         headers = {
-            "authorization": "Bearer " + self.cookie_dict["access_token"],
-            "accept": "application/json, text/plain, */*",
-            "x-requested-with": "XMLHttpRequest",
-            "x-forwarded-for": str(
-                ".".join(map(str, (random.randint(0, 255) for _ in range(4))))
-            ),
-            "x-udemy-authorization": "Bearer " + self.cookie_dict["access_token"],
-            "content-type": "application/json;charset=UTF-8",
-            "origin": "https://www.udemy.com",
-            "referer": "https://www.udemy.com/",
-            "dnt": "1",
+            "User-Agent": "okhttp/4.9.2 UdemyAndroid 8.9.2(499) (phone)",
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "en-GB,en;q=0.5",
+            "Referer": "https://www.udemy.com/",
+            "X-Requested-With": "XMLHttpRequest",
+            "DNT": "1",
+            "Connection": "keep-alive",
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+            "Pragma": "no-cache",
+            "Cache-Control": "no-cache",
         }
 
-        r = requests.get(
-            "https://www.udemy.com/api-2.0/contexts/me/?me=True&Config=True",
+        r = s.get(
+            "https://www.udemy.com/api-2.0/contexts/me/?header=True",
+            cookies=self.cookie_dict,
             headers=headers,
-        ).json()
-        if r["me"]["is_authenticated"] == False:
+        )
+        r = r.json()
+        if r["header"]["isLoggedIn"] == False:
             raise LoginException("Login Failed")
 
-        self.currency: str = r["Config"]["price_country"]["currency"]
-        self.display_name: str = r["me"]["display_name"]
+        self.display_name: str = r["header"]["user"]["display_name"]
+        r = s.get(
+            "https://www.udemy.com/api-2.0/shopping-carts/me/",
+            headers=headers,
+            cookies=self.cookie_dict,
+        )
+        r = r.json()
+        self.currency: str = r["user"]["credit"]["currency_code"]
 
-        s = requests.session()
+        s = cloudscraper.CloudScraper()
         s.cookies.update(self.cookie_dict)
         s.headers.update(headers)
         s.keep_alive = False
@@ -599,17 +634,22 @@ class Udemy:
                     {
                         "discountInfo": {"code": coupon},
                         "buyable": {"type": "course", "id": courseid},
-                        "price": {"amount": 0, "currency": self.currency},
+                        "price": {"amount": 0, "currency": self.currency.upper()},
                     }
                 ]
             },
-            "payment_info": {"payment_vendor": "Free", "payment_method": "free-method"},
+            "payment_info": {
+                "method_id": "0",
+                "payment_vendor": "Free",
+                "payment_method": "free-method",
+            },
         }
-        payload = json.dumps(payload)
+
+        # payload = json.dumps(payload)
 
         r = self.client.post(
             "https://www.udemy.com/payment/checkout-submit/",
-            data=payload,
+            json=payload,
             verify=False,
         )
         try:
@@ -672,7 +712,9 @@ class Udemy:
                 "w",
                 encoding="utf-8",
             )
-
+        # self.scraped_links = [
+        #     "Myyaffiliate - How to earn on Tiktok 0 investment|:|https://www.udemy.com/course/5-ways-to-get-benefits-from-tiktok-work-from-home-passive/?couponCode=29ED67FDFCE43D2DCA92"
+        # ]
         index = 0
         total_courses = len(self.scraped_links)
         self.link = ""
@@ -691,7 +733,7 @@ class Udemy:
             self.print(self.link, color="blue")
             if course_id:
                 coupon_id = self.extract_course_coupon(self.link)
-                purchased, amount, coupon_valid = self.check_course(
+                purchased, amount, coupon_valid, coupon_id = self.check_course(
                     course_id, coupon_id
                 )
                 if not purchased:
@@ -754,4 +796,3 @@ class Udemy:
                 self.print("Course Expired", color="red")
                 self.expired_c += 1
             index += 1
-            # main_window["pout"].update(index + 1)

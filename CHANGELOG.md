@@ -1,5 +1,13 @@
 # Changelog
 
+
+## v1.9
+
+- Potential fix for Manual Login
+- Fixed error on encountering free course with coupons
+- Fixed IDownloadCoupons
+
+
 ## v1.8
 
 - Refactored code
