@@ -333,7 +333,14 @@ class Udemy:
                     f"https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/master/duce-{self.interface}-settings.json"
                 ).json()
             )
-
+        if "Nepali" not in self.settings["languages"]:
+            self.settings["languages"]["Nepali"] = True  # v1.9
+        if "Urdu" not in self.settings["languages"]:
+            self.settings["languages"]["Urdu"] = True  # v1.9
+        self.settings["languages"] = dict(
+            sorted(self.settings["languages"].items(), key=lambda item: item[0])
+        )
+        self.save_settings()
         self.title_exclude = "\n".join(self.settings["title_exclude"])
         self.instructor_exclude = "\n".join(self.settings["instructor_exclude"])
 
@@ -357,7 +364,7 @@ class Udemy:
         self.cookie_jar = cookies
 
     def get_course_id(self, url: str):
-        # url="https://www.udemy.com/course/microsoft-az-102-practice-test?couponCode=04718D908CFD4CBE19BB"
+        # url="https://www.udemy.com/course/numpy-and-pandas-for-beginners?couponCode=EBEA9308D6497E4A8326"
         r = cloudscraper.CloudScraper().get(url)
         soup = bs(r.content, "html5lib")
         try:
@@ -366,6 +373,8 @@ class Udemy:
                 .split("/")[5]
                 .split("_")[0]
             )
+        except TypeError:
+            course_id = "retry"
         except IndexError:
             course_id = ""
         return course_id, r.url
@@ -389,11 +398,14 @@ class Udemy:
             + courseid
             + "/?fields[course]=locale,primary_category,avg_rating_recent,visible_instructors",
         ).json()
-
-        instructor: str = (
-            r["visible_instructors"][0]["url"].removeprefix("/user/").removesuffix("/")
-        )
-
+        try:
+            instructor: str = (
+                r["visible_instructors"][0]["url"]
+                .removeprefix("/user/")
+                .removesuffix("/")
+            )
+        except:
+            return "0"
         cat: str = r["primary_category"]["title"]
         lang: str = r["locale"]["simple_english_title"]
         avg_rating: float = round(r["avg_rating_recent"], 1)
@@ -443,11 +455,12 @@ class Udemy:
         try:
             purchased = r["purchase"]["data"]["purchase_date"]
         except KeyError:
-            print(r)
+            purchased = "retry"  # rate limit maybe dk
         try:
             amount = r["purchase"]["data"]["list_price"]["amount"]
         except KeyError:
             print(r)
+            amount = 0
         coupon_valid = False
         if "redeem_coupon" not in r:
             coupon_id = False
@@ -731,14 +744,22 @@ class Udemy:
 
             course_id, self.link = self.get_course_id(self.link)
             self.print(self.link, color="blue")
+            if course_id == "retry":
+                self.print("Retrying....", color="red")
+                continue
             if course_id:
                 coupon_id = self.extract_course_coupon(self.link)
                 purchased, amount, coupon_valid, coupon_id = self.check_course(
                     course_id, coupon_id
                 )
+
                 if not purchased:
                     if coupon_id and coupon_valid:
-                        if not self.is_excluded(course_id, self.title):
+                        excluded = self.is_excluded(course_id, self.title)
+                        if excluded == "0":
+                            self.print("Retrying...\n", color="red")
+                            continue
+                        elif not excluded:
                             success = self.free_checkout(coupon_id, course_id)
                             if type(success) == str:
                                 self.print(f"{success}\n", color="light blue")
@@ -788,6 +809,9 @@ class Udemy:
                                 self.print("COUPON MIGHT HAVE EXPIRED", color="red")
                                 self.expired_c += 1
 
+                elif purchased == "retry":
+                    self.print("Retrying..\n", color="red")
+                    continue
                 elif purchased:
                     self.print(purchased + "\n", color="light blue")
                     self.already_enrolled_c += 1

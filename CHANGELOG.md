@@ -6,6 +6,7 @@
 - Potential fix for Manual Login
 - Fixed error on encountering free course with coupons
 - Fixed IDownloadCoupons
+- Added support for Urdu and Nepali language
 
 
 ## v1.8

@@ -21,18 +21,20 @@
         "English": true,
         "French": true,
         "German": true,
+        "Hindi": true,
         "Indonesian": true,
         "Italian": true,
         "Japanese": true,
         "Korean": true,
+        "Nepali": true,
         "Polish": true,
         "Portuguese": true,
         "Romanian": true,
+        "Russian": true,
         "Spanish": true,
         "Thai": true,
         "Turkish": true,
-        "Hindi": true,
-        "Russian": true
+        "Urdu": true
     },
     "sites": {
         "Discudemy": true,

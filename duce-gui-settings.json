@@ -18,13 +18,15 @@
         "Italian": true,
         "Japanese": true,
         "Korean": true,
+        "Nepali": true,
         "Polish": true,
         "Portuguese": true,
         "Romanian": true,
+        "Russian": true,
         "Spanish": true,
         "Thai": true,
         "Turkish": true,
-        "Russian": true
+        "Urdu": true
     },
     "categories": {
         "Business": true,
