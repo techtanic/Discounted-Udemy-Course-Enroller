@@ -26,24 +26,25 @@ def update_courses(s: requests.Session):
     while True:
 
         headers = {
-            'User-Agent': 'okhttp/4.9.2 UdemyAndroid 8.9.2(499) (phone)',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-GB,en;q=0.5',
-            'DNT': '1',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none',
-            'Sec-Fetch-User': '?1',
-            'Pragma': 'no-cache',
-            'Cache-Control': 'no-cache',
+            "User-Agent": "okhttp/4.9.2 UdemyAndroid 8.9.2(499) (phone)",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-GB,en;q=0.5",
+            "DNT": "1",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-User": "?1",
+            "Pragma": "no-cache",
+            "Cache-Control": "no-cache",
         }
 
         r = s.get(
-            "https://www.udemy.com/api-2.0/users/me/?fields[user]=total_subscribed_courses", headers=headers
+            "https://www.udemy.com/api-2.0/users/me/?fields[user]=total_subscribed_courses",
+            headers=headers,
         )
-        r=r.json()
+        r = r.json()
         new_menu = [
             ["Help", ["Support", "Github", "Discord"]],
             [f'Total Courses: {r["total_subscribed_courses"]}'],

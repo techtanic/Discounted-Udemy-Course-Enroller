@@ -260,7 +260,7 @@ class Scraper:
             big_all = []
             for page in range(1, 6):
                 r = requests.get(
-                    "https://idownloadcoupon.com/product-category/100off/page/"
+                    "https://idownloadcoupon.com/product-category/udemy/page/"
                     + str(page)
                 )
                 soup = bs(r.content, "html5lib")
@@ -274,13 +274,13 @@ class Scraper:
             for index, item in enumerate(big_all):
                 self.idc_progress = index
                 title = item["aria-label"][5:][:-1].strip()
-                link = unquote(item["href"])
+                r = requests.get(item["href"], allow_redirects=False)
+                link = unquote(r.headers["Location"])
                 if link.startswith("https://click.linksynergy.com"):
                     link = link.split("murl=")[1]
                 else:
                     print(link)
                 self.idc_links.append(title + "|:|" + link)
-
         except:
             self.idc_error = traceback.format_exc()
             self.idc_length = -1
@@ -668,7 +668,7 @@ class Udemy:
         try:
             r = r.json()
         except:
-            print(r.text)
+            return "retry"
         try:
             if r["status"] == "succeeded":
                 return True
@@ -761,7 +761,10 @@ class Udemy:
                             continue
                         elif not excluded:
                             success = self.free_checkout(coupon_id, course_id)
-                            if type(success) == str:
+                            if success == "retry":
+                                self.print("Retrying....", color="red")
+                                continue
+                            elif type(success) == str:
                                 self.print(f"{success}\n", color="light blue")
                                 slp = int(re.search(r"\d+", success).group(0))
                                 self.print(
