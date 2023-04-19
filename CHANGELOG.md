@@ -8,7 +8,6 @@
 - Fixed IDownloadCoupons
 - Added support for Urdu and Nepali language
 
-
 ## v1.8
 
 - Refactored code
