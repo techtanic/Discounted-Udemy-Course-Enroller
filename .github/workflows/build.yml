@@ -9,7 +9,7 @@ on:
 jobs:
   build-windows:
     name: Build windows
-    runs-on: windows-2019
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
