@@ -369,7 +369,7 @@ class Udemy:
         soup = bs(r.content, "html5lib")
         try:
             course_id = (
-                soup.find("meta", {"itemprop": "image"})["content"]
+                soup.find("meta", {"property": "og:image"})["content"]
                 .split("/")[5]
                 .split("_")[0]
             )
@@ -745,7 +745,7 @@ class Udemy:
             course_id, self.link = self.get_course_id(self.link)
             self.print(self.link, color="blue")
             if course_id == "retry":
-                self.print("Retrying....", color="red")
+                self.print("Retrying..", color="red")
                 continue
             if course_id:
                 coupon_id = self.extract_course_coupon(self.link)
@@ -813,7 +813,7 @@ class Udemy:
                                 self.expired_c += 1
 
                 elif purchased == "retry":
-                    self.print("Retrying..\n", color="red")
+                    self.print("Retrying.....\n", color="red")
                     continue
                 elif purchased:
                     self.print(purchased + "\n", color="light blue")
