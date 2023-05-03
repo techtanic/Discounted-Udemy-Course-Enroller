@@ -1,6 +1,10 @@
 # Changelog
 
 
+## v2.0
+
+- Fix Retrying error
+
 ## v1.9
 
 - Potential fix for Manual Login
