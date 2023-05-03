@@ -19,7 +19,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt -U
-          pip install pyinstaller
+          pip install pyinstaller -U
 
       - name: Build GUI
         run: pyinstaller -y -F -w -i "extra/DUCE-LOGO.ico"  --clean --name "DUCE-GUI-windows" --add-data "base.py;." --add-data "colors.py;." --add-data "README.md;." --add-data "LICENSE;."  "gui.py"
