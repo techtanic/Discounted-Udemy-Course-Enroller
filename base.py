@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup as bs
 
 from colors import *
 
-VERSION = "v1.9"
+VERSION = "v2.0"
 
 
 scraper_dict: dict = {
