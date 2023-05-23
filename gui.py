@@ -580,7 +580,8 @@ main_lo = [
 # ,sg.Button(key='Dummy',image_data=back)
 
 global main_window
-main_window = sg.Window(main_title, main_lo, finalize=True)
+#positon windows in center
+main_window = sg.Window(main_title, main_lo, finalize=True,)
 threading.Thread(target=update_courses, args=(udemy.client,), daemon=True).start()
 while True:
     event, values = main_window.read()
