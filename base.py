@@ -542,7 +542,7 @@ class Udemy:
             }
         )
         # r = s.get("https://www.udemy.com/join/login-popup/?response_type=json")
-        s = cloudscraper.create_scraper(session=s)
+        s = cloudscraper.create_scraper(sess=s)
         r = s.post(
             "https://www.udemy.com/join/login-popup/?response_type=json",
             data=data,
