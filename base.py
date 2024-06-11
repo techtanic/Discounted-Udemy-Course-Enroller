@@ -103,6 +103,9 @@ class Scraper:
                 small_all = soup.find_all("a", {"class": "card-header"})
                 big_all.extend(small_all)
             self.du_length = len(big_all)
+
+            pattern = re.compile(r'https:\/\/www\.udemy\.com\/course\/[a-zA-Z0-9\-]+\/\?couponCode=[a-zA-Z0-9]+')
+            
             for index, item in enumerate(big_all):
                 self.du_progress = index
                 title = item.string
@@ -110,7 +113,7 @@ class Scraper:
                 r = requests.get("https://www.discudemy.com/go/" + url, headers=head)
                 soup = bs(r.content, "html5lib")
                 self.du_links.append(
-                    title + "|:|" + soup.find("a", id="couponLink").string
+                    title + "|:|" + soup.find('a', href=pattern).string
                 )
 
         except:
@@ -178,7 +181,6 @@ class Scraper:
         big_all = []
 
         try:
-
             headers = {
                 "User-Agent": "PostmanRuntime/7.30.0",
                 "Host": "www.real.discount",
@@ -196,9 +198,7 @@ class Scraper:
                     headers=headers,
                     timeout=5,
                 ).json()
-
             big_all.extend(r["results"])
-
             self.rd_length = len(big_all)
             for index, item in enumerate(big_all):
                 self.rd_progress = index
@@ -239,6 +239,9 @@ class Scraper:
                 "div", {"class": "stm_lms_courses__single--title"}
             )
             self.cv_length = len(small_all)
+
+            pattern = re.compile(r'https:\/\/www\.udemy\.com\/course\/[a-zA-Z0-9\-]+\/\?couponCode=[a-zA-Z0-9]+')
+
             for index, item in enumerate(small_all):
                 self.cv_progress = index
                 title = item.h5.string
@@ -247,7 +250,7 @@ class Scraper:
                 self.cv_links.append(
                     title
                     + "|:|"
-                    + soup.find("div", {"class": "stm-lms-buy-buttons"}).a["href"]
+                    + soup.find('a', class_="masterstudy-button-affiliate__link", href=pattern).get('href')
                 )
 
         except:
@@ -260,13 +263,13 @@ class Scraper:
             big_all = []
             for page in range(1, 6):
                 r = requests.get(
-                    "https://idownloadcoupon.com/product-category/udemy/page/"
+                    "https://idownloadcoupon.com/page/"
                     + str(page)
                 )
                 soup = bs(r.content, "html5lib")
                 small_all = soup.find_all(
                     "a",
-                    attrs={"class": "button wp-element-button product_type_external"},
+                    attrs={"class": "button product_type_external"},
                 )
                 big_all.extend(small_all)
             self.idc_length = len(big_all)
@@ -296,7 +299,7 @@ class Scraper:
             for index, item in enumerate(big_all):
                 self.en_progress = index
                 title = item["title"]
-                link = item["site"]
+                link = f"https://www.udemy.com/course/{item["url"]}/?couponCode={item["code"]}"
                 self.en_links.append(title + "|:|" + link)
 
         except:
@@ -542,7 +545,7 @@ class Udemy:
             }
         )
         # r = s.get("https://www.udemy.com/join/login-popup/?response_type=json")
-        s = cloudscraper.create_scraper(session=s)
+        s = cloudscraper.create_scraper(sess=s)
         r = s.post(
             "https://www.udemy.com/join/login-popup/?response_type=json",
             data=data,
