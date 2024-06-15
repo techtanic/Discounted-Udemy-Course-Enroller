@@ -6,7 +6,7 @@ import threading
 import time
 import traceback
 from decimal import Decimal
-from urllib.parse import parse_qs, unquote, urlsplit
+from urllib.parse import parse_qs, unquote, urlsplit, urlparse
 
 import browser_cookie3
 import cloudscraper
@@ -58,7 +58,6 @@ class RaisingThread(threading.Thread):
         if self._exc:
             raise self._exc
 
-
 class Scraper:
     """
     Scrapers: DU, UF, TB, RD, CV, IDC, EN
@@ -68,10 +67,10 @@ class Scraper:
         self.sites = site_to_scrape
         for site in self.sites:
             code_name = scraper_dict[site]
-            exec(f"self.{code_name}_length = 0")
-            exec(f"self.{code_name}_links = []")
-            exec(f"self.{code_name}_done = False")
-            exec(f"self.{code_name}_progress = 0")
+            setattr(self, f"{code_name}_length", 0)
+            setattr(self, f"{code_name}_links", [])
+            setattr(self, f"{code_name}_done", False)
+            setattr(self, f"{code_name}_progress", 0)
 
     def get_scraped_courses(self, target: object):
         threads = []
@@ -84,7 +83,7 @@ class Scraper:
         for t in threads:
             t.join()
         for site in self.sites:
-            scraped_links += eval("self." + scraper_dict[site] + "_links")
+            scraped_links += getattr(self, f"{scraper_dict[site]}_links")
         return scraped_links
 
     def du(self):
@@ -96,24 +95,28 @@ class Scraper:
             }
 
             for page in range(1, 4):
-                r = requests.get(
-                    "https://www.discudemy.com/all/" + str(page), headers=head
-                )
+                r = requests.get(f"https://www.discudemy.com/all/{page}", headers=head)
                 soup = bs(r.content, "html5lib")
                 small_all = soup.find_all("a", {"class": "card-header"})
                 big_all.extend(small_all)
             self.du_length = len(big_all)
+
+            pattern = re.compile(r'https:\/\/www\.udemy\.com\/course\/[a-zA-Z0-9\-]+\/\?couponCode=[a-zA-Z0-9]+')
+            
             for index, item in enumerate(big_all):
                 self.du_progress = index
                 title = item.string
                 url = item["href"].split("/")[-1]
-                r = requests.get("https://www.discudemy.com/go/" + url, headers=head)
-                soup = bs(r.content, "html5lib")
-                self.du_links.append(
-                    title + "|:|" + soup.find("a", id="couponLink").string
-                )
+                for _ in range(2):
+                    try:
+                        r = requests.get(f"https://www.discudemy.com/go/{url}", headers=head)
+                        soup = bs(r.content, "html5lib")
+                        self.du_links.append(title + "|:|" + soup.find('a', href=pattern).string)
+                        break
+                    except:
+                        continue
 
-        except:
+        except Exception:
             self.du_error = traceback.format_exc()
             self.du_length = -1
         self.du_done = True
@@ -123,9 +126,7 @@ class Scraper:
             big_all = []
 
             for page in range(1, 3):
-                r = requests.get(
-                    "https://www.udemyfreebies.com/free-udemy-courses/" + str(page)
-                )
+                r = requests.get(f"https://www.udemyfreebies.com/free-udemy-courses/{page}")
                 soup = bs(r.content, "html5lib")
                 small_all = soup.find_all("a", {"class": "theme-img"})
                 big_all.extend(small_all)
@@ -134,12 +135,15 @@ class Scraper:
             for index, item in enumerate(big_all):
                 self.uf_progress = index
                 title = item.img["alt"]
-                link = requests.get(
-                    "https://www.udemyfreebies.com/out/" + item["href"].split("/")[4]
-                ).url
-                self.uf_links.append(title + "|:|" + link)
+                for _ in range(2):
+                    try:
+                        link = requests.get(f"https://www.udemyfreebies.com/out/{item['href'].split('/')[4]}").url
+                        self.uf_links.append(title + "|:|" + link)
+                        break
+                    except:
+                        continue
 
-        except:
+        except Exception:
             self.uf_error = traceback.format_exc()
             self.uf_length = -1
         self.uf_done = True
@@ -149,13 +153,9 @@ class Scraper:
             big_all = []
 
             for page in range(1, 4):
-                r = requests.get(
-                    "https://www.tutorialbar.com/all-courses/page/" + str(page)
-                )
+                r = requests.get(f"https://www.tutorialbar.com/all-courses/page/{page}")
                 soup = bs(r.content, "html5lib")
-                small_all = soup.find_all(
-                    "h3", class_="mb15 mt0 font110 mobfont100 fontnormal lineheight20"
-                )
+                small_all = soup.find_all("h3", class_="mb15 mt0 font110 mobfont100 fontnormal lineheight20")
                 big_all.extend(small_all)
             self.tb_length = len(big_all)
 
@@ -163,56 +163,71 @@ class Scraper:
                 self.tb_progress = index
                 title = item.a.string
                 url = item.a["href"]
-                r = requests.get(url)
-                soup = bs(r.content, "html5lib")
-                link = soup.find("a", class_="btn_offer_block re_track_btn")["href"]
-                if "www.udemy.com" in link:
-                    self.tb_links.append(title + "|:|" + link)
+                for _ in range(2):
+                    try:
+                        r = requests.get(url)
+                        soup = bs(r.content, "html5lib")
+                        link = soup.find("a", class_="btn_offer_block re_track_btn")["href"]
+                        if "www.udemy.com" in link:
+                            self.tb_links.append(title + "|:|" + link)
+                        break
+                    except:
+                        continue
 
-        except:
+        except Exception:
             self.tb_error = traceback.format_exc()
             self.tb_length = -1
         self.tb_done = True
 
     def rd(self):
-        big_all = []
-
         try:
+            big_all = []
 
             headers = {
                 "User-Agent": "PostmanRuntime/7.30.0",
                 "Host": "www.real.discount",
                 "Connection": "Keep-Alive",
             }
+
+            url = "https://www.real.discount/api-web/all-courses/?store=Udemy&page=1&per_page=40&orderby=date&free=1&editorschoices=0"
+
             try:
-                r = requests.get(
-                    "https://www.real.discount/api-web/all-courses/?store=Udemy&page=1&per_page=40&orderby=date&free=1&editorschoices=0",
-                    headers=headers,
-                    timeout=5,
-                ).json()
-            except requests.exceptions.ConnectTimeout:
-                r = requests.get(
-                    "https://www.real.discount/api-web/all-courses/?store=Udemy&page=1&per_page=40&orderby=date&free=1&editorschoices=0",
-                    headers=headers,
-                    timeout=5,
-                ).json()
+                r = requests.get(url, headers=headers, timeout=10)
+                r.raise_for_status()
+                data = r.json()
+            except requests.RequestException as e:
+                self.rd_length = -1
+                self.rd_done = True
+                return
 
-            big_all.extend(r["results"])
+            if 'results' not in data:
+                self.rd_length = -1
+                self.rd_done = True
+                return
 
+            big_all.extend(data["results"])
             self.rd_length = len(big_all)
-            for index, item in enumerate(big_all):
-                self.rd_progress = index
-                title = item["name"]
-                link = item["url"]
-                if link.startswith("https://click.linksynergy.com"):
-                    try:
-                        link = link.split("murl=")[1]
-                    except:
-                        continue
-                self.rd_links.append(title + "|:|" + link)
+            self.rd_progress = 0  # Initialize progress
 
-        except:
-            self.rd_error = traceback.format_exc()
+            for index, item in enumerate(big_all):
+                title = item.get("name", "No title")
+                link = item.get("url", "")
+
+                if link.startswith("https://click.linksynergy.com"):
+                    if "murl=" in link:
+                        link = link.split("murl=")[1]
+                    else:
+                        parsed_url = urlparse(link)
+                        query_params = parse_qs(parsed_url.query)
+                        if "RD_PARM1" in query_params:
+                            link = query_params["RD_PARM1"][0]
+                        else:
+                            continue  # Skip this iteration if no valid link is found
+
+                self.rd_links.append(title + "|:|" + link)
+                self.rd_progress = index + 1  # Update progress correctly
+
+        except Exception:
             self.rd_length = -1
         self.rd_done = True
 
@@ -220,37 +235,43 @@ class Scraper:
         try:
             r = requests.get("https://coursevania.com/courses/")
             soup = bs(r.content, "html5lib")
-            nonce = json.loads(
-                [
-                    script.string
-                    for script in soup.find_all("script")
-                    if script.string and "load_content" in script.string
-                ][0].strip("_mlv =	norsecat;\n")
-            )["load_content"]
+            script_contents = [
+                script.string
+                for script in soup.find_all("script")
+                if script.string and "load_content" in script.string
+            ]
+            if script_contents:
+                script_content = script_contents[0]
+                json_str = script_content.strip().split('=', 1)[1].strip().strip(';')
+                nonce_data = json.loads(json_str)
+                nonce = nonce_data["load_content"]
+            else:
+                return
 
             r = requests.get(
-                "https://coursevania.com/wp-admin/admin-ajax.php?&template=courses/grid&args={%22posts_per_page%22:%2230%22}&action=stm_lms_load_content&nonce="
+                "https://coursevania.com/wp-admin/admin-ajax.php?&template=courses/grid&args={%22posts_per_page%22:%2260%22}&action=stm_lms_load_content&nonce="
                 + nonce
                 + "&sort=date_high"
             ).json()
 
             soup = bs(r["content"], "html5lib")
-            small_all = soup.find_all(
-                "div", {"class": "stm_lms_courses__single--title"}
-            )
+            small_all = soup.find_all("div", {"class": "stm_lms_courses__single--title"})
             self.cv_length = len(small_all)
+
+            pattern = re.compile(r'https:\/\/www\.udemy\.com\/course\/[a-zA-Z0-9\-]+\/\?couponCode=[a-zA-Z0-9]+')
             for index, item in enumerate(small_all):
                 self.cv_progress = index
                 title = item.h5.string
-                r = requests.get(item.a["href"])
-                soup = bs(r.content, "html5lib")
-                self.cv_links.append(
-                    title
-                    + "|:|"
-                    + soup.find("div", {"class": "stm-lms-buy-buttons"}).a["href"]
-                )
+                for _ in range(2):
+                    try:
+                        r = requests.get(item.a["href"])
+                        soup = bs(r.content, "html5lib")
+                        self.cv_links.append(title + "|:|" + soup.find('a', class_="masterstudy-button-affiliate__link", href=pattern).get('href'))
+                        break
+                    except:
+                        continue
 
-        except:
+        except Exception:
             self.cv_error = traceback.format_exc()
             self.cv_length = -1
         self.cv_done = True
@@ -259,47 +280,48 @@ class Scraper:
         try:
             big_all = []
             for page in range(1, 6):
-                r = requests.get(
-                    "https://idownloadcoupon.com/product-category/udemy/page/"
-                    + str(page)
-                )
+                r = requests.get(f"https://idownloadcoupon.com/page/{page}")
                 soup = bs(r.content, "html5lib")
-                small_all = soup.find_all(
-                    "a",
-                    attrs={"class": "button wp-element-button product_type_external"},
-                )
+                small_all = soup.find_all("a", attrs={"class": "button product_type_external"})
                 big_all.extend(small_all)
             self.idc_length = len(big_all)
             self.idc_links = []
             for index, item in enumerate(big_all):
                 self.idc_progress = index
                 title = item["aria-label"][5:][:-1].strip()
-                r = requests.get(item["href"], allow_redirects=False)
-                link = unquote(r.headers["Location"])
-                if link.startswith("https://click.linksynergy.com"):
-                    link = link.split("murl=")[1]
-                else:
-                    print(link)
-                self.idc_links.append(title + "|:|" + link)
-        except:
+                for _ in range(2):
+                    try:
+                        r = requests.get(item["href"], allow_redirects=False)
+                        link = unquote(r.headers["Location"])
+                        if link.startswith("https://click.linksynergy.com"):
+                            link = link.split("murl=")[1]
+                        self.idc_links.append(title + "|:|" + link)
+                        break
+                    except:
+                        continue
+
+        except Exception:
             self.idc_error = traceback.format_exc()
             self.idc_length = -1
         self.idc_done = True
 
     def en(self):
         try:
-            r = requests.get(
-                "https://jobs.e-next.in/public/assets/data/udemy.json"
-            ).json()
+            r = requests.get("https://jobs.e-next.in/public/assets/data/udemy.json").json()
             big_all = r
             self.en_length = len(big_all)
             for index, item in enumerate(big_all):
                 self.en_progress = index
                 title = item["title"]
-                link = item["site"]
-                self.en_links.append(title + "|:|" + link)
+                for _ in range(2):
+                    try:
+                        link = f"https://www.udemy.com/course/{item['url']}/?couponCode={item['code']}"
+                        self.en_links.append(title + "|:|" + link)
+                        break
+                    except:
+                        continue
 
-        except:
+        except Exception:
             self.en_error = traceback.format_exc()
             self.en_length = -1
         self.en_done = True
@@ -542,7 +564,7 @@ class Udemy:
             }
         )
         # r = s.get("https://www.udemy.com/join/login-popup/?response_type=json")
-        s = cloudscraper.create_scraper(session=s)
+        s = cloudscraper.create_scraper(sess=s)
         r = s.post(
             "https://www.udemy.com/join/login-popup/?response_type=json",
             data=data,
@@ -728,9 +750,7 @@ class Udemy:
                 "w",
                 encoding="utf-8",
             )
-        # self.scraped_links = [
-        #     "Myyaffiliate - How to earn on Tiktok 0 investment|:|https://www.udemy.com/course/5-ways-to-get-benefits-from-tiktok-work-from-home-passive/?couponCode=29ED67FDFCE43D2DCA92"
-        # ]
+
         index = 0
         total_courses = len(self.scraped_links)
         self.link = ""
@@ -745,84 +765,91 @@ class Udemy:
                 end=" ",
             )
 
-            course_id, self.link = self.get_course_id(self.link)
-            self.print(self.link, color="blue")
-            if course_id == "retry":
-                self.print("Retrying..", color="red")
-                continue
-            if course_id:
-                coupon_id = self.extract_course_coupon(self.link)
-                purchased, amount, coupon_valid, coupon_id = self.check_course(
-                    course_id, coupon_id
-                )
-
-                if not purchased:
-                    if coupon_id and coupon_valid:
-                        excluded = self.is_excluded(course_id, self.title)
-                        if excluded == "0":
-                            self.print("Retrying...\n", color="red")
-                            continue
-                        elif not excluded:
-                            success = self.free_checkout(coupon_id, course_id)
-                            if success == "retry":
-                                self.print("Retrying....", color="red")
-                                continue
-                            elif type(success) == str:
-                                self.print(f"{success}\n", color="light blue")
-                                slp = int(re.search(r"\d+", success).group(0))
-                                self.print(
-                                    f">>> Pausing script for {slp} seconds\n",
-                                    color="red",
-                                )
-                                time.sleep(slp)
-                                continue
-                            elif success:
-                                self.print(
-                                    "Successfully Enrolled To Course :)\n",
-                                    color="green",
-                                )
-                                self.successfully_enrolled_c += 1
-                                self.amount_saved_c += amount
-                                self.save_course(combo)
-                            elif not success:
-                                self.print("Coupon Expired :(\n", color="red")
-                                self.expired_c += 1
-                            time.sleep(3)
-                            # except:
-                            #     self.print("Expired Coupon", color="red")
-                            #     self.print()
-                            #     e_c += 1
-                        else:
-                            self.excluded_c += 1
-                    elif coupon_id and not coupon_valid:
-                        self.print(":( Coupon Expired\n", color="red")
-                        self.expired_c += 1
-                    elif not coupon_id:
-                        if self.settings["discounted_only"]:
-                            self.print("Free course excluded", color="light blue")
-                            self.excluded_c += 1
-                        else:
-                            success = self.free_subscribe(course_id)
-                            if success:
-                                self.print(
-                                    "Successfully Subscribed\n",
-                                    color="green",
-                                )
-                                self.successfully_enrolled_c += 1
-                                self.amount_saved_c += amount
-                                self.save_course(combo)
-                            else:
-                                self.print("COUPON MIGHT HAVE EXPIRED", color="red")
-                                self.expired_c += 1
-
-                elif purchased == "retry":
-                    self.print("Retrying.....\n", color="red")
+            try:
+                course_id, self.link = self.get_course_id(self.link)
+                self.print(self.link, color="blue")
+                if course_id == "retry":
+                    self.print("Retrying..", color="red")
+                    index += 1
                     continue
-                elif purchased:
-                    self.print(purchased + "\n", color="light blue")
-                    self.already_enrolled_c += 1
 
-            elif not course_id:
-                self.print("Course Expired", color="red")
-                self.expired_c += 1
+                if course_id:
+                    coupon_id = self.extract_course_coupon(self.link)
+                    purchased, amount, coupon_valid, coupon_id = self.check_course(
+                        course_id, coupon_id
+                    )
+
+                    if not purchased:
+                        if coupon_id and coupon_valid:
+                            excluded = self.is_excluded(course_id, self.title)
+                            if excluded == "0":
+                                self.print("Retrying...\n", color="red")
+                                index += 1
+                                continue
+                            elif not excluded:
+                                success = self.free_checkout(coupon_id, course_id)
+                                if success == "retry":
+                                    self.print("Retrying....", color="red")
+                                    index += 1
+                                    continue
+                                elif type(success) == str:
+                                    self.print(f"{success}\n", color="light blue")
+                                    slp = int(re.search(r"\d+", success).group(0))
+                                    self.print(
+                                        f">>> Pausing script for {slp} seconds\n",
+                                        color="red",
+                                    )
+                                    time.sleep(slp)
+                                    index += 1
+                                    continue
+                                elif success:
+                                    self.print(
+                                        "Successfully Enrolled To Course :)\n",
+                                        color="green",
+                                    )
+                                    self.successfully_enrolled_c += 1
+                                    self.amount_saved_c += amount
+                                    self.save_course(combo)
+                                elif not success:
+                                    self.print("Coupon Expired :(\n", color="red")
+                                    self.expired_c += 1
+                                time.sleep(3)
+                            else:
+                                self.excluded_c += 1
+                        elif coupon_id and not coupon_valid:
+                            self.print(":( Coupon Expired\n", color="red")
+                            self.expired_c += 1
+                        elif not coupon_id:
+                            if self.settings["discounted_only"]:
+                                self.print("Free course excluded", color="light blue")
+                                self.excluded_c += 1
+                            else:
+                                success = self.free_subscribe(course_id)
+                                if success:
+                                    self.print(
+                                        "Successfully Subscribed\n",
+                                        color="green",
+                                    )
+                                    self.successfully_enrolled_c += 1
+                                    self.amount_saved_c += amount
+                                    self.save_course(combo)
+                                else:
+                                    self.print("COUPON MIGHT HAVE EXPIRED", color="red")
+                                    self.expired_c += 1
+
+                    elif purchased == "retry":
+                        self.print("Retrying.....\n", color="red")
+                        index += 1
+                        continue
+                    elif purchased:
+                        self.print(purchased + "\n", color="light blue")
+                        self.already_enrolled_c += 1
+
+                elif not course_id:
+                    self.print("Course Expired", color="red")
+                    self.expired_c += 1
+
+            except Exception as e:
+                self.print(f"Error processing course: {str(e)}\n", color="red")
+
             index += 1
