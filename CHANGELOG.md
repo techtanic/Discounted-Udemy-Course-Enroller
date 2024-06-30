@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.1
+
+* Fixed E-next
+* Fixed DiscUdemy
 
 ## v2.0
 

@@ -93,6 +93,3 @@ if not user_dumb:
     scraper = Scraper(udemy.sites)
     scrape()
 input()
-
-
-

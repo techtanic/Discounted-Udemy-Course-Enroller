@@ -21,36 +21,14 @@ sg.set_options(
 )
 
 
-def update_courses(s: requests.Session):
-    s = cloudscraper.create_scraper(sess=s)
+def update_enrolled_courses():
     while True:
-
-        headers = {
-            "User-Agent": "okhttp/4.9.2 UdemyAndroid 8.9.2(499) (phone)",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-            "Accept-Language": "en-GB,en;q=0.5",
-            "DNT": "1",
-            "Connection": "keep-alive",
-            "Upgrade-Insecure-Requests": "1",
-            "Sec-Fetch-Dest": "document",
-            "Sec-Fetch-Mode": "navigate",
-            "Sec-Fetch-Site": "none",
-            "Sec-Fetch-User": "?1",
-            "Pragma": "no-cache",
-            "Cache-Control": "no-cache",
-        }
-
-        r = s.get(
-            "https://www.udemy.com/api-2.0/users/me/?fields[user]=total_subscribed_courses",
-            headers=headers,
-        )
-        r = r.json()
         new_menu = [
             ["Help", ["Support", "Github", "Discord"]],
-            [f'Total Courses: {r["total_subscribed_courses"]}'],
+            [f"Total Courses: {len(udemy.enrolled_courses)}"],
         ]
         main_window.write_event_value("Update-Menu", new_menu)
-        time.sleep(13)
+        time.sleep(8)
 
 
 def create_scraping_thread(site: str):
@@ -64,11 +42,13 @@ try:
     threading.Thread(target=scraper.{code_name},daemon=True).start()
     while scraper.{code_name}_length == 0:
         pass
-    if scraper.{code_name}_length == -1:
+    if scraper.{code_name}_length == -1:    
         raise Exception("Error in: "+site)
     main_window["p{site}"].update(0, max=scraper.{code_name}_length)
-    while not scraper.{code_name}_done:
+    while not scraper.{code_name}_done and not scraper.{code_name}_error:
         main_window["p{site}"].update(scraper.{code_name}_progress + 1)
+    if scraper.{code_name}_error:
+        raise Exception("Error in: "+site)
 except Exception as e:
     e = scraper.{code_name}_error
     main_window.write_event_value('Error', e+"|:|Unknown Error in: "+site+" "+str(VERSION))
@@ -197,8 +177,9 @@ if login_error:
         [sg.Column(c1, key="col1"), sg.Column(c2, visible=False, key="col2")],
     ]
 
-    login_window = sg.Window(login_title, login_layout)
-
+    login_window = sg.Window(login_title, login_layout, finalize=True)
+    login_window.bind("a", "a_login")
+    login_window.bind("m", "m_login")
     while True:
         event, values = login_window.read()
 
@@ -206,7 +187,9 @@ if login_error:
             login_window.close()
             sys.exit()
 
-        elif event == "a_login":
+        elif event == "a_login" and not login_window["a_login"].Disabled:
+            login_window["a_login"].update(disabled=True)
+            login_window.refresh()
             try:
                 udemy.fetch_cookies()
                 try:
@@ -216,7 +199,6 @@ if login_error:
                     login_window.close()
                     break
                 except Exception as e:
-
                     e = traceback.format_exc()
                     print(e)
                     sg.popup_auto_close(
@@ -230,6 +212,7 @@ if login_error:
                 e = traceback.format_exc()
                 sg.popup_scrolled(e, title=f"Unknown Error {VERSION}")
 
+            login_window["a_login"].update(disabled=False)
         elif event == "m_login":
             login_window["col1"].update(visible=False)
             login_window["col2"].update(visible=True)
@@ -251,7 +234,6 @@ if login_error:
             login_window["col2"].update(visible=False)
 
         elif event == "Login":
-
             udemy.settings["email"] = values["email"]
             udemy.settings["password"] = values["password"]
             try:
@@ -580,9 +562,14 @@ main_lo = [
 # ,sg.Button(key='Dummy',image_data=back)
 
 global main_window
-#positon windows in center
-main_window = sg.Window(main_title, main_lo, finalize=True,)
-threading.Thread(target=update_courses, args=(udemy.client,), daemon=True).start()
+
+# position windows in center
+main_window = sg.Window(
+    main_title,
+    main_lo,
+    finalize=True,
+)
+threading.Thread(target=update_enrolled_courses, daemon=True).start()
 while True:
     event, values = main_window.read()
     if event == "Dummy":
@@ -611,8 +598,7 @@ while True:
     elif event == "Discord":
         web(LINKS["discord"])
 
-    elif event == "Start":
-
+    elif event == "Start" and main_window["main_col"].visible:
         # for key in udemy.settings["languages"]:
         #     udemy.settings["languages"][key] = values[key]
         # for key in udemy.settings["categories"]:
