@@ -13,17 +13,17 @@
 
 > Software to enroll in available Udemy Paid/Free courses having coupons automatically to your Udemy account.
 
-Everything you need can be on the website.: [duce.techtanic.xyz](https://duce.techtanic.xyz)
-
+Everything you need can be on the website.: [duce.techtanic.space](https://duce.techtanic.space)
 
 ## Key Features
 
-- Beautiful GUI.
-- One click login.
-- One click to add all available courses with coupons to your udemy account.
-- Uses popular sites for coupons.
+- Beautiful GUI
+- One click login using Browser cookies.(Supports major browsers)
+- One click to add all available courses with coupons to your udemy account
+- Uses popular sites for coupons
 - Many more features
-
+- CLI version available for automation
+- Advanced filters
 
 # Downloads
 
@@ -48,7 +48,6 @@ Everything you need can be on the website.: [duce.techtanic.xyz](https://duce.te
 </tbody>
 </table>
 
-
 <h2><details>
 <summary>Screenshots of GUI</summary>
 
@@ -61,8 +60,8 @@ Everything you need can be on the website.: [duce.techtanic.xyz](https://duce.te
 ![Coupon Scraping](https://cdn.discordapp.com/attachments/823472016999972884/834051762255560704/unknown.png)
 
 ![Enrolling](https://cdn.discordapp.com/attachments/823472016999972884/824187751075282974/unknown.png)
-</details>
 
+</details>
 
 ## Disclaimer
 

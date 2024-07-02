@@ -37,13 +37,13 @@
         "Urdu": true
     },
     "sites": {
-        "Discudemy": true,
-        "Udemy Freebies": true,
-        "Tutorial Bar": true,
         "Real Discount": true,
-        "Course Vania": true,
+        "Discudemy": true,
         "IDownloadCoupons": true,
-        "E-next": true
+        "Tutorial Bar": true,
+        "E-next": true,
+        "Course Vania": true,
+        "Udemy Freebies": true
     },
     "min_rating": 0.0,
     "instructor_exclude": [
@@ -58,5 +58,6 @@
     "email": "",
     "password": "",
     "save_txt": true,
-    "discounted_only": false
+    "discounted_only": false,
+    "use_browser_cookies": false
 }

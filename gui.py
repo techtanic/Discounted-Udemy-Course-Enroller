@@ -4,9 +4,7 @@ import time
 import traceback
 from webbrowser import open as web
 
-import PySimpleGUI as sg
-import requests
-import cloudscraper
+import FreeSimpleGUI as sg
 
 from base import LINKS, VERSION, LoginException, Scraper, Udemy, scraper_dict
 from images import *
@@ -32,32 +30,37 @@ def update_enrolled_courses():
 
 
 def create_scraping_thread(site: str):
-    code_name = scraper_dict[site]
 
-    exec(
-        f"""
-try:
-    main_window["i{site}"].update(visible=False)
-    main_window["p{site}"].update(0, visible=True)
-    threading.Thread(target=scraper.{code_name},daemon=True).start()
-    while scraper.{code_name}_length == 0:
-        pass
-    if scraper.{code_name}_length == -1:    
-        raise Exception("Error in: "+site)
-    main_window["p{site}"].update(0, max=scraper.{code_name}_length)
-    while not scraper.{code_name}_done and not scraper.{code_name}_error:
-        main_window["p{site}"].update(scraper.{code_name}_progress + 1)
-    if scraper.{code_name}_error:
-        raise Exception("Error in: "+site)
-except Exception as e:
-    e = scraper.{code_name}_error
-    main_window.write_event_value('Error', e+"|:|Unknown Error in: "+site+" "+str(VERSION))
-    
-finally:
-    main_window["p{site}"].update(0, visible=False)
-    main_window["i{site}"].update(visible=True)
-        """
-    )
+    code_name = scraper_dict[site]
+    main_window[f"i{site}"].update(visible=False)
+    main_window[f"p{site}"].update(0, visible=True)
+
+    try:
+        threading.Thread(target=getattr(scraper, code_name), daemon=True).start()
+        while getattr(scraper, f"{code_name}_length") == 0:
+            time.sleep(0.1)  # Avoid busy waiting
+        if getattr(scraper, f"{code_name}_length") == -1:
+            raise Exception(f"Error in: {site}")
+
+        main_window[f"p{site}"].update(0, max=getattr(scraper, f"{code_name}_length"))
+        while not getattr(scraper, f"{code_name}_done") and not getattr(
+            scraper, f"{code_name}_error"
+        ):
+            main_window[f"p{site}"].update(
+                getattr(scraper, f"{code_name}_progress") + 1
+            )
+            time.sleep(0.1)  # Update every 0.1 seconds
+
+        if getattr(scraper, f"{code_name}_error"):
+            raise Exception(f"Error in: {site}")
+    except Exception as e:
+        error_message = getattr(scraper, f"{code_name}_error", "Unknown Error")
+        main_window.write_event_value(
+            "Error", f"{error_message}|:|Unknown Error in: {site} {VERSION}"
+        )
+    finally:
+        main_window[f"p{site}"].update(0, visible=False)
+        main_window[f"i{site}"].update(visible=True)
 
 
 ##########################################
@@ -73,7 +76,7 @@ def scrape():
         main_window["scrape_col"].update(visible=False)
         main_window["output_col"].update(visible=True)
         # ------------------------------------------
-        udemy.enrol()
+        udemy.start_enrolling()
         main_window["output_col"].Update(visible=False)
 
         main_window["done_col"].update(visible=True)

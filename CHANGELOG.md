@@ -2,8 +2,11 @@
 
 ## v2.1
 
-* Fixed E-next
-* Fixed DiscUdemy
+- Fixed Scrappers
+- Optimized some code
+- Fixed multiple issues
+- Hopefully all known errors are fixed
+- CLI now supports Browser Cookie Login (Can be changed in settings)
 
 ## v2.0
 
@@ -51,7 +54,7 @@
 - Hopeful fix for `Amount saved` not showing
 - Hopeful fix for Manual login
 - Fixed not saving courses to file on unexpected exit.
-- Simplified some logic (DUCE's and mine also)
+- Simplified some logic
 
 ## v1.3
 

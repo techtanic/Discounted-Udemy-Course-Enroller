@@ -54,6 +54,6 @@
     },
     "email": "",
     "password": "",
-    "save_txt": true,
+    "save_txt": false,
     "discounted_only": false
 }

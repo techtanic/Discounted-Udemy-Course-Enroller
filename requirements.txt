@@ -1,9 +1,9 @@
-PySimpleGUI
+FreeSimpleGUI
+rookiepy
+cloudscraper
 bs4
 requests
 html5lib
-cloudscraper
 pyopenssl
-browser_cookie3
 colorama
 tqdm
