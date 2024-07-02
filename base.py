@@ -785,9 +785,9 @@ class Udemy:
         if self.debug:
             print(r)
         try:
-            return r["status"] == "succeeded"
+            return r["status"] == "succeeded",r
         except:
-            return r["detail"]
+            return r["detail"],r
 
     def free_subscribe(self, courseid: str):
         self.client.get(
@@ -897,7 +897,7 @@ class Udemy:
                     continue
 
                 if coupon_code and coupon_valid:
-                    success = self.discounted_checkout(coupon_code, course_id)
+                    success,r = self.discounted_checkout(coupon_code, course_id)
                     if success == "retry":
                         self.print("Retrying.....", color="red")
                         continue
@@ -921,6 +921,7 @@ class Udemy:
                         self.save_course(combo)
                         time.sleep(3.5)
                     elif not success:
+                        print(r)
                         self.print("xxxxx Unknown error xxxxx\n", color="red")
                         self.expired_c += 1
 
