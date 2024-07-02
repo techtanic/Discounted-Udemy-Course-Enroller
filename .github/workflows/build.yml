@@ -28,17 +28,17 @@ jobs:
         run: pyinstaller -y -F -c -i "extra/DUCE-LOGO.ico"  --clean --name "DUCE-CLI-windows" --add-data "base.py;." --add-data "colors.py;." --add-data "README.md;." --add-data "LICENSE;."  "cli.py"
 
       - name: Upload GUI.exe
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: DUCE-GUI-windows.exe
           path: ./dist/DUCE-GUI-windows.exe
       - name: Upload CLI.exe
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: DUCE-CLI-windows.exe
           path: ./dist/DUCE-CLI-windows.exe
       - name: Upload DUCE
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: DUCE-windows
           path: ./dist/
