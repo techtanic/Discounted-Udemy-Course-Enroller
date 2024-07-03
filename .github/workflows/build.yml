@@ -22,7 +22,7 @@ jobs:
           pip install pyinstaller -U
 
       - name: Build GUI
-        run: pyinstaller -y -F -w -i "extra/DUCE-LOGO.ico"  --clean --name "DUCE-GUI-windows" --add-data "base.py;." --add-data "colors.py;." --add-data "README.md;." --add-data "LICENSE;."  "gui.py"
+        run: pyinstaller -y -F -c -i "extra/DUCE-LOGO.ico"  --clean --name "DUCE-GUI-windows" --add-data "base.py;." --add-data "colors.py;." --add-data "README.md;." --add-data "LICENSE;."  "gui.py"
 
       - name: Build CLI
         run: pyinstaller -y -F -c -i "extra/DUCE-LOGO.ico"  --clean --name "DUCE-CLI-windows" --add-data "base.py;." --add-data "colors.py;." --add-data "README.md;." --add-data "LICENSE;."  "cli.py"

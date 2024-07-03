@@ -210,15 +210,13 @@ class Scraper:
                 r = requests.get(
                     "https://www.real.discount/api-web/all-courses/?store=Udemy&page=1&per_page=500&orderby=date&free=1&editorschoices=0",
                     headers=headers,
-                    timeout=8,
+                    timeout=(10,30)
                 ).json()
-            except requests.exceptions.ConnectTimeout:
-                r = requests.get(
-                    "https://www.real.discount/api-web/all-courses/?store=Udemy&page=1&per_page=40&orderby=date&free=1&editorschoices=0",
-                    headers=headers,
-                    timeout=8,
-                ).json()
-
+            except requests.exceptions.Timeout:
+                self.rd_error = "Timeout"
+                self.rd_length = -1
+                self.rd_done = True
+                return
             big_all.extend(r["results"])
 
             self.rd_length = len(big_all)
