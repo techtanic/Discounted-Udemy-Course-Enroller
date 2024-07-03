@@ -1,10 +1,10 @@
 name: Build
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - master
+    workflow_dispatch:
+    push:
+        branches:
+            - master
 
 jobs:
   build:
@@ -13,26 +13,19 @@ jobs:
       matrix:
         include:
           - name: "DUCE-GUI-windows"
-            icon: "extra\\DUCE-LOGO.ico"
+            icon: "extra/DUCE-LOGO.ico"
             mode: "-w"
           - name: "DUCE-CLI-windows"
-            icon: "extra\\DUCE-LOGO.ico"
+            icon: "extra/DUCE-LOGO.ico"
             mode: "-c"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
-      - name: Cache pip
-        uses: actions/cache@v3
-        with:
-          path: ~\AppData\Local\pip\Cache
-          key: ${{ runner.os }}-pip-${{ hashFiles('**\requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          cache: "pip"
 
       - name: Install dependencies
         run: |
@@ -47,9 +40,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}.exe
-          path: .\dist\${{ matrix.name }}.exe
+          path: ./dist/${{ matrix.name }}.exe
       - name: Upload DUCE
         uses: actions/upload-artifact@v4
         with:
           name: DUCE-windows
-          path: .\dist\
+          path: ./dist/
