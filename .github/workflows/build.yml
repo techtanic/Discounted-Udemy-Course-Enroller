@@ -7,38 +7,49 @@ on:
       - master
 
 jobs:
-  build-windows:
-    name: Build windows
+  build:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - name: "DUCE-GUI-windows"
+            icon: "extra\\DUCE-LOGO.ico"
+            mode: "-w"
+          - name: "DUCE-CLI-windows"
+            icon: "extra\\DUCE-LOGO.ico"
+            mode: "-c"
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-pip-${{ hashFiles('**\requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt -U
           pip install pyinstaller -U
 
-      - name: Build GUI
-        run: pyinstaller -y -F -w -i "extra/DUCE-LOGO.ico"  --clean --name "DUCE-GUI-windows" --add-data "base.py;." --add-data "colors.py;." --add-data "README.md;." --add-data "LICENSE;."  "gui.py"
+      - name: Build ${{ matrix.name }}
+        run: pyinstaller -y -F ${{ matrix.mode }} -i "${{ matrix.icon }}" --clean --name "${{ matrix.name }}" --add-data "base.py;." --add-data "colors.py;." --add-data "README.md;." --add-data "LICENSE;."  "${{ matrix.name == 'DUCE-GUI-windows' && 'gui.py' || 'cli.py' }}"
 
-      - name: Build CLI
-        run: pyinstaller -y -F -c -i "extra/DUCE-LOGO.ico"  --clean --name "DUCE-CLI-windows" --add-data "base.py;." --add-data "colors.py;." --add-data "README.md;." --add-data "LICENSE;."  "cli.py"
-
-      - name: Upload GUI.exe
+      - name: Upload ${{ matrix.name }}.exe
         uses: actions/upload-artifact@v4
         with:
-          name: DUCE-GUI-windows.exe
-          path: ./dist/DUCE-GUI-windows.exe
-      - name: Upload CLI.exe
-        uses: actions/upload-artifact@v4
-        with:
-          name: DUCE-CLI-windows.exe
-          path: ./dist/DUCE-CLI-windows.exe
+          name: ${{ matrix.name }}.exe
+          path: .\dist\${{ matrix.name }}.exe
       - name: Upload DUCE
         uses: actions/upload-artifact@v4
         with:
           name: DUCE-windows
-          path: ./dist/
+          path: .\dist\
