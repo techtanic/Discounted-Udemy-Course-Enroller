@@ -27,11 +27,9 @@ jobs:
           python-version: "3.11"
           cache: "pip"
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt -U
-          pip install pyinstaller -U
-
+      - name: Install dependencies and PyInstaller
+        run: pip install -r requirements.txt pyinstaller -U
+  
       - name: Build ${{ matrix.name }}
         run: pyinstaller -y -F ${{ matrix.mode }} -i "${{ matrix.icon }}" --clean --name "${{ matrix.name }}" --add-data "base.py;." --add-data "colors.py;." --add-data "README.md;." --add-data "LICENSE;."  "${{ matrix.name == 'DUCE-GUI-windows' && 'gui.py' || 'cli.py' }}"
 
@@ -41,20 +39,3 @@ jobs:
           name: ${{ matrix.name }}.exe
           path: ./dist/${{ matrix.name }}.exe
     
-      - name: List dist directory
-        run: dir ./dist
-  
-  upload:
-    needs: build
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Upload DUCE
-        uses: actions/upload-artifact@v4
-        with:
-          name: DUCE-windows
-          path: ./dist/
-    
-      - name: List dist directory
-        run: dir ./dist
-  
