@@ -40,7 +40,10 @@ jobs:
         with:
           name: ${{ matrix.name }}.exe
           path: ./dist/${{ matrix.name }}.exe
-
+    
+      - name: List dist directory
+        run: dir ./dist
+  
   upload:
     needs: build
     runs-on: windows-latest
@@ -51,3 +54,7 @@ jobs:
         with:
           name: DUCE-windows
           path: ./dist/
+    
+      - name: List dist directory
+        run: dir ./dist
+  
