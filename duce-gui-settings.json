@@ -44,13 +44,13 @@
         "Teaching & Academics": true
     },
     "sites": {
-        "Discudemy": true,
-        "Udemy Freebies": true,
-        "Tutorial Bar": true,
         "Real Discount": true,
-        "Course Vania": true,
+        "Discudemy": true,
         "IDownloadCoupons": true,
-        "E-next": true
+        "Tutorial Bar": true,
+        "E-next": true,
+        "Course Vania": true,
+        "Udemy Freebies": true
     },
     "email": "",
     "password": "",

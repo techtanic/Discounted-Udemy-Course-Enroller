@@ -87,16 +87,21 @@ if user_dumb:
 if not user_dumb:
     scraper = Scraper(udemy.sites)
 try:
-    udemy.scraped_links = scraper.get_scraped_courses(create_scraping_thread)
+    udemy.scraped_data = scraper.get_scraped_courses(create_scraping_thread)
     time.sleep(0.5)
     print("\n")
     udemy.start_enrolling()
 
-    print(f"Successfully Enrolled: {udemy.successfully_enrolled_c}")
-    print(f"Amount Saved: {round(udemy.amount_saved_c,2)} {udemy.currency.upper()}")
-    print(f"Already Enrolled: {udemy.already_enrolled_c}")
-    print(f"Expired Courses: {udemy.expired_c}")
-    print(f"Excluded Courses: {udemy.excluded_c}")
+    udemy.print(
+        f"\nSuccessfully Enrolled: {udemy.successfully_enrolled_c}", color="green"
+    )
+    udemy.print(
+        f"Amount Saved: {round(udemy.amount_saved_c,2)} {udemy.currency.upper()}",
+        color="light green",
+    )
+    udemy.print(f"Already Enrolled: {udemy.already_enrolled_c}", color="blue")
+    udemy.print(f"Excluded Courses: {udemy.excluded_c}", color="yellow")
+    udemy.print(f"Expired Courses: {udemy.expired_c}", color="red")
 
 except:
     e = traceback.format_exc()
@@ -106,4 +111,4 @@ except:
             e + f"\n\n{udemy.link}\n{udemy.title}" + f"|:|Unknown Error {VERSION}",
         )
     )
-input()
+input("Press Enter to exit...")

@@ -10,7 +10,8 @@ fb = Fore.BLUE
 flb = Fore.LIGHTBLUE_EX
 fbl = Fore.BLACK
 fy = Fore.YELLOW
-fm = Fore.MAGENTA   
+fm = Fore.MAGENTA
+flg = Fore.LIGHTGREEN_EX
 
 # colors background text:
 bc = Back.CYAN

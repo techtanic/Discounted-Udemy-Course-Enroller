@@ -72,7 +72,7 @@ def scrape():
             main_window[f"pcol{site}"].update(visible=True)
         main_window["main_col"].update(visible=False)
         main_window["scrape_col"].update(visible=True)
-        udemy.scraped_links = scraper.get_scraped_courses(create_scraping_thread)
+        udemy.scraped_data = scraper.get_scraped_courses(create_scraping_thread)
         main_window["scrape_col"].update(visible=False)
         main_window["output_col"].update(visible=True)
         # ------------------------------------------
