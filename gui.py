@@ -97,7 +97,7 @@ def scrape():
         e = traceback.format_exc()
         main_window.write_event_value(
             "Error",
-            e + f"\n\n{udemy.link}\n{udemy.title}" + f"|:|Unknown Error {VERSION}",
+            f"{e}\n\nVersion:{VERSION}\nLink:{getattr(udemy, 'link', 'None')}\nTitle:{getattr(udemy, 'title','None')}",
         )
 
 

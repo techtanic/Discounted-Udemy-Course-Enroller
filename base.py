@@ -573,8 +573,6 @@ class Udemy:
         existing_links = set()
         new_data = {}
         data = self.scraped_data
-        with open("test/data.json", "w") as f:
-            json.dump(data, f, indent=4)
         for key in data:
             new_data[key] = []
             for title, link in data[key]:
