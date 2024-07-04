@@ -6,7 +6,7 @@ import time
 import traceback
 from datetime import datetime, timezone
 from decimal import Decimal
-from urllib.parse import parse_qs, unquote, urlsplit
+from urllib.parse import parse_qs, unquote, urlsplit, urlunparse, urlparse
 
 import cloudscraper
 import requests
@@ -210,7 +210,7 @@ class Scraper:
                 r = requests.get(
                     "https://www.real.discount/api-web/all-courses/?store=Udemy&page=1&per_page=500&orderby=date&free=1&editorschoices=0",
                     headers=headers,
-                    timeout=(10,30)
+                    timeout=(10, 30),
                 ).json()
             except requests.exceptions.Timeout:
                 self.rd_error = "Timeout"
@@ -576,6 +576,20 @@ class Udemy:
         for key in data:
             new_data[key] = []
             for title, link in data[key]:
+                parsed_url = urlparse(link)
+                path = parsed_url.path
+                if not path.endswith("/"):
+                    path += "/"
+                link = urlunparse(
+                    (
+                        parsed_url.scheme,
+                        parsed_url.netloc,
+                        path,
+                        parsed_url.params,
+                        parsed_url.query,
+                        parsed_url.fragment,
+                    )
+                )
                 if link not in existing_links:
                     new_data[key].append((title, link))
                     existing_links.add(link)
