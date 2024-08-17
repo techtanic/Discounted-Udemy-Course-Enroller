@@ -33,7 +33,6 @@ def create_scraping_thread(site: str):
             prev_progress = getattr(scraper, f"{code_name}_progress")
             if getattr(scraper, f"{code_name}_done"):
                 break
-        # progress_bar.close()
     except Exception as e:
         error = getattr(scraper, f"{code_name}_error", traceback.format_exc())
         print(error)
