@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup as bs
 
 from colors import *
 
-VERSION = "v2.1"
+VERSION = "v2.2"
 
 
 scraper_dict: dict = {
@@ -248,11 +248,9 @@ class Scraper:
             soup = bs(r.content, "html5lib")
             try:
                 nonce = json.loads(
-                    [
-                        script.string
-                        for script in soup.find_all("script")
-                        if script.string and "load_content" in script.string
-                    ][0].strip("_mlv =	norsecat;\n")
+                    re.search(
+                        r"var stm_lms_nonces = ({.*?});", soup.text, re.DOTALL
+                    ).group(1)
                 )["load_content"]
                 if self.debug:
                     print("Nonce:", nonce)
@@ -287,6 +285,8 @@ class Scraper:
 
         except:
             self.cv_error = traceback.format_exc()
+            if self.debug:
+                print(self.cv_error)
             self.cv_length = -1
         self.cv_done = True
         if self.debug:
@@ -508,7 +508,7 @@ class Udemy:
 
     def extract_course_coupon(self, url: str) -> bool | str:
         """Get coupon code from url
-
+        
         Returns: `False | Coupon code`
         """
         query = urlsplit(url).query
@@ -739,6 +739,8 @@ class Udemy:
             headers=headers,
         )
         r = r.json()
+        if self.debug:
+            print(r)
         if r["header"]["isLoggedIn"] == False:
             raise LoginException("Login Failed")
 
