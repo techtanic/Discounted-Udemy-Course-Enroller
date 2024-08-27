@@ -479,6 +479,7 @@ class Udemy:
         instructors = [
             i["absolute_url"].split("/")[-2]
             for i in dma["serverSideProps"]["course"]["instructors"]["instructors_info"]
+            if len(i["absolute_url"].split("/")) > 1  # Ensure there are enough elements
         ]
         lang = dma["serverSideProps"]["course"]["localeSimpleEnglishTitle"]
         cat = dma["serverSideProps"]["topicMenu"]["breadcrumbs"][0]["title"]

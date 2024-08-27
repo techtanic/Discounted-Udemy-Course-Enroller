@@ -641,7 +641,7 @@ while True:
     elif event == "Error":
         msg = values["Error"].split("|:|")
         e = msg[0]
-        title = msg[1]
+        title = msg[1] if len(msg) > 1 else "Error"  # Default title if msg[1] doesn't exist
         sg.popup_scrolled(e, title=title)
     elif event == "Update-Menu":
         menu = values["Update-Menu"]
