@@ -55,5 +55,6 @@
     "email": "",
     "password": "",
     "save_txt": false,
-    "discounted_only": false
+    "discounted_only": false,
+    "course_update_threshold_months": 24
 }

@@ -6,17 +6,17 @@ import time
 import traceback
 from datetime import datetime, timezone
 from decimal import Decimal
-from urllib.parse import parse_qs, unquote, urlsplit, urlunparse, urlparse
+from urllib.parse import parse_qs, unquote, urlparse, urlsplit, urlunparse
 
 import cloudscraper
 import requests
 import rookiepy
 from bs4 import BeautifulSoup as bs
+from dateutil.relativedelta import relativedelta
 
 from colors import *
 
 VERSION = "v2.2"
-
 
 scraper_dict: dict = {
     "Udemy Freebies": "uf",
@@ -100,56 +100,87 @@ class Scraper:
     def append_to_list(self, target: list, title: str, link: str):
         target.append((title, link))
 
+    def fetch_page_content(self, url: str, headers: dict = None) -> bytes:
+        return requests.get(url, headers=headers).content
+
+    def parse_html(self, content: str):
+        return bs(content, "html5lib")
+
+    def handle_exception(self, site_code: str):
+        setattr(self, f"{site_code}_error", traceback.format_exc())
+        setattr(self, f"{site_code}_length", -1)
+        setattr(self, f"{site_code}_done", True)
+        if self.debug:
+            print(getattr(self, f"{site_code}_error"))
+
+    def cleanup_link(self, link: str) -> str:
+        parsed_url = urlparse(link)
+
+        if parsed_url.netloc == "www.udemy.com":
+            return link
+
+        if parsed_url.netloc == "click.linksynergy.com":
+            query_params = parse_qs(parsed_url.query)
+
+            if "RD_PARM1" in query_params:
+                return unquote(query_params["RD_PARM1"][0])
+            elif "murl" in query_params:
+                return unquote(query_params["murl"][0])
+            else:
+                return ""
+        raise ValueError(f"Unknown link format: {link}")
+
     def du(self):
         try:
-            big_all = []
+            all_items = []
             head = {
                 "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36 Edg/92.0.902.84",
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
             }
 
             for page in range(1, 4):
-                r = requests.get(f"https://www.discudemy.com/all/{page}", headers=head)
-                soup = bs(r.content, "html5lib")
-                small_all = soup.find_all("a", {"class": "card-header"})
-                big_all.extend(small_all)
-            self.du_length = len(big_all)
+                content = self.fetch_page_content(
+                    f"https://www.discudemy.com/all/{page}", headers=head
+                )
+                soup = self.parse_html(content)
+                page_items = soup.find_all("a", {"class": "card-header"})
+                all_items.extend(page_items)
+            self.du_length = len(all_items)
             if self.debug:
                 print("Length:", self.du_length)
-            for index, item in enumerate(big_all):
+            for index, item in enumerate(all_items):
                 self.du_progress = index
                 title = item.string
                 url = item["href"].split("/")[-1]
-                r = requests.get(f"https://www.discudemy.com/go/{url}", headers=head)
-                soup = bs(r.content, "html5lib")
+                content = self.fetch_page_content(
+                    f"https://www.discudemy.com/go/{url}", headers=head
+                )
+                soup = self.parse_html(content)
                 link = soup.find("div", {"class": "ui segment"}).a["href"]
                 if self.debug:
                     print(title, link)
                 self.append_to_list(self.du_data, title, link)
 
         except:
-            self.du_error = traceback.format_exc()
-            if self.debug:
-                print(self.du_error)
-            self.du_length = -1
+            self.handle_exception("du")
         self.du_done = True
         if self.debug:
             print("Return Length:", len(self.du_data))
 
     def uf(self):
         try:
-            big_all = []
+            all_items = []
             for page in range(1, 4):
-                r = requests.get(
+                content = self.fetch_page_content(
                     f"https://www.udemyfreebies.com/free-udemy-courses/{page}"
                 )
-                soup = bs(r.content, "html5lib")
-                small_all = soup.find_all("a", {"class": "theme-img"})
-                big_all.extend(small_all)
-            self.uf_length = len(big_all)
+                soup = self.parse_html(content)
+                page_items = soup.find_all("a", {"class": "theme-img"})
+                all_items.extend(page_items)
+            self.uf_length = len(all_items)
             if self.debug:
                 print("Length:", self.uf_length)
-            for index, item in enumerate(big_all):
+            for index, item in enumerate(all_items):
                 title = item.img["alt"]
                 link = requests.get(
                     f"https://www.udemyfreebies.com/out/{item['href'].split('/')[4]}"
@@ -158,46 +189,46 @@ class Scraper:
                 self.uf_progress = index
 
         except:
-            self.uf_error = traceback.format_exc()
-            self.uf_length = -1
+            self.handle_exception("uf")
         self.uf_done = True
         if self.debug:
             print("Return Length:", len(self.uf_data))
 
     def tb(self):
         try:
-            big_all = []
+            all_items = []
 
             for page in range(1, 5):
-                r = requests.get(f"https://www.tutorialbar.com/all-courses/page/{page}")
-                soup = bs(r.content, "html5lib")
-                small_all = soup.find_all(
+                content = self.fetch_page_content(
+                    f"https://www.tutorialbar.com/all-courses/page/{page}"
+                )
+                soup = self.parse_html(content)
+                page_items = soup.find_all(
                     "h3", class_="mb15 mt0 font110 mobfont100 fontnormal lineheight20"
                 )
-                big_all.extend(small_all)
-            self.tb_length = len(big_all)
+                all_items.extend(page_items)
+            self.tb_length = len(all_items)
             if self.debug:
                 print("Length:", self.tb_length)
 
-            for index, item in enumerate(big_all):
+            for index, item in enumerate(all_items):
                 self.tb_progress = index
                 title = item.a.string
                 url = item.a["href"]
-                r = requests.get(url)
-                soup = bs(r.content, "html5lib")
+                content = self.fetch_page_content(url)
+                soup = self.parse_html(content)
                 link = soup.find("a", class_="btn_offer_block re_track_btn")["href"]
                 if "www.udemy.com" in link:
                     self.append_to_list(self.tb_data, title, link)
 
         except:
-            self.tb_error = traceback.format_exc()
-            self.tb_length = -1
+            self.handle_exception("tb")
         self.tb_done = True
         if self.debug:
             print("Return Length:", len(self.tb_data))
 
     def rd(self):
-        big_all = []
+        all_items = []
 
         try:
             headers = {
@@ -217,35 +248,29 @@ class Scraper:
                 self.rd_length = -1
                 self.rd_done = True
                 return
-            big_all.extend(r["results"])
+            all_items.extend(r["results"])
 
-            self.rd_length = len(big_all)
+            self.rd_length = len(all_items)
             if self.debug:
                 print("Length:", self.rd_length)
-            for index, item in enumerate(big_all):
+            for index, item in enumerate(all_items):
                 self.rd_progress = index
                 title: str = item["name"]
                 link: str = item["url"]
-                if "click.linksynergy.com" in link:
-                    try:
-                        link = link.split("RD_PARM1=")[1]
-                    except:
-                        if self.debug:
-                            print(link)
-                        continue
-                self.append_to_list(self.rd_data, title, link)
+                link = self.cleanup_link(link)
+                if link:
+                    self.append_to_list(self.rd_data, title, link)
 
         except:
-            self.rd_error = traceback.format_exc()
-            self.rd_length = -1
+            self.handle_exception("rd")
         if self.debug:
             print("Return Length:", len(self.rd_data))
         self.rd_done = True
 
     def cv(self):
         try:
-            r = requests.get("https://coursevania.com/courses/")
-            soup = bs(r.content, "html5lib")
+            content = self.fetch_page_content("https://coursevania.com/courses/")
+            soup = self.parse_html(content)
             try:
                 nonce = json.loads(
                     re.search(
@@ -265,18 +290,18 @@ class Scraper:
                 + "&sort=date_high"
             ).json()
 
-            soup = bs(r["content"], "html5lib")
-            small_all = soup.find_all(
+            soup = self.parse_html(r["content"])
+            page_items = soup.find_all(
                 "div", {"class": "stm_lms_courses__single--title"}
             )
-            self.cv_length = len(small_all)
+            self.cv_length = len(page_items)
             if self.debug:
                 print("Small Length:", self.cv_length)
-            for index, item in enumerate(small_all):
+            for index, item in enumerate(page_items):
                 self.cv_progress = index
                 title = item.h5.string
-                r = requests.get(item.a["href"])
-                soup = bs(r.content, "html5lib")
+                content = self.fetch_page_content(item.a["href"])
+                soup = self.parse_html(content)
                 link = soup.find(
                     "a",
                     {"class": "masterstudy-button-affiliate__link"},
@@ -284,86 +309,80 @@ class Scraper:
                 self.append_to_list(self.cv_data, title, link)
 
         except:
-            self.cv_error = traceback.format_exc()
-            if self.debug:
-                print(self.cv_error)
-            self.cv_length = -1
+            self.handle_exception("cv")
         self.cv_done = True
         if self.debug:
             print("Return Length:", len(self.cv_data))
 
     def idc(self):
         try:
-            big_all = []
+            all_items = []
             for page in range(1, 5):
-                r = requests.get(
+                content = self.fetch_page_content(
                     f"https://idownloadcoupon.com/product-category/udemy/page/{page}"
                 )
-                soup = bs(r.content, "html5lib")
-                small_all = soup.find_all(
+                soup = self.parse_html(content)
+                page_items = soup.find_all(
                     "a",
                     attrs={
                         "class": "woocommerce-LoopProduct-link woocommerce-loop-product__link"
                     },
                 )
-                big_all.extend(small_all)
-            self.idc_length = len(big_all)
+                all_items.extend(page_items)
+            self.idc_length = len(all_items)
             if self.debug:
                 print("Length:", self.idc_length)
-            for index, item in enumerate(big_all):
+            for index, item in enumerate(all_items):
                 self.idc_progress = index
                 title = item.h2.string
+                link_num=item['href'].split('/')[4]
+                if link_num=="85":
+                    continue
                 link = (
-                    f"https://idownloadcoupon.com/udemy/{item['href'].split('/')[4]}/"
+                    f"https://idownloadcoupon.com/udemy/{link_num}/"
                 )
+                
                 r = requests.get(
                     link,
                     allow_redirects=False,
                 )
                 link = unquote(r.headers["Location"])
-                if "click.linksynergy.com" in link:
-                    link = link.split("murl=")[1]
-                else:
-                    if self.debug:
-                        print(link)
-                    continue
+                link = self.cleanup_link(link)
                 self.append_to_list(self.idc_data, title, link)
 
         except:
-            self.idc_error = traceback.format_exc()
-            self.idc_length = -1
+            self.handle_exception("idc")
         self.idc_done = True
         if self.debug:
             print("Return Length:", len(self.idc_data))
 
     def en(self):
         try:
-            big_all = []
+            all_items = []
             for page in range(1, 6):
-                r = requests.get(f"https://jobs.e-next.in/course/udemy/{page}")
-                soup = bs(r.content, "html5lib")
-                small_all = soup.find_all(
+                content = self.fetch_page_content(
+                    f"https://jobs.e-next.in/course/udemy/{page}"
+                )
+                soup = self.parse_html(content)
+                page_items = soup.find_all(
                     "a", {"class": "btn btn-secondary btn-sm btn-block"}
                 )
-                big_all.extend(small_all)
+                all_items.extend(page_items)
 
-            self.en_length = len(big_all)
+            self.en_length = len(all_items)
 
             if self.debug:
                 print("Length:", self.en_length)
-            for index, item in enumerate(big_all):
+            for index, item in enumerate(all_items):
                 self.en_progress = index
-                r = requests.get(item["href"])
-                soup = bs(r.content, "html5lib")
+                content = self.fetch_page_content(item["href"])
+                soup = self.parse_html(content)
                 title = soup.find("h3").string.strip()
                 link = soup.find("a", {"class": "btn btn-primary"})["href"]
                 self.append_to_list(self.en_data, title, link)
 
         except:
-            self.en_error = traceback.format_exc()
-            if self.debug:
-                print(self.en_error)
-            self.en_length = -1
+            self.handle_exception("en")
         self.en_done = True
         if self.debug:
             print("Return Length:", len(self.en_data))
@@ -374,6 +393,22 @@ class Udemy:
     def __init__(self, interface: str, debug: bool = False):
         self.interface = interface
         self.client = cloudscraper.CloudScraper()
+        headers = {
+            "User-Agent": "okhttp/4.9.2 UdemyAndroid 8.9.2(499) (phone)",
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "en-GB,en;q=0.5",
+            "Referer": "https://www.udemy.com/",
+            "X-Requested-With": "XMLHttpRequest",
+            "DNT": "1",
+            "Connection": "keep-alive",
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+            "Pragma": "no-cache",
+            "Cache-Control": "no-cache",
+        }
+
+        self.client.headers.update(headers)
         self.debug = debug
 
     def print(self, content: str, color: str, **kargs):
@@ -410,14 +445,13 @@ class Udemy:
                     f"https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/master/duce-{self.interface}-settings.json"
                 ).json()
             )
-        if "Nepali" not in self.settings["languages"]:
-            self.settings["languages"]["Nepali"] = True  # v1.9
-        if "Urdu" not in self.settings["languages"]:
-            self.settings["languages"]["Urdu"] = True  # v1.9
         if (
             self.interface == "cli" and "use_browser_cookies" not in self.settings
         ):  # v2.1
-            self.settings["use_browser_cookies"] = False
+            self.settings.get("use_browser_cookies", False)
+        # v2.2
+        if "course_update_threshold_months" not in self.settings:
+            self.settings["course_update_threshold_months"] = 24  # 2 years
 
         self.settings["languages"] = dict(
             sorted(self.settings["languages"].items(), key=lambda item: item[0])
@@ -445,80 +479,6 @@ class Udemy:
         self.cookie_dict: dict = requests.utils.dict_from_cookiejar(cookies)
         self.cookie_jar = cookies
 
-    def get_course_id(self, url: str) -> tuple[str, str, bool]:
-        """Get course id from url and also checks if course is excluded
-
-        Returns `(course_id, url, is_free)`
-        """
-        # remove everything other than digits at the end of the url
-        url = re.sub(r"\W+$", "", unquote(url))
-        try:
-            r = self.client.get(url)
-        except requests.exceptions.ConnectionError:
-            if self.debug:
-                print(r.text)
-            return "retry", url
-        soup = bs(r.content, "html5lib")
-
-        course_id = soup.find("body").get("data-clp-course-id", "invalid")
-        if course_id == "invalid":
-            return "invalid", url, False
-        dma = soup.find("body")["data-module-args"]
-        dma = json.loads(dma)
-        if self.debug:
-            with open("test/dma.json", "w") as f:
-                json.dump(dma, f, indent=4)
-        try:
-            is_free = not dma["serverSideProps"]["course"]["isPaid"]
-        except KeyError:
-            self.print(
-                dma["serverSideProps"]["limitedAccess"]["errorMessage"]["title"],
-                color="light blue",
-            )
-            return "excluded", r.url, False
-        instructors = [
-            i["absolute_url"].split("/")[-2]
-            for i in dma["serverSideProps"]["course"]["instructors"]["instructors_info"]
-        ]
-        lang = dma["serverSideProps"]["course"]["localeSimpleEnglishTitle"]
-        cat = dma["serverSideProps"]["topicMenu"]["breadcrumbs"][0]["title"]
-        rating = dma["serverSideProps"]["course"]["rating"]
-        students = dma["serverSideProps"]["course"]["numStudents"]
-
-        purchase_date = dma["serverSideProps"]["purchaseBodyContainer"][
-            "componentProps"
-        ]["purchaseInfo"]["purchaseDate"]
-
-        if self.is_instructor_excluded(instructors):
-            self.print(
-                f"Instructor excluded: {instructors[0]}",
-                color="light blue",
-            )
-        elif self.is_keyword_excluded(self.title):
-            self.print("Keyword Excluded", color="light blue")
-        elif cat not in self.categories:
-            self.print(f"Category excluded: {cat}", color="light blue")
-        elif lang not in self.languages:
-            self.print(f"Language excluded: {lang}", color="light blue")
-        elif rating < self.min_rating:
-            self.print(f"Low rating: {rating}", color="light blue")
-        else:
-            return course_id, r.url, is_free
-        return "excluded", r.url, is_free
-
-    def extract_course_coupon(self, url: str) -> bool | str:
-        """Get coupon code from url
-        
-        Returns: `False | Coupon code`
-        """
-        query = urlsplit(url).query
-        params = parse_qs(query)
-        try:
-            params = {k: v[0] for k, v in params.items()}
-            return params["couponCode"]
-        except KeyError:
-            return False
-
     def get_enrolled_courses(self):
         """Get enrolled courses
         Sets enrolled_courses {id:enrollment_time}
@@ -533,70 +493,6 @@ class Udemy:
                 courses[str(course["id"])] = course["enrollment_time"]
             next_page = r["next"]
         self.enrolled_courses = courses
-
-    def check_course(
-        self,
-        course_id,
-        coupon_code=None,
-    ) -> tuple[Decimal, bool | str, bool]:
-        """Gets Price, checks Coupon Validity
-
-        Returns:
-            `amount,
-            coupon_code,
-            coupon_valid`
-        """
-        url = f"https://www.udemy.com/api-2.0/course-landing-components/{course_id}/me/?components=purchase"
-
-        if coupon_code:
-            url += f",redeem_coupon&couponCode={coupon_code}"
-
-        r = self.client.get(url).json()
-
-        try:
-            amount = r["purchase"]["data"]["list_price"]["amount"]
-        except KeyError:
-            amount = "retry"
-        coupon_valid = False
-        if "redeem_coupon" not in r:
-            coupon_code = False
-        if coupon_code:
-            if (
-                r["purchase"]["data"]["pricing_result"]["discount_percent"] == 100
-                and r["redeem_coupon"]["discount_attempts"][0]["status"] == "applied"
-            ):
-                coupon_valid = True
-
-        return Decimal(amount), coupon_code, coupon_valid
-
-    def remove_duplicate_courses(self):
-        existing_links = set()
-        new_data = {}
-        data = self.scraped_data
-        for key in data:
-            new_data[key] = []
-            for title, link in data[key]:
-                parsed_url = urlparse(link)
-                path = parsed_url.path
-                if not path.endswith("/"):
-                    path += "/"
-                link = urlunparse(
-                    (
-                        parsed_url.scheme,
-                        parsed_url.netloc,
-                        path,
-                        parsed_url.params,
-                        parsed_url.query,
-                        parsed_url.fragment,
-                    )
-                )
-                if link not in existing_links:
-                    new_data[key].append((title, link))
-                    existing_links.add(link)
-        for key in data:
-            if not new_data[key]:
-                del new_data[key]
-        self.scraped_data: dict[str, list[tuple[str, str]]] = new_data
 
     def check_for_update(self) -> tuple[str, str]:
         r_version = (
@@ -787,7 +683,208 @@ class Udemy:
         self.min_rating = self.settings["min_rating"]
         return not all([bool(self.sites), bool(self.categories), bool(self.languages)])
 
-    def discounted_checkout(self, coupon: str, course_id: int):
+    def save_course(self):
+        if self.settings["save_txt"]:
+            self.txt_file.write(f"{self.title} - {self.link}\n")
+            self.txt_file.flush()
+            os.fsync(self.txt_file.fileno())
+
+    def remove_duplicate_courses(self):
+        existing_links = set()
+        new_data = {}
+        for key, courses in self.scraped_data.items():
+            new_data[key] = []
+            for title, link in courses:
+                link = self.normalize_link(link)
+                if link not in existing_links:
+                    new_data[key].append((title, link))
+                    existing_links.add(link)
+        self.scraped_data = {k: v for k, v in new_data.items() if v}
+
+    def normalize_link(self, link):
+        parsed_url = urlparse(link)
+        path = (
+            parsed_url.path if parsed_url.path.endswith("/") else parsed_url.path + "/"
+        )
+        return urlunparse(
+            (
+                parsed_url.scheme,
+                parsed_url.netloc,
+                path,
+                parsed_url.params,
+                parsed_url.query,
+                parsed_url.fragment,
+            )
+        )
+
+    def get_course_id(self, url):
+        url = re.sub(r"\W+$", "", unquote(url))
+        try:
+            r = self.client.get(url)
+        except requests.exceptions.ConnectionError:
+            if self.debug:
+                print(r.text)
+            return "retry", url, False
+
+        soup = bs(r.content, "html5lib")
+        if self.debug:
+            with open("test/soup.html", "w", encoding="utf-8") as f:
+                f.write(str(soup))
+        course_id = soup.find("body").get("data-clp-course-id", "invalid")
+        if course_id == "invalid":
+            return "invalid", url, False
+
+        dma = json.loads(soup.find("body")["data-module-args"])
+        if self.debug:
+            with open("test/dma.json", "w") as f:
+                json.dump(dma, f, indent=4)
+
+        is_free = not dma["serverSideProps"]["course"].get("isPaid", True)
+        if not self.debug and self.is_course_excluded(dma):
+            return "excluded", r.url, False
+
+        return course_id, r.url, is_free
+
+    def is_course_excluded(self, dma):
+        instructors = [
+            i["absolute_url"].split("/")[-2]
+            for i in dma["serverSideProps"]["course"]["instructors"]["instructors_info"]
+            if i["absolute_url"]
+        ]
+        lang = dma["serverSideProps"]["course"]["localeSimpleEnglishTitle"]
+        cat = dma["serverSideProps"]["topicMenu"]["breadcrumbs"][0]["title"]
+        rating = dma["serverSideProps"]["course"]["rating"]
+        last_update = dma["serverSideProps"]["course"]["lastUpdateDate"]
+
+        if not last_update:
+            last_update = datetime.today().strftime("%Y-%m-%d")
+        last_update_date = datetime.strptime(last_update, "%Y-%m-%d")
+        current_date = datetime.today()
+
+        date_x_months_ago = current_date - relativedelta(
+            months=self.settings["course_update_threshold_months"]
+        )
+        date_diff = relativedelta(current_date, last_update_date)
+        month_diff = date_diff.years * 12 + date_diff.months
+
+        if last_update_date < date_x_months_ago:
+            self.print(f"Course not updated in {month_diff} months", color="light blue")
+        elif self.is_instructor_excluded(instructors):
+            self.print(f"Instructor excluded: {instructors[0]}", color="light blue")
+        elif self.is_keyword_excluded(self.title):
+            self.print("Keyword Excluded", color="light blue")
+        elif cat not in self.categories:
+            self.print(f"Category excluded: {cat}", color="light blue")
+        elif lang not in self.languages:
+            self.print(f"Language excluded: {lang}", color="light blue")
+        elif rating < self.min_rating:
+            self.print(f"Low rating: {rating}", color="light blue")
+        else:
+            return False
+        return True
+
+    def extract_course_coupon(self, url):
+        params = parse_qs(urlsplit(url).query)
+        return params.get("couponCode", [False])[0]
+
+    def check_course(self, course_id, coupon_code=None):
+        url = f"https://www.udemy.com/api-2.0/course-landing-components/{course_id}/me/?components=purchase"
+        if coupon_code:
+            url += f",redeem_coupon&couponCode={coupon_code}"
+
+        r = self.client.get(url).json()
+        with open("test/check_course.json", "w") as f:
+            json.dump(r, f, indent=4)
+        amount = (
+            r.get("purchase", {})
+            .get("data", {})
+            .get("list_price", {})
+            .get("amount", "retry")
+        )
+        coupon_valid = False
+
+        if coupon_code and "redeem_coupon" in r:
+            discount = r["purchase"]["data"]["pricing_result"]["discount_percent"]
+            status = r["redeem_coupon"]["discount_attempts"][0]["status"]
+            coupon_valid = discount == 100 and status == "applied"
+
+        return Decimal(amount), coupon_valid
+
+    def start_enrolling(self):
+        self.remove_duplicate_courses()
+        self.initialize_counters()
+        self.setup_txt_file()
+
+        total_courses = sum(len(courses) for courses in self.scraped_data.values())
+        previous_courses_count = 0
+        for site_index, (site, courses) in enumerate(self.scraped_data.items()):
+            self.print(f"\nSite: {site} [{len(courses)}]", color="cyan")
+
+            for index, (title, link) in enumerate(courses):
+                self.title = title
+                self.link = link
+                self.print_course_info(previous_courses_count + index, total_courses)
+                self.handle_course_enrollment(index)
+            previous_courses_count += len(courses)
+
+    def initialize_counters(self):
+        self.successfully_enrolled_c = 0
+        self.already_enrolled_c = 0
+        self.expired_c = 0
+        self.excluded_c = 0
+        self.amount_saved_c = 0
+
+    def setup_txt_file(self):
+        if self.settings["save_txt"]:
+            os.makedirs("Courses/", exist_ok=True)
+            self.txt_file = open(
+                f"Courses/{time.strftime('%Y-%m-%d--%H-%M')}.txt", "w", encoding="utf-8"
+            )
+
+    def print_course_info(self, index, total_courses):
+        self.print(f"[{index + 1} / {total_courses}] ", color="magenta", end=" ")
+        self.print(self.title, color="yellow", end=" ")
+        self.print(self.link, color="blue")
+
+    def handle_course_enrollment(self, index):
+        course_id, self.link, is_free = self.get_course_id(self.link)
+
+        if course_id == "invalid":
+            self.print("Invalid Course", color="red")
+            self.excluded_c += 1
+        elif course_id == "excluded":
+            self.excluded_c += 1
+        elif not course_id:
+            self.print("X Course Expired", color="red")
+            self.expired_c += 1
+        elif course_id in self.enrolled_courses:
+            self.print(
+                f"You purchased this course on {self.get_date_from_utc(self.enrolled_courses[course_id])}",
+                color="light blue",
+            )
+            self.already_enrolled_c += 1
+        elif is_free:
+            self.handle_free_course(course_id)
+        else:
+            self.handle_discounted_course(course_id)
+
+    def handle_free_course(self, course_id):
+        if self.settings["discounted_only"]:
+            self.print("Free course excluded", color="light blue")
+            self.excluded_c += 1
+        else:
+            success = self.free_checkout(course_id)
+            if success:
+                self.print("Successfully Subscribed", color="green")
+                self.successfully_enrolled_c += 1
+                self.save_course()
+            else:
+                self.print(
+                    "Unknown Error: Report this link to the developer", color="red"
+                )
+                self.expired_c += 1
+
+    def discounted_checkout(self, coupon, course_id) -> dict:
         payload = {
             "checkout_environment": "Marketplace",
             "checkout_event": "Submit",
@@ -807,166 +904,46 @@ class Udemy:
             },
         }
 
-        # payload = json.dumps(payload)
-
-        r = self.client.post(
-            "https://www.udemy.com/payment/checkout-submit/",
-            json=payload,
-        )
-        r = r.json()
+        r: dict = self.client.post(
+            "https://www.udemy.com/payment/checkout-submit/", json=payload
+        ).json()
         if self.debug:
             print(r)
-        try:
-            return r["status"] == "succeeded", r
-        except:
-            return r["detail"], r
 
-    def free_subscribe(self, courseid: str):
-        self.client.get(
-            "https://www.udemy.com/course/subscribe/?courseId=" + courseid,
-        )
+        return {"status": r.get("status") == "succeeded", "detail": r.get("detail")}
 
+    def free_checkout(self, course_id):
+        self.client.get(f"https://www.udemy.com/course/subscribe/?courseId={course_id}")
         r = self.client.get(
-            "https://www.udemy.com/api-2.0/users/me/subscribed-courses/"
-            + courseid
-            + "/?fields%5Bcourse%5D=%40default%2Cbuyable_object_type%2Cprimary_subcategory%2Cis_private",
+            f"https://www.udemy.com/api-2.0/users/me/subscribed-courses/{course_id}/?fields%5Bcourse%5D=%40default%2Cbuyable_object_type%2Cprimary_subcategory%2Cis_private"
         ).json()
-        try:
-            if r["_class"] == "course":
-                return True
+        return r.get("_class") == "course"
 
-        except:
-            return False
+    def handle_discounted_course(self, course_id):
+        coupon_code = self.extract_course_coupon(self.link)
+        amount, coupon_valid = self.check_course(course_id, coupon_code)
+        if amount == "retry":
+            self.print("Retrying...", color="red")
+            time.sleep(1)
+            self.handle_discounted_course(course_id)
+        elif coupon_valid:  # elif coupon_code and coupon_valid:
+            self.process_coupon(course_id, coupon_code, amount)
+        else:
+            self.print("Coupon Expired", color="red")
+            self.expired_c += 1
 
-    def save_course(self):  # Save course to txt file
-        if self.settings["save_txt"]:
-            self.txt_file.write(f"{self.title} - {self.link}\n")
-            self.txt_file.flush()
-            os.fsync(self.txt_file.fileno())
-
-    def start_enrolling(self):
-        self.remove_duplicate_courses()
-        (
-            self.successfully_enrolled_c,
-            self.already_enrolled_c,
-            self.expired_c,
-            self.excluded_c,
-            self.amount_saved_c,
-        ) = (0 for _ in range(5))
-
-        if self.settings["save_txt"]:
-            if not os.path.exists("Courses/"):
-                os.makedirs("Courses/")
-            self.txt_file = open(
-                f"Courses/" + time.strftime("%Y-%m-%d--%H-%M") + ".txt",
-                "w",
-                encoding="utf-8",
-            )
-        index = 0
-        total_courses = sum([len(i) for i in self.scraped_data.values()])
-        self.link = ""
-        self.title = ""
-        for site in self.scraped_data:
-            site_total = len(self.scraped_data[site])
-            site_index = 0
-            self.print(f"\nSite: {site}", color="cyan")
-            while site_index < site_total:
-                self.title = self.scraped_data[site][site_index][0]
-                self.link = self.scraped_data[site][site_index][1]
-                self.print(
-                    f"[{str(index + 1)} / {str(total_courses)}] ",
-                    color="magenta",
-                    end=" ",
-                )
-                self.print(self.title, color="yellow", end=" ")
-
-                self.print(self.link, color="blue")
-                course_id, self.link, is_free = self.get_course_id(self.link)
-
-                if course_id == "invalid":
-                    self.print("Invalid Course", color="red")
-                    self.excluded_c += 1
-
-                elif course_id == "excluded":
-                    self.excluded_c += 1
-
-                elif not course_id:
-                    self.print("X Course Expired", color="red")
-                    self.expired_c += 1
-
-                elif course_id in self.enrolled_courses:  # is_already_enrolled
-                    self.print(
-                        "You purchased this course on "
-                        + self.get_date_from_utc(self.enrolled_courses[course_id]),
-                        color="light blue",
-                    )
-                    self.already_enrolled_c += 1
-
-                elif is_free:
-                    if self.settings["discounted_only"]:
-                        self.print("Free course excluded", color="light blue")
-                        self.excluded_c += 1
-                    else:
-                        success = self.free_subscribe(course_id)
-                        if success:
-                            self.print(
-                                "Successfully Subscribed",
-                                color="green",
-                            )
-                            self.successfully_enrolled_c += 1
-                            self.save_course()
-                        else:
-                            self.print(
-                                "Unknown Error: Report this link to the developer",
-                                color="red",
-                            )
-                            self.expired_c += 1
-
-                else:
-                    coupon_code = self.extract_course_coupon(self.link)
-                    amount, coupon_code, coupon_valid = self.check_course(
-                        course_id, coupon_code
-                    )
-                    if amount == "retry":
-                        self.print("Retrying...", color="red")
-                        time.sleep(1)
-                        continue
-
-                    if coupon_code and coupon_valid:
-                        success, r = self.discounted_checkout(coupon_code, course_id)
-                        if success == "retry":
-                            self.print("Retrying.....", color="red")
-                            continue
-                        elif type(success) == str:
-                            self.print(f"{success}", color="light blue")
-                            slp = int(re.search(r"\d+", success).group(0))
-                            self.print(
-                                f">>> Pausing script for {slp} seconds\n",
-                                color="red",
-                            )
-                            time.sleep(slp + 1)
-                            continue
-                        elif success:
-                            self.print(
-                                "Successfully Enrolled To Course :)",
-                                color="green",
-                            )
-                            self.successfully_enrolled_c += 1
-                            self.enrolled_courses[course_id] = self.get_now_to_utc()
-                            self.amount_saved_c += amount
-                            self.save_course()
-                            time.sleep(3.6)
-                        elif not success:
-                            print(r)
-                            self.print("xxxxx Unknown error xxxxx", color="red")
-                            self.expired_c += 1
-
-                    elif coupon_code and not coupon_valid:
-                        self.print("Coupon Expired", color="red")
-                        self.expired_c += 1
-                    else:
-                        self.print("Coupon Expired.", color="red")
-                        self.expired_c += 1
-                site_index += 1
-                index += 1
-                continue
+    def process_coupon(self, course_id, coupon_code, amount):
+        checkout_response = self.discounted_checkout(coupon_code, course_id)
+        if checkout_response["status"]:
+            self.print("Successfully Enrolled To Course :)", color="green")
+            self.successfully_enrolled_c += 1
+            self.enrolled_courses[course_id] = self.get_now_to_utc()
+            self.amount_saved_c += amount
+            self.save_course()
+            time.sleep(3.6)
+        else:
+            self.print(checkout_response["detail"], color="light blue")
+            wait_time = int(re.search(r"\d+", checkout_response["detail"]).group(0))
+            self.print(f">>> Pausing script for {wait_time} seconds\n", color="red")
+            time.sleep(wait_time + 1)
+            self.process_coupon(course_id, coupon_code, amount)

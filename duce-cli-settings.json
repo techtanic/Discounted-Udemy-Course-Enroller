@@ -49,15 +49,16 @@
     "instructor_exclude": [
         "instructor-1",
         "instructor-2",
-        "more"
+        "more-bad-instructor"
     ],
     "title_exclude": [
-        "keyword1",
-        "noT_case_SensitiVe"
+        "keyword One",
+        "noT_cAse SenSItiVe"
     ],
     "email": "",
     "password": "",
     "save_txt": true,
     "discounted_only": false,
-    "use_browser_cookies": true
+    "use_browser_cookies": false,
+    "course_update_threshold_months": 24
 }

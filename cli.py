@@ -16,6 +16,7 @@ def create_scraping_thread(site: str):
     try:
         t = threading.Thread(target=getattr(scraper, code_name), daemon=True)
         t.start()
+
         while getattr(scraper, f"{code_name}_length") == 0:
             time.sleep(0.1)  # Avoid busy waiting
         if getattr(scraper, f"{code_name}_length") == -1:
@@ -25,14 +26,14 @@ def create_scraping_thread(site: str):
         )
         prev_progress = -1
 
-        while prev_progress != getattr(scraper, f"{code_name}_length"):
+        while not getattr(scraper, f"{code_name}_done"):
             time.sleep(0.1)
-            progress_bar.update(
-                getattr(scraper, f"{code_name}_progress") - prev_progress
-            )
-            prev_progress = getattr(scraper, f"{code_name}_progress")
-            if getattr(scraper, f"{code_name}_done"):
-                break
+            current_progress = getattr(scraper, f"{code_name}_progress")
+            progress_bar.update(current_progress - prev_progress)
+            prev_progress = current_progress
+
+        progress_bar.update(getattr(scraper, f"{code_name}_length") - prev_progress)
+
     except Exception as e:
         error = getattr(scraper, f"{code_name}_error", traceback.format_exc())
         print(error)
@@ -49,34 +50,35 @@ if login_title.__contains__("Update"):
 
 ############## MAIN #############
 
-login_error = True
-while login_error:
+login_successful = False
+while not login_successful:
     try:
         if udemy.settings["use_browser_cookies"]:
             udemy.fetch_cookies()
-            using = "Browser Cookies"
+            login_method = "Browser Cookies"
         elif udemy.settings["email"] and udemy.settings["password"]:
             email, password = udemy.settings["email"], udemy.settings["password"]
-            using = "Saved Email and Password"
+            login_method = "Saved Email and Password"
         else:
             email = input("Email: ")
             password = input("Password: ")
-            using = "Email and Password"
-        print(fb + f"Trying to login using {using}")
-        if "Email" in using:
+            login_method = "Email and Password"
+        print(fb + f"Trying to login using {login_method}")
+        if "Email" in login_method:
             udemy.manual_login(email, password)
         udemy.get_session_info()
-        if "Email" in using:
+        if "Email" in login_method:
             udemy.settings["email"], udemy.settings["password"] = email, password
-        login_error = False
+        login_successful = True
     except LoginException as e:
         print(fr + str(e))
-        if "Browser" in using:
-            print("Make sure you have logged in to Udemy in your browser")
-        elif "Email" in using:
+        if "Browser" in login_method:
+            print("Cant login using cookies")
+            udemy.settings["use_browser_cookies"] = False
+        elif "Email" in login_method:
             udemy.settings["email"], udemy.settings["password"] = "", ""
 
-    udemy.save_settings()
+udemy.save_settings()
 
 print(fg + f"Logged in as {udemy.display_name}")
 user_dumb = udemy.is_user_dumb()

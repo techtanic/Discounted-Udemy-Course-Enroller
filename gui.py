@@ -10,6 +10,7 @@ from base import LINKS, VERSION, LoginException, Scraper, Udemy, scraper_dict
 from images import *
 
 sg.set_global_icon(icon)
+
 sg.change_look_and_feel("dark")
 sg.theme_background_color
 sg.set_options(
@@ -334,6 +335,7 @@ for index, _ in enumerate(udemy.settings["languages"]):
                     ),
                 ]
             )
+
         except IndexError:
             languages_lo.append(
                 [
@@ -413,6 +415,15 @@ rating_lo = [
     ]
 ]
 
+courses_last_updated_lo = [
+    [
+        sg.Text("Past"),
+        sg.Spin([i for i in range(1, 48)], initial_value=udemy.settings["course_update_threshold_months"], key="course_update_threshold_months"),
+        sg.Text("Month(s)"),
+    ]
+]
+
+
 advanced_tab = [
     [
         sg.Frame(
@@ -439,7 +450,16 @@ advanced_tab = [
             title_location="n",
             key="f_min_rating",
             font=25,
-        )
+        ),
+        sg.Frame(
+            "Course Last Updated",
+            courses_last_updated_lo,
+            "#4deeea",
+            border_width=4,
+            title_location="n",
+            key="f_course_last_updated",
+            font=25,
+        ),
     ],
     [
         sg.Checkbox(
@@ -617,6 +637,7 @@ while True:
             filter(None, values["title_exclude"].split("\n"))
         )
         udemy.settings["min_rating"] = float(values["min_rating"])
+        udemy.settings["course_update_threshold_months"] = int(values["course_update_threshold_months"])
         udemy.settings["save_txt"] = values["save_txt"]
         udemy.settings["discounted_only"] = values["discounted_only"]
         udemy.save_settings()
@@ -629,11 +650,6 @@ while True:
                 no_titlebar=True,
             )
             continue
-
-            # for key in all_functions:
-            # main_window[f"p{key}"].update(0, visible=True)
-            # main_window[f"img{index}"].update(visible=False)
-            # main_window[f"pcol{index}"].update(visible=False)
         scraper = Scraper(udemy.sites)
         udemy.window = main_window
         threading.Thread(target=scrape, daemon=True).start()
