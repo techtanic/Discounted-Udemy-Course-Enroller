@@ -418,7 +418,11 @@ rating_lo = [
 courses_last_updated_lo = [
     [
         sg.Text("Past"),
-        sg.Spin([i for i in range(1, 48)], initial_value=udemy.settings["course_update_threshold_months"], key="course_update_threshold_months"),
+        sg.Spin(
+            [i for i in range(1, 48)],
+            initial_value=udemy.settings["course_update_threshold_months"],
+            key="course_update_threshold_months",
+        ),
         sg.Text("Month(s)"),
     ]
 ]
@@ -637,7 +641,9 @@ while True:
             filter(None, values["title_exclude"].split("\n"))
         )
         udemy.settings["min_rating"] = float(values["min_rating"])
-        udemy.settings["course_update_threshold_months"] = int(values["course_update_threshold_months"])
+        udemy.settings["course_update_threshold_months"] = int(
+            values["course_update_threshold_months"]
+        )
         udemy.settings["save_txt"] = values["save_txt"]
         udemy.settings["discounted_only"] = values["discounted_only"]
         udemy.save_settings()

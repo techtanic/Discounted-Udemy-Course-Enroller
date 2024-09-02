@@ -335,13 +335,11 @@ class Scraper:
             for index, item in enumerate(all_items):
                 self.idc_progress = index
                 title = item.h2.string
-                link_num=item['href'].split('/')[4]
-                if link_num=="85":
+                link_num = item["href"].split("/")[4]
+                if link_num == "85":
                     continue
-                link = (
-                    f"https://idownloadcoupon.com/udemy/{link_num}/"
-                )
-                
+                link = f"https://idownloadcoupon.com/udemy/{link_num}/"
+
                 r = requests.get(
                     link,
                     allow_redirects=False,
@@ -793,8 +791,9 @@ class Udemy:
             url += f",redeem_coupon&couponCode={coupon_code}"
 
         r = self.client.get(url).json()
-        with open("test/check_course.json", "w") as f:
-            json.dump(r, f, indent=4)
+        if self.debug:
+            with open("test/check_course.json", "w") as f:
+                json.dump(r, f, indent=4)
         amount = (
             r.get("purchase", {})
             .get("data", {})
