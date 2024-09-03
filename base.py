@@ -4,7 +4,7 @@ import re
 import threading
 import time
 import traceback
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from urllib.parse import parse_qs, unquote, urlparse, urlsplit, urlunparse
 
@@ -12,7 +12,6 @@ import cloudscraper
 import requests
 import rookiepy
 from bs4 import BeautifulSoup as bs
-from dateutil.relativedelta import relativedelta
 
 from colors import *
 
@@ -668,6 +667,28 @@ class Udemy:
                 return True
         return False
 
+    def is_course_updated(self, last_update: str | None) -> bool:
+        if not last_update:
+            return True
+        current_date = datetime.now()
+        last_update_date = datetime.strptime(last_update, "%Y-%m-%d")
+        # Calculate the difference in years and months
+        years = current_date.year - last_update_date.year
+        months = current_date.month - last_update_date.month
+        days = current_date.day - last_update_date.day
+
+        # Adjust the months and years if necessary
+        if days < 0:
+            months -= 1
+
+        if months < 0:
+            years -= 1
+            months += 12
+
+        # Calculate the total month difference
+        month_diff = years * 12 + months
+        return month_diff < self.settings["course_update_threshold_months"]
+
     def is_user_dumb(self) -> bool:
         self.sites = [key for key, value in self.settings["sites"].items() if value]
         self.categories = [
@@ -754,19 +775,10 @@ class Udemy:
         rating = dma["serverSideProps"]["course"]["rating"]
         last_update = dma["serverSideProps"]["course"]["lastUpdateDate"]
 
-        if not last_update:
-            last_update = datetime.today().strftime("%Y-%m-%d")
-        last_update_date = datetime.strptime(last_update, "%Y-%m-%d")
-        current_date = datetime.today()
-
-        date_x_months_ago = current_date - relativedelta(
-            months=self.settings["course_update_threshold_months"]
-        )
-        date_diff = relativedelta(current_date, last_update_date)
-        month_diff = date_diff.years * 12 + date_diff.months
-
-        if last_update_date < date_x_months_ago:
-            self.print(f"Course not updated in {month_diff} months", color="light blue")
+        if not self.is_course_updated(last_update):
+            self.print(
+                f"Course excluded: Last updated {last_update}", color="light blue"
+            )
         elif self.is_instructor_excluded(instructors):
             self.print(f"Instructor excluded: {instructors[0]}", color="light blue")
         elif self.is_keyword_excluded(self.title):
