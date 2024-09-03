@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.2
+
+- Fixed `CourseVania`
+- Refactored code
+- Added Course last Updated filter
+
+
 ## v2.1
 
 - Fixed Scrappers
