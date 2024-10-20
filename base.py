@@ -4,7 +4,7 @@ import re
 import threading
 import time
 import traceback
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from decimal import Decimal
 from urllib.parse import parse_qs, unquote, urlparse, urlsplit, urlunparse
 
@@ -13,7 +13,7 @@ import requests
 import rookiepy
 from bs4 import BeautifulSoup as bs
 
-from colors import *
+from colors import fb, fc, fg, flb, flg, fm, fr, fy
 
 VERSION = "v2.2"
 
@@ -634,7 +634,7 @@ class Udemy:
         r = r.json()
         if self.debug:
             print(r)
-        if r["header"]["isLoggedIn"] == False:
+        if not r["header"]["isLoggedIn"]:
             raise LoginException("Login Failed")
 
         self.display_name: str = r["header"]["user"]["display_name"]

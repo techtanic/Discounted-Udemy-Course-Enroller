@@ -7,7 +7,17 @@ from webbrowser import open as web
 import FreeSimpleGUI as sg
 
 from base import LINKS, VERSION, LoginException, Scraper, Udemy, scraper_dict
-from images import *
+from images import (
+    auto_login,
+    back,
+    check_mark,
+    exit_,
+    icon,
+    login,
+    logout,
+    manual_login_,
+    start,
+)
 
 sg.set_global_icon(icon)
 
@@ -27,11 +37,10 @@ def update_enrolled_courses():
             [f"Total Courses: {len(udemy.enrolled_courses)}"],
         ]
         main_window.write_event_value("Update-Menu", new_menu)
-        time.sleep(8)
+        time.sleep(10)
 
 
 def create_scraping_thread(site: str):
-
     code_name = scraper_dict[site]
     main_window[f"i{site}"].update(visible=False)
     main_window[f"p{site}"].update(0, visible=True)
@@ -54,7 +63,7 @@ def create_scraping_thread(site: str):
 
         if getattr(scraper, f"{code_name}_error"):
             raise Exception(f"Error in: {site}")
-    except Exception as e:
+    except Exception:
         error_message = getattr(scraper, f"{code_name}_error", "Unknown Error")
         main_window.write_event_value(
             "Error", f"{error_message}|:|Unknown Error in: {site} {VERSION}"
@@ -94,7 +103,7 @@ def scrape():
         main_window["e_c"].update(value=f"Expired Courses: {udemy.expired_c}")
         main_window["ex_c"].update(value=f"Excluded Courses: {udemy.excluded_c}")
 
-    except:
+    except Exception:
         e = traceback.format_exc()
         main_window.write_event_value(
             "Error",
@@ -202,7 +211,7 @@ if login_error:
                     udemy.save_settings()
                     login_window.close()
                     break
-                except Exception as e:
+                except Exception:
                     e = traceback.format_exc()
                     print(e)
                     sg.popup_auto_close(
@@ -212,7 +221,7 @@ if login_error:
                         no_titlebar=True,
                     )
 
-            except Exception as e:
+            except Exception:
                 e = traceback.format_exc()
                 sg.popup_scrolled(e, title=f"Unknown Error {VERSION}")
 
@@ -257,7 +266,7 @@ if login_error:
                         auto_close_duration=3,
                         no_titlebar=True,
                     )
-            except:
+            except Exception:
                 e = traceback.format_exc()
                 sg.popup_scrolled(e, title=f"Unknown Error {VERSION}")
 
@@ -295,7 +304,7 @@ for index, _ in enumerate(udemy.settings["categories"]):
                     ),
                 ]
             )
-        except:
+        except IndexError:
             categories_lo.append(
                 [
                     sg.Checkbox(

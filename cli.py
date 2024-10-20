@@ -5,7 +5,7 @@ import traceback
 from tqdm import tqdm
 
 from base import VERSION, LoginException, Scraper, Udemy, scraper_dict
-from colors import *
+from colors import bw, by, fb, fg, fr
 
 # DUCE-CLI
 
@@ -34,7 +34,7 @@ def create_scraping_thread(site: str):
 
         progress_bar.update(getattr(scraper, f"{code_name}_length") - prev_progress)
 
-    except Exception as e:
+    except Exception:
         error = getattr(scraper, f"{code_name}_error", traceback.format_exc())
         print(error)
         print("\nError in: " + site + " " + str(VERSION))
