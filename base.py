@@ -740,29 +740,43 @@ class Udemy:
         url = re.sub(r"\W+$", "", unquote(url))
         try:
             r = self.client.get(url)
+            r.raise_for_status()
         except requests.exceptions.ConnectionError:
             if self.debug:
-                print(r.text)
+                print("Connection error:", url)
             return "retry", url, False
+        except requests.exceptions.HTTPError as e:
+            if self.debug:
+                print(f"HTTP error {e.response.status_code}: {e}")
+            return "invalid", url, False
 
         soup = bs(r.content, "html5lib")
         if self.debug:
             with open("test/soup.html", "w", encoding="utf-8") as f:
                 f.write(str(soup))
-        course_id = soup.find("body").get("data-clp-course-id", "invalid")
-        if course_id == "invalid":
+
+        try:
+            dma = json.loads(soup.find("body")["data-module-args"])
+            if self.debug:
+                with open("test/dma.json", "w") as f:
+                    json.dump(dma, f, indent=4)
+            course_info = dma.get("serverSideProps", {}).get("course", None)
+            if not course_info:
+                if self.debug:
+                    print("Course information is missing in serverSideProps")
+                return "invalid", url, False
+
+            course_id = soup.find("body").get("data-clp-course-id", "invalid")
+            is_free = not course_info.get("isPaid", True)
+            if not self.debug and self.is_course_excluded(dma):
+                return "excluded", r.url, False
+
+            return course_id, r.url, is_free
+
+        except (KeyError, TypeError, json.JSONDecodeError):
+            if self.debug:
+                print("Error parsing course data:", traceback.format_exc())
             return "invalid", url, False
-
-        dma = json.loads(soup.find("body")["data-module-args"])
-        if self.debug:
-            with open("test/dma.json", "w") as f:
-                json.dump(dma, f, indent=4)
-
-        is_free = not dma["serverSideProps"]["course"].get("isPaid", True)
-        if not self.debug and self.is_course_excluded(dma):
-            return "excluded", r.url, False
-
-        return course_id, r.url, is_free
 
     def is_course_excluded(self, dma):
         instructors = [
