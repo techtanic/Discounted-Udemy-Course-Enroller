@@ -5,7 +5,7 @@ import threading
 import time
 import traceback
 from datetime import datetime, timezone
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from urllib.parse import parse_qs, unquote, urlparse, urlsplit, urlunparse
 
 import cloudscraper
@@ -833,7 +833,13 @@ class Udemy:
             status = r["redeem_coupon"]["discount_attempts"][0]["status"]
             coupon_valid = discount == 100 and status == "applied"
 
-        return Decimal(amount), coupon_valid
+        # can be "retry" or Decimal
+        try: 
+            amount = Decimal(amount)
+        except (InvalidOperation, ValueError):
+            amount = "retry" 
+
+        return amount, coupon_valid
 
     def start_enrolling(self):
         self.remove_duplicate_courses()
