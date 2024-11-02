@@ -35,13 +35,13 @@ jobs:
         run: pip install -r requirements.txt pyinstaller -U
   
       - name: Build ${{ matrix.name }}
-        run: |
-          pyinstaller -y -F ${{ matrix.mode }} -i "${{ matrix.icon }}" --clean --name "${{ matrix.name }}" \
-          --add-data "base.py;." \
-          --add-data "colors.py;." \
-          --add-data "${{ matrix.settings }};." \
-          --add-data "README.md;." \
-          --add-data "LICENSE;." \
+        run: >
+          pyinstaller -y -F ${{ matrix.mode }} -i "${{ matrix.icon }}" --clean --name "${{ matrix.name }}"
+          --add-data "base.py;."
+          --add-data "colors.py;."
+          --add-data "${{ matrix.settings }};."
+          --add-data "README.md;."
+          --add-data "LICENSE;."
           "${{ matrix.script }}"
 
       - name: Upload ${{ matrix.name }}.exe
