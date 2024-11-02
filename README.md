@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://cdn.discordapp.com/attachments/823472016999972884/847787981045760010/Group_2_2_1.png">
+    <img src="">
     <br/>
     <img src="https://forthebadge.com/images/badges/made-with-python.svg">
     <br/>
