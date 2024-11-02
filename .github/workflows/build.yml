@@ -1,10 +1,10 @@
 name: Build
 
 on:
-    workflow_dispatch:
-    push:
-        branches:
-            - master
+  workflow_dispatch:
+  push:
+    branches:
+      - master
 
 jobs:
   build:
@@ -15,9 +15,13 @@ jobs:
           - name: "DUCE-GUI-windows"
             icon: "extra/DUCE-LOGO.ico"
             mode: "-w"
+            script: "gui.py"
+            settings: "default_settings_gui_settings.json"
           - name: "DUCE-CLI-windows"
             icon: "extra/DUCE-LOGO.ico"
             mode: "-c"
+            script: "cli.py"
+            settings: "default_settings_cli_settings.json"
     steps:
       - uses: actions/checkout@v4
 
@@ -31,11 +35,17 @@ jobs:
         run: pip install -r requirements.txt pyinstaller -U
   
       - name: Build ${{ matrix.name }}
-        run: pyinstaller -y -F ${{ matrix.mode }} -i "${{ matrix.icon }}" --clean --name "${{ matrix.name }}" --add-data "base.py;." --add-data "colors.py;." --add-data "README.md;." --add-data "LICENSE;."  "${{ matrix.name == 'DUCE-GUI-windows' && 'gui.py' || 'cli.py' }}"
+        run: |
+          pyinstaller -y -F ${{ matrix.mode }} -i "${{ matrix.icon }}" --clean --name "${{ matrix.name }}" \
+          --add-data "base.py;." \
+          --add-data "colors.py;." \
+          --add-data "${{ matrix.settings }};." \
+          --add-data "README.md;." \
+          --add-data "LICENSE;." \
+          "${{ matrix.script }}"
 
       - name: Upload ${{ matrix.name }}.exe
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}.exe
           path: ./dist/${{ matrix.name }}.exe
-    
