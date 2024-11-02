@@ -38,12 +38,12 @@
     },
     "sites": {
         "Real Discount": true,
-        "Discudemy": true,
-        "IDownloadCoupons": true,
-        "Tutorial Bar": true,
-        "E-next": true,
-        "Course Vania": true,
-        "Udemy Freebies": true
+        "Discudemy": false,
+        "IDownloadCoupons": false,
+        "Tutorial Bar": false,
+        "E-next": false,
+        "Course Vania": false,
+        "Udemy Freebies": false
     },
     "min_rating": 0.0,
     "instructor_exclude": [

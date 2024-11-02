@@ -444,7 +444,9 @@ class Udemy:
             with open(f"duce-{self.interface}-settings.json") as f:
                 self.settings = json.load(f)
         except FileNotFoundError:
-            with open(resource_path(f"default-duce-{self.interface}-settings.json")) as f:
+            with open(
+                resource_path(f"default-duce-{self.interface}-settings.json")
+            ) as f:
                 self.settings = json.load(f)
         if (
             self.interface == "cli" and "use_browser_cookies" not in self.settings
@@ -937,15 +939,45 @@ class Udemy:
                         "discountInfo": {"code": coupon},
                         "price": {"amount": 0, "currency": self.currency.upper()},
                     }
-                ]
+                ],
+                "is_cart": False,
             },
         }
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0",
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "en-US",
+            "Referer": f"https://www.udemy.com/payment/checkout/express/course/{course_id}/?discountCode={coupon}",
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+            "x-checkout-is-mobile-app": "false",
+            "Origin": "https://www.udemy.com",
+            "DNT": "1",
+            "Sec-GPC": "1",
+            "Connection": "keep-alive",
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+            "Priority": "u=0",
+            "Pragma": "no-cache",
+            "Cache-Control": "no-cache",
+        }
+        csrftoken = None
+        for cookie in self.client.cookies:
+            if cookie.name == "csrftoken":
+                csrftoken = cookie.value
+                break
+
+        if csrftoken:
+            headers["X-CSRFToken"] = csrftoken
+        else:
+            raise ValueError("CSRF token not found")
 
         r: dict = self.client.post(
-            "https://www.udemy.com/payment/checkout-submit/", json=payload
+            "https://www.udemy.com/payment/checkout-submit/",
+            json=payload,
+            headers=headers,
         ).json()
-        if self.debug:
-            print(r)
 
         return {"status": r.get("status") == "succeeded", "detail": r.get("detail")}
 
@@ -980,12 +1012,14 @@ class Udemy:
             time.sleep(3.7)
         else:
             self.print(checkout_response["detail"], color="light blue")
-            try: 
+            try:
                 wait_time = int(re.search(r"\d+", checkout_response["detail"]).group(0))
             except:
-                self.print("Unknown Error: Report this link to the developer", color="red")
+                self.print(
+                    "Unknown Error: Report this link to the developer", color="red"
+                )
                 self.print(checkout_response, color="red")
-                wait_time = 60 
+                wait_time = 60
             self.print(f">>> Pausing script for {wait_time} seconds\n", color="red")
             time.sleep(wait_time + 1.5)
             self.process_coupon(course_id, coupon_code, amount)

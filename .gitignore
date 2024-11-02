@@ -10,5 +10,5 @@ tempCodeRunnerFile.py
 DUCE-GUI-windows.spec
 duce.py
 gui-test.py
-duce-cli-settings.json
 duce-gui-settings.json
+duce-cli-settings.json
