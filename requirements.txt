@@ -1,5 +1,5 @@
 FreeSimpleGUI
-rookiepy == 0.5.3b0
+rookiepy
 cloudscraper
 bs4
 requests

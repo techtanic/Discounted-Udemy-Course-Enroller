@@ -59,6 +59,6 @@
     "password": "",
     "save_txt": true,
     "discounted_only": false,
-    "use_browser_cookies": true,
+    "use_browser_cookies": false,
     "course_update_threshold_months": 24
 }

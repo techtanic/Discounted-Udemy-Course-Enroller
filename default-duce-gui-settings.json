@@ -1,19 +1,11 @@
 {
-    "categories": {
-        "Business": true,
-        "Design": true,
-        "Development": true,
-        "Finance & Accounting": true,
-        "Health & Fitness": true,
-        "IT & Software": true,
-        "Lifestyle": true,
-        "Marketing": true,
-        "Music": true,
-        "Office Productivity": true,
-        "Personal Development": true,
-        "Photography & Video": true,
-        "Teaching & Academics": true
+    "stay_logged_in": {
+        "auto": false,
+        "manual": false
     },
+    "min_rating": 0.0,
+    "title_exclude": [],
+    "instructor_exclude": [],
     "languages": {
         "Arabic": true,
         "Chinese": true,
@@ -36,6 +28,21 @@
         "Turkish": true,
         "Urdu": true
     },
+    "categories": {
+        "Business": true,
+        "Design": true,
+        "Development": true,
+        "Finance & Accounting": true,
+        "Health & Fitness": true,
+        "IT & Software": true,
+        "Lifestyle": true,
+        "Marketing": true,
+        "Music": true,
+        "Office Productivity": true,
+        "Personal Development": true,
+        "Photography & Video": true,
+        "Teaching & Academics": true
+    },
     "sites": {
         "Real Discount": true,
         "Discudemy": true,
@@ -45,20 +52,9 @@
         "Course Vania": true,
         "Udemy Freebies": true
     },
-    "min_rating": 0.0,
-    "instructor_exclude": [
-        "instructor-1",
-        "instructor-2",
-        "more-bad-instructor"
-    ],
-    "title_exclude": [
-        "keyword One",
-        "noT_cAse SenSItiVe"
-    ],
     "email": "",
     "password": "",
-    "save_txt": true,
+    "save_txt": false,
     "discounted_only": false,
-    "use_browser_cookies": true,
     "course_update_threshold_months": 24
 }

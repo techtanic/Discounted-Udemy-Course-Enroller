@@ -1,11 +1,17 @@
 # Changelog
 
+## v2.3
+
+- Removed getting settings from github is file not found. Default settings will be included in exe.
+- Fixed `TutorialBar`
+- Fixed Error for Courses that are no longer accepting new enrollments
+- Refactored some code
+
 ## v2.2
 
 - Fixed `CourseVania`
 - Refactored code
 - Added Course last Updated filter
-
 
 ## v2.1
 

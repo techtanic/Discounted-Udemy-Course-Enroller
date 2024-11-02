@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup as bs
 
 from colors import fb, fc, fg, flb, flg, fm, fr, fy
 
-VERSION = "v2.2"
+VERSION = "v2.3"
 
 scraper_dict: dict = {
     "Udemy Freebies": "uf",
@@ -203,7 +203,7 @@ class Scraper:
                 )
                 soup = self.parse_html(content)
                 page_items = soup.find_all(
-                    "h3", class_="mb15 mt0 font110 mobfont100 fontnormal lineheight20"
+                    "h2", class_="mb15 mt0 font110 mobfont100 fontnormal lineheight20"
                 )
                 all_items.extend(page_items)
             self.tb_length = len(all_items)
@@ -437,11 +437,8 @@ class Udemy:
             with open(f"duce-{self.interface}-settings.json") as f:
                 self.settings = json.load(f)
         except FileNotFoundError:
-            self.settings = dict(
-                requests.get(
-                    f"https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/master/duce-{self.interface}-settings.json"
-                ).json()
-            )
+            with open(f"default-duce-{self.interface}-settings.json") as f:
+                self.settings = json.load(f)
         if (
             self.interface == "cli" and "use_browser_cookies" not in self.settings
         ):  # v2.1
@@ -737,32 +734,51 @@ class Udemy:
         )
 
     def get_course_id(self, url):
+        course = {
+            "course_id": None,
+            "url": url,
+            "is_invalid": False,
+            "is_free": None,
+            "is_excluded": None,
+            "retry": None,
+            "msg": "Report to developer",
+        }
         url = re.sub(r"\W+$", "", unquote(url))
         try:
             r = self.client.get(url)
         except requests.exceptions.ConnectionError:
             if self.debug:
                 print(r.text)
-            return "retry", url, False
-
+            course["retry"] = True
+            return course
+        course["url"] = r.url
         soup = bs(r.content, "html5lib")
-        if self.debug:
-            with open("test/soup.html", "w", encoding="utf-8") as f:
-                f.write(str(soup))
-        course_id = soup.find("body").get("data-clp-course-id", "invalid")
-        if course_id == "invalid":
-            return "invalid", url, False
 
+        course_id = soup.find("body").get("data-clp-course-id", "invalid")
+
+        if course_id == "invalid":
+            course["is_invalid"] = True
+            course["msg"] = "Course ID not found: Report to developer"
+            return course
+        course["course_id"] = course_id
         dma = json.loads(soup.find("body")["data-module-args"])
         if self.debug:
-            with open("test/dma.json", "w") as f:
+            with open("debug/dma.json", "w") as f:
                 json.dump(dma, f, indent=4)
 
-        is_free = not dma["serverSideProps"]["course"].get("isPaid", True)
-        if not self.debug and self.is_course_excluded(dma):
-            return "excluded", r.url, False
+        if dma.get("view_restriction"):
+            course["is_invalid"] = True
+            course["msg"] = dma["serverSideProps"]["limitedAccess"]["errorMessage"][
+                "title"
+            ]
+            return course
 
-        return course_id, r.url, is_free
+        course["is_free"] = not dma["serverSideProps"]["course"].get("isPaid", True)
+        if not self.debug and self.is_course_excluded(dma):
+            course["is_excluded"] = True
+            return course
+
+        return course
 
     def is_course_excluded(self, dma):
         instructors = [
@@ -835,7 +851,7 @@ class Udemy:
                 self.title = title
                 self.link = link
                 self.print_course_info(previous_courses_count + index, total_courses)
-                self.handle_course_enrollment(index)
+                self.handle_course_enrollment()
             previous_courses_count += len(courses)
 
     def initialize_counters(self):
@@ -857,27 +873,30 @@ class Udemy:
         self.print(self.title, color="yellow", end=" ")
         self.print(self.link, color="blue")
 
-    def handle_course_enrollment(self, index):
-        course_id, self.link, is_free = self.get_course_id(self.link)
-
-        if course_id == "invalid":
-            self.print("Invalid Course", color="red")
+    def handle_course_enrollment(self):
+        course = self.get_course_id(self.link)
+        if course["is_invalid"]:
+            self.print(course["msg"], color="red")
             self.excluded_c += 1
-        elif course_id == "excluded":
+        elif course["retry"]:
+            self.print("Retrying...", color="red")
+            time.sleep(1)
+            self.handle_course_enrollment()
+        elif course["is_excluded"]:
             self.excluded_c += 1
-        elif not course_id:
-            self.print("X Course Expired", color="red")
-            self.expired_c += 1
-        elif course_id in self.enrolled_courses:
+        elif course["course_id"] in self.enrolled_courses:
             self.print(
-                f"You purchased this course on {self.get_date_from_utc(self.enrolled_courses[course_id])}",
+                f"You purchased this course on {self.get_date_from_utc(self.enrolled_courses[course['course_id']])}",
                 color="light blue",
             )
             self.already_enrolled_c += 1
-        elif is_free:
-            self.handle_free_course(course_id)
+        elif course["is_free"]:
+            self.handle_free_course(course["course_id"])
+        elif not course["is_free"]:
+            self.handle_discounted_course(course["course_id"])
         else:
-            self.handle_discounted_course(course_id)
+            self.print("Unknown Error: Report this link to the developer", color="red")
+            self.excluded_c += 1
 
     def handle_free_course(self, course_id):
         if self.settings["discounted_only"]:
