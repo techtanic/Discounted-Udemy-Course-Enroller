@@ -14,10 +14,10 @@ jobs:
         include:
           - name: "DUCE-GUI-windows"
             mode: "-w"
-            script: "gui.py"
+            script: "gui"
           - name: "DUCE-CLI-windows"
             mode: "-c"
-            script: "cli.py"
+            script: "cli"
     steps:
       - uses: actions/checkout@v4
 
