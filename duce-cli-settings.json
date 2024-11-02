@@ -38,8 +38,8 @@
     },
     "sites": {
         "Real Discount": true,
-        "Discudemy": false,
-        "IDownloadCoupons": false,
+        "Discudemy": true,
+        "IDownloadCoupons": true,
         "Tutorial Bar": false,
         "E-next": false,
         "Course Vania": false,

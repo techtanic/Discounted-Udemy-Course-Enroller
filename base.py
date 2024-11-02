@@ -940,7 +940,7 @@ class Udemy:
                         "price": {"amount": 0, "currency": self.currency.upper()},
                     }
                 ],
-                "is_cart": False,
+                "is_cart": True,
             },
         }
         headers = {
@@ -973,13 +973,17 @@ class Udemy:
         else:
             raise ValueError("CSRF token not found")
 
-        r: dict = self.client.post(
+        r = self.client.post(
             "https://www.udemy.com/payment/checkout-submit/",
             json=payload,
             headers=headers,
-        ).json()
-
-        return {"status": r.get("status") == "succeeded", "detail": r.get("detail")}
+        )
+        try:
+            r = r.json()
+        except:
+            self.print(r.text, color="red")
+            self.print("Unknown Error: Report this to the developer", color="red")        
+        return r
 
     def free_checkout(self, course_id):
         self.client.get(f"https://www.udemy.com/course/subscribe/?courseId={course_id}")
@@ -1003,15 +1007,8 @@ class Udemy:
 
     def process_coupon(self, course_id, coupon_code, amount):
         checkout_response = self.discounted_checkout(coupon_code, course_id)
-        if checkout_response["status"]:
-            self.print("Successfully Enrolled To Course :)", color="green")
-            self.successfully_enrolled_c += 1
-            self.enrolled_courses[course_id] = self.get_now_to_utc()
-            self.amount_saved_c += amount
-            self.save_course()
-            time.sleep(3.7)
-        else:
-            self.print(checkout_response["detail"], color="light blue")
+        if msg:=checkout_response.get("detail"):
+            self.print(msg, color="red")
             try:
                 wait_time = int(re.search(r"\d+", checkout_response["detail"]).group(0))
             except:
@@ -1020,6 +1017,24 @@ class Udemy:
                 )
                 self.print(checkout_response, color="red")
                 wait_time = 60
-            self.print(f">>> Pausing script for {wait_time} seconds\n", color="red")
             time.sleep(wait_time + 1.5)
             self.process_coupon(course_id, coupon_code, amount)
+        elif checkout_response["status"] == "succeeded":
+            self.print("Successfully Enrolled To Course :)", color="green")
+            self.successfully_enrolled_c += 1
+            self.enrolled_courses[course_id] = self.get_now_to_utc()
+            self.amount_saved_c += amount
+            self.save_course()
+            time.sleep(3.75)
+        elif checkout_response["status"] == "failed":
+            message = checkout_response["message"]
+            if "item_already_subscribed" in message:
+                self.print("Already Enrolled", color="light blue")
+                self.already_enrolled_c += 1
+            else:
+                self.print("Unknown Error: Report this to the developer", color="red")
+                self.print(checkout_response)
+        else:
+            self.print("Unknown Error: Report this to the developer", color="red")
+            self.print(checkout_response)
+
