@@ -531,7 +531,7 @@ class Udemy:
 
         s = requests.session()
         r = s.get(
-            "https://www.udemy.com/join/signup-popup/",
+            "https://www.udemy.com/join/signup-popup/?locale=en_US&response_type=html&next=https%3A%2F%2Fwww.udemy.com%2Flogout%2F",
             headers={"User-Agent": "okhttp/4.9.2 UdemyAndroid 8.9.2(499) (phone)"},
             # headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0",
             #     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
@@ -566,9 +566,10 @@ class Udemy:
                 "User-Agent": "okhttp/4.9.2 UdemyAndroid 8.9.2(499) (phone)",
                 "Accept": "application/json, text/plain, */*",
                 "Accept-Language": "en-GB,en;q=0.5",
-                "Referer": "https://www.udemy.com/join/login-popup/?locale=en_US&response_type=html&next=https%3A%2F%2Fwww.udemy.com%2F",
+                "Referer": "https://www.udemy.com/join/login-popup/?passwordredirect=True&response_type=json",
                 "Origin": "https://www.udemy.com",
                 "DNT": "1",
+                "Host": "www.udemy.com",
                 "Connection": "keep-alive",
                 "Sec-Fetch-Dest": "empty",
                 "Sec-Fetch-Mode": "cors",
@@ -577,10 +578,9 @@ class Udemy:
                 "Cache-Control": "no-cache",
             }
         )
-        # r = s.get("https://www.udemy.com/join/login-popup/?response_type=json")
         s = cloudscraper.create_scraper(sess=s)
         r = s.post(
-            "https://www.udemy.com/join/login-popup/?response_type=json",
+            "https://www.udemy.com/join/login-popup/?passwordredirect=True&response_type=json",
             data=data,
             allow_redirects=False,
         )

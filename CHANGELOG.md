@@ -3,6 +3,7 @@
 ## v2.3
 
 - Removed getting settings from github is file not found. Default settings will be included in exe.
+- Changed Manual Login API
 - Fixed `TutorialBar`
 - Fixed Error for Courses that are no longer accepting new enrollments
 - Refactored some code
