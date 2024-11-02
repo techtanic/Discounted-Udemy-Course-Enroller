@@ -1017,7 +1017,7 @@ class Udemy:
                 )
                 self.print(checkout_response, color="red")
                 wait_time = 60
-            time.sleep(wait_time + 1.5)
+            time.sleep(wait_time + 1)
             self.process_coupon(course_id, coupon_code, amount)
         elif checkout_response["status"] == "succeeded":
             self.print("Successfully Enrolled To Course :)", color="green")
