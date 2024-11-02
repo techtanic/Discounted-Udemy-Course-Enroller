@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import sys
 import threading
 import time
 import traceback
@@ -56,6 +57,12 @@ class RaisingThread(threading.Thread):
         super().join(timeout=timeout)
         if self._exc:
             raise self._exc
+
+
+def resource_path(relative_path):
+    if hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 
 class Scraper:
@@ -437,7 +444,7 @@ class Udemy:
             with open(f"duce-{self.interface}-settings.json") as f:
                 self.settings = json.load(f)
         except FileNotFoundError:
-            with open(f"default-duce-{self.interface}-settings.json") as f:
+            with open(resource_path(f"default-duce-{self.interface}-settings.json")) as f:
                 self.settings = json.load(f)
         if (
             self.interface == "cli" and "use_browser_cookies" not in self.settings
