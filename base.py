@@ -977,10 +977,15 @@ class Udemy:
             self.enrolled_courses[course_id] = self.get_now_to_utc()
             self.amount_saved_c += amount
             self.save_course()
-            time.sleep(3.6)
+            time.sleep(3.7)
         else:
             self.print(checkout_response["detail"], color="light blue")
-            wait_time = int(re.search(r"\d+", checkout_response["detail"]).group(0))
+            try: 
+                wait_time = int(re.search(r"\d+", checkout_response["detail"]).group(0))
+            except:
+                self.print("Unknown Error: Report this link to the developer", color="red")
+                self.print(checkout_response, color="red")
+                wait_time = 60 
             self.print(f">>> Pausing script for {wait_time} seconds\n", color="red")
-            time.sleep(wait_time + 1)
+            time.sleep(wait_time + 1.5)
             self.process_coupon(course_id, coupon_code, amount)
