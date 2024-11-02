@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="">
+    <img src="https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/refs/heads/master/extra/promo.gif">
     <br/>
     <img src="https://forthebadge.com/images/badges/made-with-python.svg">
     <br/>
@@ -72,3 +72,8 @@ Everything you need can be on the website.: [duce.techtanic.space](https://duce.
 BTC `bc1qdyjwj0eqxjk5hxejah4gyclrumwtqs3hqp63uz`
 
 BTC `14JNjiNoiKcbCHcxcqUxgJcVgyDfhGbxQF`
+
+
+<center>
+Made with ❤️
+</center>
