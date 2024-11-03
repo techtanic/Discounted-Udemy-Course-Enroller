@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup as bs
 
 from colors import fb, fc, fg, flb, flg, fm, fr, fy
 
-VERSION = "v2.3"
+VERSION = "v2.3.1"
 
 scraper_dict: dict = {
     "Udemy Freebies": "uf",
