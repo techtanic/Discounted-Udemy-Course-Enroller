@@ -4,6 +4,7 @@
 ## v2.3.1
 
 - Fixed missing color in print
+- Improve update checker
 
 
 ## v2.3
