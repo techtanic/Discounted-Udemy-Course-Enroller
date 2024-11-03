@@ -415,7 +415,7 @@ class Udemy:
         self.client.headers.update(headers)
         self.debug = debug
 
-    def print(self, content: str, color: str="red", **kargs):
+    def print(self, content: str, color: str = "red", **kargs):
         content = str(content)
         colours_dict = {
             "yellow": fy,
@@ -485,8 +485,8 @@ class Udemy:
 
     def get_enrolled_courses(self):
         """Get enrolled courses
-        Sets enrolled_courses 
-        
+        Sets enrolled_courses
+
         {slug:enrollment_time}
         """
         next_page = "https://www.udemy.com/api-2.0/users/me/subscribed-courses/?ordering=-enroll_time&fields[course]=enrollment_time,url&page_size=100"
@@ -501,7 +501,7 @@ class Udemy:
             next_page = r["next"]
         self.enrolled_courses = courses
 
-    def compare_versions(self,version1, version2):
+    def compare_versions(self, version1, version2):
         v1_parts = list(map(int, version1.split(".")))
         v2_parts = list(map(int, version2.split(".")))
         max_length = max(len(v1_parts), len(v2_parts))
@@ -908,7 +908,7 @@ class Udemy:
 
     def handle_course_enrollment(self):
         slug = self.link.split("/")[4]
-        
+
         if slug in self.enrolled_courses:
             self.print(
                 f"You purchased this course on {self.get_date_from_utc(self.enrolled_courses[slug])}",
@@ -916,7 +916,7 @@ class Udemy:
             )
             self.already_enrolled_c += 1
             return
-        
+
         course = self.get_course_id(self.link)
         if course["is_invalid"]:
             self.print(course["msg"], color="red")
