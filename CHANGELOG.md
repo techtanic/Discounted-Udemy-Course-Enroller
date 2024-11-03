@@ -5,6 +5,7 @@
 
 - Fixed missing color in print
 - Improve update checker
+- Improved Already enrolled course detection
 
 
 ## v2.3
