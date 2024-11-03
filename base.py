@@ -415,7 +415,7 @@ class Udemy:
         self.client.headers.update(headers)
         self.debug = debug
 
-    def print(self, content: str, color: str, **kargs):
+    def print(self, content: str, color: str="red", **kargs):
         colours_dict = {
             "yellow": fy,
             "red": fr,
@@ -960,7 +960,7 @@ class Udemy:
                         "price": {"amount": 0, "currency": self.currency.upper()},
                     }
                 ],
-                "is_cart": True,
+                "is_cart": False,
             },
         }
         headers = {
@@ -1045,7 +1045,7 @@ class Udemy:
             self.enrolled_courses[course_id] = self.get_now_to_utc()
             self.amount_saved_c += amount
             self.save_course()
-            time.sleep(3.75)
+            time.sleep(3.7)
         elif checkout_response["status"] == "failed":
             message = checkout_response["message"]
             if "item_already_subscribed" in message:
