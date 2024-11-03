@@ -96,7 +96,7 @@ class Scraper:
             )
             t.start()
             threads.append(t)
-            time.sleep(0.5)
+            time.sleep(0.2)
         for t in threads:
             t.join()
         for site in self.sites:
@@ -484,16 +484,19 @@ class Udemy:
 
     def get_enrolled_courses(self):
         """Get enrolled courses
-        Sets enrolled_courses {id:enrollment_time}
+        Sets enrolled_courses 
+        
+        {slug:enrollment_time}
         """
-        next_page = "https://www.udemy.com/api-2.0/users/me/subscribed-courses/?ordering=-enroll_time&fields[course]=enrollment_time&page_size=100"
+        next_page = "https://www.udemy.com/api-2.0/users/me/subscribed-courses/?ordering=-enroll_time&fields[course]=enrollment_time,url&page_size=100"
         courses = {}
         while next_page:
             r = self.client.get(
                 next_page,
             ).json()
             for course in r["results"]:
-                courses[str(course["id"])] = course["enrollment_time"]
+                slug = course["url"].split("/")[2]
+                courses[slug] = course["enrollment_time"]
             next_page = r["next"]
         self.enrolled_courses = courses
 
@@ -903,6 +906,16 @@ class Udemy:
         self.print(self.link, color="blue")
 
     def handle_course_enrollment(self):
+        slug = self.link.split("/")[4]
+        
+        if slug in self.enrolled_courses:
+            self.print(
+                f"You purchased this course on {self.get_date_from_utc(self.enrolled_courses[slug])}",
+                color="light blue",
+            )
+            self.already_enrolled_c += 1
+            return
+        
         course = self.get_course_id(self.link)
         if course["is_invalid"]:
             self.print(course["msg"], color="red")
@@ -913,12 +926,6 @@ class Udemy:
             self.handle_course_enrollment()
         elif course["is_excluded"]:
             self.excluded_c += 1
-        elif course["course_id"] in self.enrolled_courses:
-            self.print(
-                f"You purchased this course on {self.get_date_from_utc(self.enrolled_courses[course['course_id']])}",
-                color="light blue",
-            )
-            self.already_enrolled_c += 1
         elif course["is_free"]:
             self.handle_free_course(course["course_id"])
         elif not course["is_free"]:
