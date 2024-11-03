@@ -1,5 +1,11 @@
 # Changelog
 
+
+## v2.3.1
+
+- Fixed missing color in print
+
+
 ## v2.3
 
 - Removed getting settings from github is file not found. Default settings will be included in exe.
