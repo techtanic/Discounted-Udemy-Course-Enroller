@@ -416,6 +416,7 @@ class Udemy:
         self.debug = debug
 
     def print(self, content: str, color: str="red", **kargs):
+        content = str(content)
         colours_dict = {
             "yellow": fy,
             "red": fr,
@@ -971,7 +972,7 @@ class Udemy:
             },
         }
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0",
+            "User-Agent": "okhttp/4.9.2 UdemyAndroid 8.9.2(499) (phone)",
             "Accept": "application/json, text/plain, */*",
             "Accept-Language": "en-US",
             "Referer": f"https://www.udemy.com/payment/checkout/express/course/{course_id}/?discountCode={coupon}",
@@ -986,8 +987,6 @@ class Udemy:
             "Sec-Fetch-Mode": "cors",
             "Sec-Fetch-Site": "same-origin",
             "Priority": "u=0",
-            "Pragma": "no-cache",
-            "Cache-Control": "no-cache",
         }
         csrftoken = None
         for cookie in self.client.cookies:
