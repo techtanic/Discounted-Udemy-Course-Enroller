@@ -497,6 +497,20 @@ class Udemy:
             next_page = r["next"]
         self.enrolled_courses = courses
 
+    def compare_versions(self,version1, version2):
+        v1_parts = list(map(int, version1.split(".")))
+        v2_parts = list(map(int, version2.split(".")))
+        max_length = max(len(v1_parts), len(v2_parts))
+        v1_parts.extend([0] * (max_length - len(v1_parts)))
+        v2_parts.extend([0] * (max_length - len(v2_parts)))
+
+        for v1, v2 in zip(v1_parts, v2_parts):
+            if v1 < v2:
+                return -1
+            elif v1 > v2:
+                return 1
+        return 0
+
     def check_for_update(self) -> tuple[str, str]:
         r_version = (
             requests.get(
@@ -506,13 +520,19 @@ class Udemy:
             .removeprefix("v")
         )
         c_version = VERSION.removeprefix("v")
-        if c_version < r_version:
+
+        comparison = self.compare_versions(c_version, r_version)
+
+        if comparison == -1:
             return (
-                f" Update {r_version} Available",
+                f"Update {r_version} Available",
                 f"Update {r_version} Available",
             )
-        elif c_version == r_version:
-            return f"Login {c_version}", f"Discounted-Udemy-Course-Enroller {c_version}"
+        elif comparison == 0:
+            return (
+                f"Login {c_version}",
+                f"Discounted-Udemy-Course-Enroller {c_version}",
+            )
         else:
             return (
                 f"Dev Login {c_version}",
@@ -982,7 +1002,7 @@ class Udemy:
             r = r.json()
         except:
             self.print(r.text, color="red")
-            self.print("Unknown Error: Report this to the developer", color="red")        
+            self.print("Unknown Error: Report this to the developer", color="red")
         return r
 
     def free_checkout(self, course_id):
@@ -1007,7 +1027,7 @@ class Udemy:
 
     def process_coupon(self, course_id, coupon_code, amount):
         checkout_response = self.discounted_checkout(coupon_code, course_id)
-        if msg:=checkout_response.get("detail"):
+        if msg := checkout_response.get("detail"):
             self.print(msg, color="red")
             try:
                 wait_time = int(re.search(r"\d+", checkout_response["detail"]).group(0))
@@ -1033,8 +1053,7 @@ class Udemy:
                 self.already_enrolled_c += 1
             else:
                 self.print("Unknown Error: Report this to the developer", color="red")
-                self.print(checkout_response)
+                self.print(checkout_response, color="red")
         else:
             self.print("Unknown Error: Report this to the developer", color="red")
-            self.print(checkout_response)
-
+            self.print(checkout_response, color="red")
