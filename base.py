@@ -239,13 +239,13 @@ class Scraper:
         try:
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36 Edg/92.0.902.84",
-                "Host": "www.real.discount",
+                "Host": "cdn.real.discount",
                 "Connection": "Keep-Alive",
                 "dnt": "1",
             }
             try:
                 r = requests.get(
-                    "https://www.real.discount/api-web/all-courses/?store=Udemy&page=1&per_page=500&orderby=date&free=1&editorschoices=0",
+                    "https://cdn.real.discount/api/courses?page=1&limit=500&sortBy=sale_start&store=Udemy&free=1&editorschoices=0",
                     headers=headers,
                     timeout=(10, 30),
                 ).json()
@@ -254,12 +254,14 @@ class Scraper:
                 self.rd_length = -1
                 self.rd_done = True
                 return
-            all_items.extend(r["results"])
+            all_items.extend(r["items"])
 
             self.rd_length = len(all_items)
             if self.debug:
                 print("Length:", self.rd_length)
             for index, item in enumerate(all_items):
+                if "https://www.udemy.com" not in item["url"]:
+                    continue
                 self.rd_progress = index
                 title: str = item["name"]
                 link: str = item["url"]
