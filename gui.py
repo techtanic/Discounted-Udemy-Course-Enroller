@@ -85,7 +85,9 @@ def scrape():
         udemy.scraped_data = scraper.get_scraped_courses(create_scraping_thread)
         main_window["scrape_col"].update(visible=False)
         main_window["output_col"].update(visible=True)
+
         # ------------------------------------------
+
         udemy.start_enrolling()
         main_window["output_col"].Update(visible=False)
 

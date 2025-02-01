@@ -66,6 +66,7 @@ while not login_successful:
         print(fb + f"Trying to login using {login_method}")
         if "Email" in login_method:
             udemy.manual_login(email, password)
+
         udemy.get_session_info()
         if "Email" in login_method:
             udemy.settings["email"], udemy.settings["password"] = email, password
@@ -81,12 +82,16 @@ while not login_successful:
 udemy.save_settings()
 
 print(fg + f"Logged in as {udemy.display_name}")
+
 user_dumb = udemy.is_user_dumb()
+
 if user_dumb:
     print(bw + fr + "What do you even expect to happen!")
     exit()
+
 if not user_dumb:
     scraper = Scraper(udemy.sites)
+
 try:
     udemy.scraped_data = scraper.get_scraped_courses(create_scraping_thread)
     time.sleep(0.5)
