@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.3.2
+
+- Fixed `RealDiscount`
+- Tried to reduce throttling
+
 
 ## v2.3.1
 
