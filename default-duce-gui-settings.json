@@ -26,7 +26,8 @@
         "Spanish": true,
         "Thai": true,
         "Turkish": true,
-        "Urdu": true
+        "Urdu": true,
+        "Vietnamese":true
     },
     "categories": {
         "Business": true,
@@ -47,7 +48,6 @@
         "Real Discount": true,
         "Discudemy": true,
         "IDownloadCoupons": true,
-        "Tutorial Bar": true,
         "E-next": true,
         "Course Vania": true,
         "Udemy Freebies": true

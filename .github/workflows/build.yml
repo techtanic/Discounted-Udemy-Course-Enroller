@@ -26,22 +26,112 @@ jobs:
         with:
           python-version: "3.11"
           cache: "pip"
+      
+      # Cache PyInstaller build files to speed up future builds
+      - name: Cache PyInstaller build files
+        uses: actions/cache@v3
+        with:
+          path: |
+            build
+            __pycache__
+          key: ${{ runner.os }}-pyinstaller-${{ hashFiles('**/*.py') }}-${{ matrix.name }}
+          restore-keys: |
+            ${{ runner.os }}-pyinstaller-
 
       - name: Install dependencies and PyInstaller
-        run: pip install -r requirements.txt pyinstaller -U
+        run: |
+          pip install -r requirements.txt pyinstaller>=6.0.0 -U
+          pip install pyinstaller-hooks-contrib>=2023.0 -U
+          pip install upx>=4.0.0 -U
   
+      # Download UPX for better compression
+      - name: Download UPX
+        run: |
+          $upxVersion = "4.2.1"
+          Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v$upxVersion/upx-$upxVersion-win64.zip" -OutFile "upx.zip"
+          Expand-Archive -Path "upx.zip" -DestinationPath "."
+          Move-Item -Path "upx-$upxVersion-win64\upx.exe" -Destination "upx.exe"
+      
+      # Extract version from base.py for use in the build
+      - name: Extract version
+        id: extract_version
+        run: |
+          $version = (Select-String -Path 'base.py' -Pattern 'VERSION = "(.*)"').Matches.Groups[1].Value
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+          echo "Version extracted: $version"
+
       - name: Build ${{ matrix.name }}
         run: >
-          pyinstaller -y -F ${{ matrix.mode }} -i "extra/DUCE-LOGO.ico" --clean --name "${{ matrix.name }}"
-          --add-data "base.py;."
-          --add-data "colors.py;."
-          --add-data "default-duce-${{ matrix.script }}-settings.json;."
-          --add-data "README.md;."
-          --add-data "LICENSE;."
+          pyinstaller -y -F ${{ matrix.mode }} 
+          -i "extra/DUCE-LOGO.ico" 
+          --clean 
+          --upx-dir="./" 
+          --name "${{ matrix.name }}" 
+          --add-data "base.py;." 
+          --add-data "colors.py;." 
+          --add-data "default-duce-${{ matrix.script }}-settings.json;." 
+          --add-data "README.md;." 
+          --add-data "LICENSE;." 
+          --exclude-module tkinter
+          --exclude-module matplotlib
+          --exclude-module PyQt5
+          --exclude-module numpy
+          --version-file="version-info.txt"
           "${{ matrix.script }}.py"
+        env:
+          VERSION: ${{ steps.extract_version.outputs.VERSION }}
+
+      # Create version info file dynamically
+      - name: Create version info file
+        run: |
+          $version = "${{ steps.extract_version.outputs.VERSION }}"
+          $versionParts = $version.Split('.') + @('0', '0', '0', '0')
+          $fileVersion = "$($versionParts[0]),$($versionParts[1]),$($versionParts[2]),0"
+          $productVersion = $fileVersion
+
+          @"
+          VSVersionInfo(
+            ffi=FixedFileInfo(
+              filevers=($fileVersion),
+              prodvers=($productVersion),
+              mask=0x3f,
+              flags=0x0,
+              OS=0x40004,
+              fileType=0x1,
+              subtype=0x0,
+              date=(0, 0)
+            ),
+            kids=[
+              StringFileInfo(
+                [
+                  StringTable(
+                    u'040904B0',
+                    [StringStruct(u'CompanyName', u'techtanic'),
+                    StringStruct(u'FileDescription', u'Discounted Udemy Course Enroller'),
+                    StringStruct(u'FileVersion', u'$version'),
+                    StringStruct(u'InternalName', u'Discounted-Udemy-Course-Enroller'),
+                    StringStruct(u'LegalCopyright', u'Copyright (c) 2023 techtanic'),
+                    StringStruct(u'OriginalFilename', u'${{ matrix.name }}.exe'),
+                    StringStruct(u'ProductName', u'DUCE'),
+                    StringStruct(u'ProductVersion', u'$version')])
+                ]), 
+              VarFileInfo([VarStruct(u'Translation', [1033, 1200])])
+            ]
+          )
+          "@ | Out-File -FilePath "version-info.txt" -Encoding utf8
+
+      - name: Optimize executable size
+        run: |
+          # Clean up unnecessary files
+          Get-ChildItem -Path dist -Filter "*.exe" | ForEach-Object {
+            $exePath = $_.FullName
+            $fileSize = [math]::Round((Get-Item $exePath).Length / 1MB, 2)
+            Write-Host "Executable size: $fileSize MB"
+          }
 
       - name: Upload ${{ matrix.name }}.exe
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.name }}.exe
+          name: ${{ matrix.name }}-v${{ steps.extract_version.outputs.VERSION }}
           path: ./dist/${{ matrix.name }}.exe
+          if-no-files-found: error
