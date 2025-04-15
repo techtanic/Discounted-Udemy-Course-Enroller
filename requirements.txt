@@ -7,3 +7,4 @@ html5lib
 pyopenssl
 colorama
 tqdm
+rich
