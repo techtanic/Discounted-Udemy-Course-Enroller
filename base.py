@@ -1,3 +1,5 @@
+from html import unescape
+import inspect
 import json
 import os
 import random
@@ -33,6 +35,8 @@ scraper_dict: dict = {
     "IDownloadCoupons": "idc",
     "E-next": "en",
     "Discudemy": "du",
+    "Course Joiner": "cj",
+    "Courson":"cxyz",
 }
 
 LINKS = {
@@ -127,7 +131,6 @@ class Course:
         """Set course metadata from the data-module-args JSON"""
         try:
 
-            
             if dma.get("view_restriction"):
                 self.is_valid = False
                 self.error = dma["serverSideProps"]["limitedAccess"]["errorMessage"][
@@ -209,27 +212,34 @@ class Scraper:
             t.join()
         for site in self.sites:
             courses: list[Course] = getattr(self, f"{scraper_dict[site]}_data")
-            
+
             for course in courses:
                 course.site = site
                 scraped_data.append(course)
         return scraped_data
 
-    def append_to_list(self, target: list, title: str, link: str):
-        
+    def append_to_list(self, title: str, link: str):
+        target = getattr(self, f"{inspect.stack()[1].function}_data")
         course = Course(title, link)
         target.append(course)
 
-    def fetch_page_content(self, url: str, headers: dict = None) -> bytes:
-        return requests.get(url, headers=headers).content
+    def fetch_page(self, url: str, headers: dict = None) -> requests.Response:
+        return requests.get(url, headers=headers)
 
     def parse_html(self, content: str):
         return bs(content, "html5lib")
 
-    def handle_exception(self, site_code: str):
-        setattr(self, f"{site_code}_error", traceback.format_exc())
+    def set_attr(self, attr: str, value):
+        site_code = inspect.stack()[1].function
+        setattr(self, f"{site_code}_{attr}", value)
+
+    def handle_exception(self):
+        site_code = inspect.stack()[1].function
+        error_trace = traceback.format_exc()
+        setattr(self, f"{site_code}_error", error_trace)
         setattr(self, f"{site_code}_length", -1)
         setattr(self, f"{site_code}_done", True)
+
         if self.debug:
             print(getattr(self, f"{site_code}_error"))
 
@@ -247,6 +257,7 @@ class Scraper:
             elif "murl" in query_params:
                 return unquote(query_params["murl"][0])
             else:
+                print("Unknown link format:", link)
                 return ""
         raise ValueError(f"Unknown link format: {link}")
 
@@ -259,31 +270,32 @@ class Scraper:
             }
 
             for page in range(1, 4):
-                content = self.fetch_page_content(
+                content = self.fetch_page(
                     f"https://www.discudemy.com/all/{page}", headers=head
-                )
+                ).content
                 soup = self.parse_html(content)
                 page_items = soup.find_all("a", {"class": "card-header"})
                 all_items.extend(page_items)
-            self.du_length = len(all_items)
+
+            self.set_attr("length", len(all_items))
             if self.debug:
                 print("Length:", self.du_length)
             for index, item in enumerate(all_items):
-                self.du_progress = index
+                self.set_attr("progress", index)
                 title = item.string
                 url = item["href"].split("/")[-1]
-                content = self.fetch_page_content(
+                content = self.fetch_page(
                     f"https://www.discudemy.com/go/{url}", headers=head
-                )
+                ).content
                 soup = self.parse_html(content)
                 link = soup.find("div", {"class": "ui segment"}).a["href"]
                 if self.debug:
                     print(title, link)
-                self.append_to_list(self.du_data, title, link)
+                self.append_to_list(title, link)
 
         except:
-            self.handle_exception("du")
-        self.du_done = True
+            self.handle_exception()
+        self.set_attr("done", True)
         if self.debug:
             print("Return Length:", len(self.du_data))
 
@@ -291,26 +303,27 @@ class Scraper:
         try:
             all_items = []
             for page in range(1, 4):
-                content = self.fetch_page_content(
+                response = self.fetch_page(
                     f"https://www.udemyfreebies.com/free-udemy-courses/{page}"
                 )
+                content = response.content
                 soup = self.parse_html(content)
                 page_items = soup.find_all("a", {"class": "theme-img"})
                 all_items.extend(page_items)
-            self.uf_length = len(all_items)
+            self.set_attr("length", len(all_items))
             if self.debug:
                 print("Length:", self.uf_length)
             for index, item in enumerate(all_items):
                 title = item.img["alt"]
-                link = requests.get(
+                link = self.fetch_page(
                     f"https://www.udemyfreebies.com/out/{item['href'].split('/')[4]}"
                 ).url
-                self.append_to_list(self.uf_data, title, link)
-                self.uf_progress = index
+                self.append_to_list(title, link)
+                self.set_attr("progress", index)
 
         except:
-            self.handle_exception("uf")
-        self.uf_done = True
+            self.handle_exception()
+        self.set_attr("done", True)
         if self.debug:
             print("Return Length:", len(self.uf_data))
 
@@ -319,31 +332,32 @@ class Scraper:
             all_items = []
 
             for page in range(1, 5):
-                content = self.fetch_page_content(
+                response = self.fetch_page(
                     f"https://www.tutorialbar.com/all-courses/page/{page}"
                 )
+                content = response.content
                 soup = self.parse_html(content)
                 page_items = soup.find_all(
                     "h2", class_="mb15 mt0 font110 mobfont100 fontnormal lineheight20"
                 )
                 all_items.extend(page_items)
-            self.tb_length = len(all_items)
+            self.set_attr("length", len(all_items))
             if self.debug:
                 print("Length:", self.tb_length)
 
             for index, item in enumerate(all_items):
-                self.tb_progress = index
+                self.set_attr("progress", index)
                 title = item.a.string
                 url = item.a["href"]
-                content = self.fetch_page_content(url)
+                content = self.fetch_page(url).content
                 soup = self.parse_html(content)
                 link = soup.find("a", class_="btn_offer_block re_track_btn")["href"]
                 if "www.udemy.com" in link:
-                    self.append_to_list(self.tb_data, title, link)
+                    self.append_to_list(title, link)
 
         except:
-            self.handle_exception("tb")
-        self.tb_done = True
+            self.handle_exception()
+        self.set_attr("done", True)
         if self.debug:
             print("Return Length:", len(self.tb_data))
 
@@ -365,34 +379,34 @@ class Scraper:
                     timeout=(10, 30),
                 ).json()
             except requests.exceptions.Timeout:
-                self.rd_error = "Timeout"
-                self.rd_length = -1
-                self.rd_done = True
+                self.set_attr("error", "Timeout")
+                self.set_attr("length", -1)
+                self.set_attr("done", True)
                 return
             all_items.extend(r["items"])
 
-            self.rd_length = len(all_items)
+            self.set_attr("length", len(all_items))
             if self.debug:
                 print("Length:", self.rd_length)
             for index, item in enumerate(all_items):
-                self.rd_progress = index
+                self.set_attr("progress", index)
                 if item["store"] == "Sponsored":
                     continue
                 title: str = item["name"]
                 link: str = item["url"]
                 link = self.cleanup_link(link)
                 if link:
-                    self.append_to_list(self.rd_data, title, link)
+                    self.append_to_list(title, link)
 
         except:
-            self.handle_exception("rd")
+            self.handle_exception()
         if self.debug:
             print("Return Length:", len(self.rd_data))
-        self.rd_done = True
+        self.set_attr("done", True)
 
     def cv(self):
         try:
-            content = self.fetch_page_content("https://coursevania.com/courses/")
+            content = self.fetch_page("https://coursevania.com/courses/").content
             soup = self.parse_html(content)
             try:
                 nonce = json.loads(
@@ -403,9 +417,9 @@ class Scraper:
                 if self.debug:
                     print("Nonce:", nonce)
             except IndexError:
-                self.cv_error = "Nonce not found"
-                self.cv_length = -1
-                self.cv_done = True
+                self.set_attr("error", "Nonce not found")
+                self.set_attr("length", -1)
+                self.set_attr("done", True)
                 return
             r = requests.get(
                 "https://coursevania.com/wp-admin/admin-ajax.php?&template=courses/grid&args={%22posts_per_page%22:%2260%22}&action=stm_lms_load_content&nonce="
@@ -417,23 +431,23 @@ class Scraper:
             page_items = soup.find_all(
                 "div", {"class": "stm_lms_courses__single--title"}
             )
-            self.cv_length = len(page_items)
+            self.set_attr("length", len(page_items))
             if self.debug:
                 print("Small Length:", self.cv_length)
             for index, item in enumerate(page_items):
-                self.cv_progress = index
+                self.set_attr("progress", index)
                 title = item.h5.string
-                content = self.fetch_page_content(item.a["href"])
+                content = self.fetch_page(item.a["href"]).content
                 soup = self.parse_html(content)
                 link = soup.find(
                     "a",
                     {"class": "masterstudy-button-affiliate__link"},
                 )["href"]
-                self.append_to_list(self.cv_data, title, link)
+                self.append_to_list(title, link)
 
         except:
-            self.handle_exception("cv")
-        self.cv_done = True
+            self.handle_exception()
+        self.set_attr("done", True)
         if self.debug:
             print("Return Length:", len(self.cv_data))
 
@@ -441,9 +455,9 @@ class Scraper:
         try:
             all_items = []
             for page in range(1, 5):
-                content = self.fetch_page_content(
+                content = self.fetch_page(
                     f"https://idownloadcoupon.com/product-category/udemy/page/{page}"
-                )
+                ).content
                 soup = self.parse_html(content)
                 page_items = soup.find_all(
                     "a",
@@ -452,11 +466,11 @@ class Scraper:
                     },
                 )
                 all_items.extend(page_items)
-            self.idc_length = len(all_items)
+            self.set_attr("length", len(all_items))
             if self.debug:
                 print("Length:", self.idc_length)
             for index, item in enumerate(all_items):
-                self.idc_progress = index
+                self.set_attr("progress", index)
                 title = item.h2.string
                 link_num = item["href"].split("/")[4]
                 if link_num == "85":
@@ -469,46 +483,102 @@ class Scraper:
                 )
                 link = unquote(r.headers["Location"])
                 link = self.cleanup_link(link)
-                self.append_to_list(self.idc_data, title, link)
+                self.append_to_list(title, link)
 
         except:
-            self.handle_exception("idc")
-        self.idc_done = True
+            self.handle_exception()
+        self.set_attr("done", True)
         if self.debug:
             print("Return Length:", len(self.idc_data))
 
     def en(self):
+
         try:
             all_items = []
             for page in range(1, 6):
-                content = self.fetch_page_content(
+                content = self.fetch_page(
                     f"https://jobs.e-next.in/course/udemy/{page}"
-                )
+                ).content
                 soup = self.parse_html(content)
                 page_items = soup.find_all(
                     "a", {"class": "btn btn-secondary btn-sm btn-block"}
                 )
                 all_items.extend(page_items)
 
-            self.en_length = len(all_items)
-
+            self.set_attr("length", len(all_items))
             if self.debug:
                 print("Length:", self.en_length)
             for index, item in enumerate(all_items):
-                self.en_progress = index
-                content = self.fetch_page_content(item["href"])
+                self.set_attr("progress", index)
+                content = self.fetch_page(item["href"]).content
                 soup = self.parse_html(content)
                 title = soup.find("h3").string.strip()
                 link = soup.find("a", {"class": "btn btn-primary"})["href"]
-                self.append_to_list(self.en_data, title, link)
+                self.append_to_list(title, link)
 
         except:
-            self.handle_exception("en")
-        self.en_done = True
+            self.handle_exception()
+        self.set_attr("done", True)
         if self.debug:
             print("Return Length:", len(self.en_data))
             print(self.en_data)
 
+    def cj(self):
+        try:
+
+            self.set_attr("length", 4)
+            for page in range(1, 5):
+                content = self.fetch_page(
+                    f"https://www.coursejoiner.com/wp-json/wp/v2/posts?categories=74&per_page=100&page={page}"
+                ).json()
+                for item in content:
+                    title = unescape(item["title"]["rendered"])
+                    title = (
+                        title.replace("–", "-")
+                        .strip()
+                        .removesuffix("- (Free Course)")
+                        .strip()
+                    )
+                    rendered_content = item["content"]["rendered"]
+                    soup = self.parse_html(rendered_content)
+                    link = soup.find("a", string="APPLY HERE")
+                    if link.has_attr("href"):
+                        link = link["href"]
+                        if "udemy.com" in link:
+                            self.append_to_list(title, link)
+                self.set_attr("progress", page)
+
+        except:
+            self.handle_exception()
+        self.set_attr("done", True)
+        if self.debug:
+            print("Return Length:", len(self.cj_data))
+
+    def cxyz(self):
+        try:
+            self.set_attr("length", 7)
+            for page in range(1, 10):
+                content = requests.post(
+                    f"https://courson.xyz/load-more-coupons",
+                    json={"filters": {}, "offset": (page - 1) * 30},
+                ).json()["coupons"]
+                if not content:
+                    break
+                for item in content:
+                    title = item["headline"].strip(' "')
+                    link = f"https://www.udemy.com/course/{item['id_name']}/?couponCode={item['coupon_code']}"
+                    if self.debug:
+                        print(title, link)
+                    self.append_to_list(title, link)
+
+            self.set_attr("progress", page)
+
+        except:
+            self.handle_exception()
+            
+        self.set_attr("done", True)
+        if self.debug:
+            print("Return Length:", len(self.cxyz_data))
 
 class Udemy:
     def __init__(self, interface: str, debug: bool = False):
@@ -540,9 +610,19 @@ class Udemy:
         self.amount_saved_c = Decimal(0)
 
         self.course: Course = None
-        
-        open("log.txt", "w", encoding="utf-8").close() 
-            
+
+        # Clear log file at startup
+        try:
+            with open("log.txt", "w", encoding="utf-8") as log_file:
+                timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+                log_file.write(
+                    f"[{timestamp}] [INFO] Program started - {self.interface} mode\n"
+                )
+                log_file.flush()
+                os.fsync(log_file.fileno())
+        except Exception as e:
+            if self.debug:
+                print(f"Error writing to log file: {e}")
 
     def print(self, content: str, color: str = "red", **kargs):
         content = str(content)
@@ -593,12 +673,17 @@ class Udemy:
         if "course_update_threshold_months" not in self.settings:
             self.settings["course_update_threshold_months"] = 24  # 2 years
 
-        if "Tutorial Bar" in self.settings["sites"]: # v2.3.3
+        if "Tutorial Bar" in self.settings["sites"]:  # v2.3.3
             del self.settings["sites"]["Tutorial Bar"]
 
         if "Vietnamese" not in self.settings["languages"]:
             self.settings["languages"]["Vietnamese"] = True
         
+        if "Courson" not in self.settings["sites"]:
+            self.settings["sites"]["Courson"] = True
+        if "Course Joiner" not in self.settings["sites"]:
+            self.settings["sites"]["Course Joiner"] = True
+
         self.settings["languages"] = dict(
             sorted(self.settings["languages"].items(), key=lambda item: item[0])
         )
@@ -929,7 +1014,7 @@ class Udemy:
                 f.write(r.text)
                 f.flush()
                 os.fsync(f.fileno())
-                
+
         course_id = soup.find("body").get("data-clp-course-id", "invalid")
         if course_id == "invalid":
             self.course.is_valid = False
@@ -1106,7 +1191,6 @@ class Udemy:
             self.bulk_checkout()
             self.valid_courses.clear()
 
-
     def setup_txt_file(self):
         if self.settings["save_txt"]:
             os.makedirs("Courses/", exist_ok=True)
@@ -1223,7 +1307,7 @@ class Udemy:
             "Sec-Fetch-Site": "same-origin",
             "Priority": "u=0",
         }
-# csrftoken = None
+        # csrftoken = None
         # for cookie in self.client.cookies:
         #     if cookie.name == "csrftoken":
         #         csrftoken = cookie.value
@@ -1279,7 +1363,11 @@ class Udemy:
             self.print("Successfully Enrolled To Course :)", color="green")
             self.successfully_enrolled_c += 1
             self.enrolled_courses[self.course.course_id] = self.get_now_to_utc()
-            self.amount_saved_c += Decimal(str(self.course.price)) if self.course.price is not None else Decimal(0)
+            self.amount_saved_c += (
+                Decimal(str(self.course.price))
+                if self.course.price is not None
+                else Decimal(0)
+            )
             self.save_course()
             time.sleep(2)
         elif self.course.status == "failed":
@@ -1370,11 +1458,14 @@ class Udemy:
                 self.course = course
 
                 self.enrolled_courses[course.course_id] = self.get_now_to_utc()
-                self.amount_saved_c += Decimal(str(course.price)) if course.price is not None else Decimal(0)
+                self.amount_saved_c += (
+                    Decimal(str(course.price))
+                    if course.price is not None
+                    else Decimal(0)
+                )
                 self.successfully_enrolled_c += 1
                 self.save_course()
             self.print(
                 f"Successfully Enrolled To {len(self.valid_courses)} Courses :)",
                 color="green",
             )
-        

@@ -30,7 +30,7 @@ def handle_error(error_message, error=None, exit_program=True):
         exit_program: Whether to exit the program after displaying the error (default: True)
     """
     console.print(
-        f"[bold white on red] ERROR [/bold white on red] [bold red]{error_message}[/bold red]"
+        f"\n[bold white on red] ERROR [/bold white on red] [bold red]{error_message}[/bold red]"
     )
 
     if error:
@@ -49,7 +49,6 @@ def handle_error(error_message, error=None, exit_program=True):
             log_file.flush()
             os.fsync(log_file.fileno())
     if exit_program:
-        console.input("\n[cyan]Press Enter to exit...[/cyan]")
         sys.exit(1)
 
 
@@ -189,6 +188,8 @@ def update_scraping_progress(progress, task_ids, site):
     try:
         while getattr(scraper, f"{code_name}_length") == 0:
             time.sleep(0.5)
+        if getattr(scraper, f"{code_name}_length") == -1:
+            raise Exception(f"Error in: {site}")
         total = getattr(scraper, f"{code_name}_length")
         if total > 0:
             progress.update(task_ids[site], total=total)
@@ -199,8 +200,9 @@ def update_scraping_progress(progress, task_ids, site):
                 progress.update(task_ids[site], completed=current)
 
             progress.update(task_ids[site], completed=total)
-    except Exception as e:
-        handle_error(f"Error in {site}", error=e, exit_program=False)
+    except Exception:
+        error = getattr(scraper, f"{code_name}_error", traceback.format_exc())
+        handle_error(f"Error in {site}", error=error, exit_program=True)
 
 
 def create_scraping_thread(site: str):
