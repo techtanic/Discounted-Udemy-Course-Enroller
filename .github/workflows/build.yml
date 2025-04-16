@@ -41,8 +41,8 @@ jobs:
       - name: Install dependencies and PyInstaller
         run: |
           pip install -r requirements.txt
-          pip install pyinstaller>=6.0.0 -U
-          pip install pyinstaller-hooks-contrib>=2023.0 -U
+          pip install pyinstaller -U
+          pip install pyinstaller-hooks-contrib -U
   
       # Download UPX for better compression
       - name: Download UPX
@@ -64,7 +64,17 @@ jobs:
       - name: Create version info file
         run: |
           $version = "${{ steps.extract_version.outputs.VERSION }}"
-          $versionParts = $version.Split('.') + @('0', '0', '0', '0')
+          # Remove 'v' prefix if present
+          if ($version.StartsWith('v')) {
+            $version = $version.Substring(1)
+          }
+          
+          $versionParts = $version.Split('.')
+          # Ensure we have at least 3 parts
+          while ($versionParts.Length -lt 3) {
+            $versionParts += "0"
+          }
+          
           $fileVersion = "$($versionParts[0]),$($versionParts[1]),$($versionParts[2]),0"
           $productVersion = $fileVersion
 
@@ -98,6 +108,9 @@ jobs:
             ]
           )
           "@ | Out-File -FilePath "version-info.txt" -Encoding utf8
+          
+          # Display the content of the file for debugging
+          Get-Content -Path "version-info.txt"
 
       - name: Build ${{ matrix.name }}
         run: >
