@@ -2,6 +2,7 @@ import sys
 import threading
 import time
 import traceback
+import os
 from webbrowser import open as web
 
 import FreeSimpleGUI as sg
@@ -48,7 +49,7 @@ def create_scraping_thread(site: str):
     try:
         threading.Thread(target=getattr(scraper, code_name), daemon=True).start()
         while getattr(scraper, f"{code_name}_length") == 0:
-            time.sleep(0.1) 
+            time.sleep(0.1)
         if getattr(scraper, f"{code_name}_length") == -1:
             raise Exception(f"Error in: {site}")
 
@@ -59,7 +60,7 @@ def create_scraping_thread(site: str):
             main_window[f"p{site}"].update(
                 getattr(scraper, f"{code_name}_progress") + 1
             )
-            time.sleep(0.1) 
+            time.sleep(0.1)
 
         if getattr(scraper, f"{code_name}_error"):
             raise Exception(f"Error in: {site}")
@@ -85,66 +86,58 @@ def scrape():
         udemy.scraped_data = scraper.get_scraped_courses(create_scraping_thread)
         main_window["scrape_col"].update(visible=False)
 
-        
         main_window["enrollment_panel"].update(visible=True)
         main_window["stats_panel"].update(visible=True)
         main_window["current_course_panel"].update(visible=True)
 
-        
         total_courses = len(udemy.scraped_data)
 
-        
         original_print = udemy.print
 
         def print_override(content, color="red", **kwargs):
-                        
-            if hasattr(udemy, 'course') and udemy.course:
+
+            if hasattr(udemy, "course") and udemy.course:
                 main_window["current_course_title"].update(value=udemy.course.title)
                 main_window["current_course_url"].update(value=udemy.course.url)
 
-            
-            if hasattr(udemy, 'total_courses_processed'):
-                progress_text = f"Course {udemy.total_courses_processed:4d}/{total_courses:4d}"
+            if hasattr(udemy, "total_courses_processed"):
+                progress_text = (
+                    f"Course {udemy.total_courses_processed:4d}/{total_courses:4d}"
+                )
                 main_window["course_progress"].update(value=progress_text)
 
-            
-            main_window["stat_enrolled"].update(value=f"{udemy.successfully_enrolled_c}")
+            main_window["stat_enrolled"].update(
+                value=f"{udemy.successfully_enrolled_c}"
+            )
             main_window["stat_amount_saved"].update(
                 value=f"{round(udemy.amount_saved_c, 2)} {udemy.currency.upper()}"
             )
             main_window["stat_already"].update(value=f"{udemy.already_enrolled_c}")
             main_window["stat_excluded"].update(value=f"{udemy.excluded_c}")
             main_window["stat_expired"].update(value=f"{udemy.expired_c}")
-            
-            ready_count = len(getattr(udemy, 'valid_courses', []))
+
+            ready_count = len(getattr(udemy, "valid_courses", []))
             main_window["stat_ready_enroll"].update(value=f"{ready_count}")
 
-            
             if color == "red" and "error" in content.lower():
                 main_window.write_event_value(
-                    "Error",
-                    f"{content}\n\nVersion:{VERSION}|:|Error"
+                    "Error", f"{content}\n\nVersion:{VERSION}|:|Error"
                 )
 
-            
             return original_print(content, color, **kwargs)
 
         udemy.print = print_override
 
-        
         udemy.total_courses_processed = 0
 
         # Start enrollment process
         udemy.start_new_enroll()
 
-        
         udemy.print = original_print
 
-        
         main_window["enrollment_panel"].update(visible=False)
         main_window["done_col"].update(visible=True)
 
-        
         main_window["se_c"].update(
             value=f"Successfully Enrolled: {udemy.successfully_enrolled_c}"
         )
@@ -159,15 +152,17 @@ def scrape():
 
     except Exception:
         e = traceback.format_exc()
-        
+
         with open("log.txt", "a", encoding="utf-8") as log_file:
             timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
             log_file.write(f"[{timestamp}] [EXCEPTION] {e}\n")
-        
+            log_file.flush()
+            os.fsync(log_file.fileno())
+
         # Only send to event system, no popup here
         main_window.write_event_value(
             "Error",
-            f"{e}\n\nVersion:{VERSION}\nLink:{getattr(udemy, 'link', 'None')}\nTitle:{getattr(udemy, 'title','None')}|:|Error g100",
+            e + f"\n\n{str(udemy.course)}" + f"|:|Error {VERSION}",
         )
 
 
@@ -631,8 +626,16 @@ current_course_panel = [
     ],
     [
         sg.Text("URL:", text_color="#4deeea"),
-        sg.Multiline("", size=(60, 2), key="current_course_url", text_color="#00BFFF",
-                    no_scrollbar=True, disabled=True, autoscroll=False, border_width=0),
+        sg.Multiline(
+            "",
+            size=(60, 2),
+            key="current_course_url",
+            text_color="#00BFFF",
+            no_scrollbar=True,
+            disabled=True,
+            autoscroll=False,
+            border_width=0,
+        ),
     ],
 ]
 
@@ -640,7 +643,7 @@ current_course_panel = [
 stats_panel = [
     [sg.Text("Enrollment Stats", font=("Helvetica", 12, "bold"), text_color="#FFD700")],
     [
-        sg.Text("Successfully Enrolled:", text_color="#4deeea", size=(18, 1)), 
+        sg.Text("Successfully Enrolled:", text_color="#4deeea", size=(18, 1)),
         sg.Text("0", key="stat_enrolled", text_color="#7CFC00", size=(8, 1)),
         sg.Text("Already Enrolled:", text_color="#4deeea", size=(15, 1)),
         sg.Text("0", key="stat_already", text_color="#00FFFF", size=(8, 1)),
@@ -649,7 +652,12 @@ stats_panel = [
     ],
     [
         sg.Text("Amount Saved:", text_color="#4deeea", size=(18, 1)),
-        sg.Text(f"0 {udemy.currency.upper()}", key="stat_amount_saved", text_color="#00FA9A", size=(8, 1)),
+        sg.Text(
+            f"0 {udemy.currency.upper()}",
+            key="stat_amount_saved",
+            text_color="#00FA9A",
+            size=(8, 1),
+        ),
         sg.Text("Excluded Courses:", text_color="#4deeea", size=(15, 1)),
         sg.Text("0", key="stat_excluded", text_color="#FF4500", size=(8, 1)),
         sg.Text("Pending Enrollment:", text_color="#4deeea", size=(15, 1)),
@@ -694,7 +702,7 @@ main_lo = [
             key="mn",
         )
     ],
-    [        sg.Text(f"Logged in as: {udemy.display_name}", key="user_t"),         logout_btn_lo    ],
+    [sg.Text(f"Logged in as: {udemy.display_name}", key="user_t"), logout_btn_lo],
     [
         sg.pin(sg.Column(main_col, key="main_col")),
         sg.pin(sg.Column(output_col, key="output_col", visible=False)),
@@ -704,7 +712,7 @@ main_lo = [
     ],
     [
         sg.Button(key="Exit", image_data=exit_),
-        sg.Text("Made with 🩷 by techtanic", text_color="#FF69B4", justification="right", expand_x=True)
+        sg.Text("Made with 🩷 by techtanic", justification="right", expand_x=True),
     ],
 ]
 
@@ -747,7 +755,7 @@ while True:
         web(LINKS["discord"])
 
     elif event == "Start" and main_window["main_col"].visible:
-        
+
         for setting in ["languages", "categories", "sites"]:
             for key in udemy.settings[setting]:
                 udemy.settings[setting][key] = values[key]
@@ -783,7 +791,9 @@ while True:
         with open("log.txt", "a", encoding="utf-8") as log_file:
             timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
             log_file.write(f"[{timestamp}] [EXCEPTION] {error_text}\n")
-        
+            log_file.flush()
+            os.fsync(log_file.fileno())
+
         sg.popup_scrolled(error_text, title=title)
     elif event == "Update-Menu":
         menu = values["Update-Menu"]

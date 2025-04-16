@@ -2,13 +2,14 @@ import threading
 import time
 import traceback
 import sys
+import os
 from datetime import datetime
 
 from rich.console import Console
 from rich.layout import Layout
 from rich.live import Live
 from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
+from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn,TimeRemainingColumn
 from rich.table import Table
 from rich.text import Text
 from rich import box
@@ -45,6 +46,8 @@ def handle_error(error_message, error=None, exit_program=True):
             log_file.write(f"[{timestamp}] [EXCEPTION] {error_message}\n")
             log_file.write(f"[{timestamp}] [DETAILS] {error_details}\n")
             log_file.write(f"[{timestamp}] [TRACEBACK] {trace}\n\n")
+            log_file.flush()
+            os.fsync(log_file.fileno())
     if exit_program:
         console.input("\n[cyan]Press Enter to exit...[/cyan]")
         sys.exit(1)
@@ -80,7 +83,7 @@ def create_footer() -> Panel:
     """Create the footer panel."""
 
     return Panel(
-        "[bold magenta]Made with :heart:  by techtanic[/bold magenta]",
+        "Made with [bold magenta]:heart:[/bold magenta]  by techtanic",
         style="white on dark_blue",
         border_style="bright_blue",
         padding=(0, 2),
@@ -169,7 +172,8 @@ def create_scraping_progress(sites):
         SpinnerColumn(),
         TextColumn("[bold blue]{task.description}"),
         BarColumn(bar_width=40),
-        TextColumn("[yellow]{task.completed}/{task.total}"),
+        TextColumn("[progress.percentage_completed]"),
+        TimeRemainingColumn(),
     )
 
     task_ids = {}
@@ -183,17 +187,18 @@ def update_scraping_progress(progress, task_ids, site):
     """Update the scraping progress for a site."""
     code_name = scraper_dict[site]
     try:
+        while getattr(scraper, f"{code_name}_length") == 0:
+            time.sleep(0.5)
         total = getattr(scraper, f"{code_name}_length")
         if total > 0:
             progress.update(task_ids[site], total=total)
 
             while not getattr(scraper, f"{code_name}_done"):
-                time.sleep(0.1)
+                time.sleep(0.5)
                 current = getattr(scraper, f"{code_name}_progress")
-                progress.update(task_ids[site], completed=current + 1)
+                progress.update(task_ids[site], completed=current)
 
             progress.update(task_ids[site], completed=total)
-
     except Exception as e:
         handle_error(f"Error in {site}", error=e, exit_program=False)
 
@@ -311,7 +316,7 @@ if __name__ == "__main__":
         udemy.total_courses_processed = 0
         udemy.total_courses = total_courses
 
-        with Live(layout, refresh_per_second=1, screen=False) as live:
+        with Live(layout, screen=False, transient=True) as live:
 
             original_print = udemy.print
 
@@ -326,6 +331,8 @@ if __name__ == "__main__":
                         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
                         log_file.write(f"[{timestamp}] [ERROR] {content}\n")
                         log_file.write(f"[{timestamp}] [TRACEBACK] {traceback.format_exc()}\n\n")
+                        log_file.flush()
+                        os.fsync(log_file.fileno())
                     console.print_exception()
 
                 return original_print(content, color, **kwargs)
@@ -341,7 +348,7 @@ if __name__ == "__main__":
                     "An unexpected error occurred", error=e, exit_program=False
                 )
             finally:
-
+                
                 udemy.print = original_print
 
         console.print(

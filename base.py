@@ -927,6 +927,9 @@ class Udemy:
         except Exception as e:
             with open("error.txt", "w") as f:
                 f.write(r.text)
+                f.flush()
+                os.fsync(f.fileno())
+                
         course_id = soup.find("body").get("data-clp-course-id", "invalid")
         if course_id == "invalid":
             self.course.is_valid = False
@@ -1041,75 +1044,68 @@ class Udemy:
         self.valid_courses: list[Course] = []
         self.total_courses_processed = 0  # Track progress for UI display
 
-        try:
-            for index, current_course in enumerate(courses):
-                self.course = current_course
-                self.total_courses_processed = (
-                    index + 1
-                )  # Update processing counter for UI thread
+        for index, current_course in enumerate(courses):
+            self.course = current_course
+            self.total_courses_processed = (
+                index + 1
+            )  # Update processing counter for UI thread
 
-                self.print_course_info(index, self.total_courses)
-                if self.is_already_enrolled():
-                    slug = self.course.url.split("/")[4]
+            self.print_course_info(index, self.total_courses)
+            if self.is_already_enrolled():
+                slug = self.course.url.split("/")[4]
+                self.print(
+                    f"Already enrolled on {self.get_date_from_utc(self.enrolled_courses[slug])}",
+                    color="light blue",
+                )
+                self.already_enrolled_c += 1
+                continue
+
+            self.get_course_id()
+            if not self.course.is_valid:
+                self.print(f"Invalid: {self.course.error}", color="red")
+                self.excluded_c += 1
+
+            elif self.course.is_excluded:
+                self.excluded_c += 1
+
+            elif self.course.is_free:
+
+                if self.settings["discounted_only"]:
                     self.print(
-                        f"Already enrolled on {self.get_date_from_utc(self.enrolled_courses[slug])}",
+                        "Free course excluded (discounted only setting)",
                         color="light blue",
                     )
-                    self.already_enrolled_c += 1
-                    continue
-
-                self.get_course_id()
-                if not self.course.is_valid:
-                    self.print(f"Invalid: {self.course.error}", color="red")
                     self.excluded_c += 1
-
-                elif self.course.is_excluded:
-                    self.excluded_c += 1
-
-                elif self.course.is_free:
-
-                    if self.settings["discounted_only"]:
-                        self.print(
-                            "Free course excluded (discounted only setting)",
-                            color="light blue",
-                        )
-                        self.excluded_c += 1
+                else:
+                    self.free_checkout()
+                    if self.course.status:
+                        self.print("Successfully Subscribed", color="green")
+                        self.successfully_enrolled_c += 1
+                        self.save_course()
                     else:
-                        self.free_checkout()
-                        if self.course.status:
-                            self.print("Successfully Subscribed", color="green")
-                            self.successfully_enrolled_c += 1
-                            self.save_course()
-                        else:
-                            self.print(
-                                "Unknown Error: Report this link to the developer",
-                                color="red",
-                            )
-                            self.expired_c += 1
-
-                elif not self.course.is_free:
-                    self.check_course()
-                    if not self.course.is_coupon_valid:
-                        self.print("Coupon Expired", color="red")
+                        self.print(
+                            "Unknown Error: Report this link to the developer",
+                            color="red",
+                        )
                         self.expired_c += 1
 
-                if self.course.is_coupon_valid:
-                    self.valid_courses.append(self.course)
-                    self.print("Added for enrollment", color="green")
+            elif not self.course.is_free:
+                self.check_course()
+                if not self.course.is_coupon_valid:
+                    self.print("Coupon Expired", color="red")
+                    self.expired_c += 1
 
-                if len(self.valid_courses) >= random.randint(40, 50):
-                    self.bulk_checkout()
-                    self.valid_courses.clear()
-            if self.valid_courses:
+            if self.course.is_coupon_valid:
+                self.valid_courses.append(self.course)
+                self.print("Added for enrollment", color="green")
+
+            if len(self.valid_courses) >= random.randint(40, 50):
                 self.bulk_checkout()
                 self.valid_courses.clear()
-        except:
-            
-            self.print(
-                f"Unexpected Error processing {self.course.url}: {traceback.format_exc()}",
-                color="red",
-            )
-            self.excluded_c += 1
+        if self.valid_courses:
+            self.bulk_checkout()
+            self.valid_courses.clear()
+
 
     def setup_txt_file(self):
         if self.settings["save_txt"]:

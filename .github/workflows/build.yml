@@ -145,6 +145,6 @@ jobs:
       - name: Upload ${{ matrix.name }}.exe
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.name }}-v${{ steps.extract_version.outputs.VERSION }}
+          name: ${{ matrix.name }}-${{ steps.extract_version.outputs.VERSION }}
           path: ./dist/${{ matrix.name }}.exe
           if-no-files-found: error
