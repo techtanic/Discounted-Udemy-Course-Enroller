@@ -100,29 +100,27 @@ jobs:
           "@ | Out-File -FilePath "version-info.txt" -Encoding utf8
 
       - name: Build ${{ matrix.name }}
-        shell: bash
         run: |
-          pyinstaller -y -F ${{ matrix.mode }} \
-            -i "extra/DUCE-LOGO.ico" \
-            --clean \
-            --upx-dir="./" \
-            --upx-args="--best --lzma --compress-icons=2" \
-            --name "${{ matrix.name }}" \
-            --add-data "base.py;." \
-            --add-data "colors.py;." \
-            --add-data "default-duce-${{ matrix.script }}-settings.json;." \
-            --add-data "README.md;." \
-            --add-data "LICENSE;." \
-            --exclude-module tkinter \
-            --exclude-module matplotlib \
-            --exclude-module PyQt5 \
-            --exclude-module numpy \
-            --exclude-module wx \
-            --exclude-module scipy \
-            --exclude-module PIL \
-            --exclude-module pandas \
-            --version-file="version-info.txt" \
-            "${{ matrix.script }}.py"
+          pyinstaller --clean --noconfirm --onefile ${{ matrix.mode }} `
+          --icon "extra/DUCE-LOGO.ico" `
+          --name "${{ matrix.name }}" `
+          --upx-dir "./" `
+          --upx-args="--best --lzma --compress-icons=2" `
+          --add-data "base.py;." `
+          --add-data "colors.py;." `
+          --add-data "default-duce-${{ matrix.script }}-settings.json;." `
+          --add-data "README.md;." `
+          --add-data "LICENSE;." `
+          --exclude-module tkinter `
+          --exclude-module matplotlib `
+          --exclude-module PyQt5 `
+          --exclude-module numpy `
+          --exclude-module wx `
+          --exclude-module scipy `
+          --exclude-module PIL `
+          --exclude-module pandas `
+          --version-file "version-info.txt" `
+          "${{ matrix.script }}.py"
         env:
           VERSION: ${{ steps.extract_version.outputs.VERSION }}
 
