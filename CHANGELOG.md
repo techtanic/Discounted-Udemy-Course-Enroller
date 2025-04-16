@@ -2,15 +2,17 @@
 
 ## v2.3.3
 
+- Added Courson as a new coupon source
+- Added Course Joiner as a new coupon source
 - Added Course class for better course management
+- Added better error handling and logging
+- Added Vietnamese language support
 - Implemented bulk checkout for more efficient enrollment
 - Improved CLI with rich text interface and live progress displays
 - Enhanced GUI with detailed enrollment statistics
-- Added Vietnamese language support
-- Removed Tutorial Bar (site no longer works)
 - Fixed RealDiscount
-- Added better error handling and logging
 - Fixed minor bugs and optimizations
+- Removed Tutorial Bar (site no longer works)
 
 ## v2.3.2
 
