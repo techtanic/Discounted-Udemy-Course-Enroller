@@ -19,7 +19,7 @@ from rich.progress import (
 from rich.table import Table
 from rich.text import Text
 from rich import box
-from base import VERSION, LoginException, Scraper, Udemy, scraper_dict,logger
+from base import VERSION, LoginException, Scraper, Udemy, scraper_dict, logger
 
 
 console = Console()

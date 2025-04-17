@@ -636,12 +636,12 @@ stats_panel = [
         sg.Text("0", key="stat_expired", text_color="#FF0000", size=(8, 1)),
     ],
     [
-        sg.Text("Amount Saved:", text_color="#4deeea", size=(14, 1)),
+        sg.Text("Amount Saved:", text_color="#4deeea", size=(12, 1)),
         sg.Text(
             f"0 {udemy.currency.upper()}",
             key="stat_amount_saved",
             text_color="#00FA9A",
-            size=(10, 1),
+            size=(14, 1),
         ),
         sg.Text("Excluded Courses:", text_color="#4deeea", size=(15, 1)),
         sg.Text("0", key="stat_excluded", text_color="#FF4500", size=(8, 1)),

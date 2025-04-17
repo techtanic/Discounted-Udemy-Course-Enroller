@@ -28,6 +28,8 @@ VERSION = "v2.3.3"
 
 log_file_path = "duce.log"
 
+
+logger.remove()
 logger.add(log_file_path, rotation="10 MB", level="INFO", mode="w")
 logger.info(f"Program started - {VERSION}")
 
@@ -619,6 +621,7 @@ class Udemy:
 
         self.course: Course = None
 
+        # Log program start
         logger.info(f"Program started - {self.interface} mode")
 
     def print(self, content: str, color: str = "red", **kargs):
@@ -726,7 +729,7 @@ class Udemy:
                 f"Dev Discounted-Udemy-Course-Enroller {c_version}",
             )
 
-    
+    # Authentication and session management
     def make_cookies(self, client_id: str, access_token: str, csrf_token: str):
         self.cookie_dict = dict(
             client_id=client_id,
@@ -903,7 +906,7 @@ class Udemy:
             next_page = r["next"]
         self.enrolled_courses = courses
 
-    
+    # Course filtering and exclusion logic
     def is_keyword_excluded(self) -> bool:
         """Check if the course title contains any excluded keywords"""
         title = self.course.title
@@ -929,12 +932,12 @@ class Udemy:
             return True
         current_date = datetime.now()
         last_update_date = datetime.strptime(last_update, "%Y-%m-%d")
-        
+        # Calculate the difference in years and months
         years = current_date.year - last_update_date.year
         months = current_date.month - last_update_date.month
         days = current_date.day - last_update_date.day
 
-        
+        # Adjust the months and years if necessary
         if days < 0:
             months -= 1
 
@@ -942,7 +945,7 @@ class Udemy:
             years -= 1
             months += 12
 
-        
+        # Calculate the total month difference
         month_diff = years * 12 + months
         return month_diff < self.settings["course_update_threshold_months"]
 
@@ -980,7 +983,7 @@ class Udemy:
         self.min_rating = self.settings["min_rating"]
         return not all([bool(self.sites), bool(self.categories), bool(self.languages)])
 
-    
+    # Course data retrieval
     def get_course_id(self):
         """Set course_id and metadata and is_excluded"""
         if self.course.course_id:
@@ -1063,13 +1066,13 @@ class Udemy:
 
     def is_already_enrolled(self):
         """Check if the course is already enrolled."""
-        
+        # Ensure course URL is valid before splitting
         if (
             not self.course
             or not self.course.url
             or len(self.course.url.split("/")) < 5
         ):
-            return False 
+            return False  # Cannot determine slug
         slug = self.course.url.split("/")[4]
         return slug in self.enrolled_courses
 
@@ -1083,11 +1086,13 @@ class Udemy:
         courses: list[Course] = self.scraped_data
         self.total_courses = len(courses)
         self.valid_courses: list[Course] = []
-        self.total_courses_processed = 0
+        self.total_courses_processed = 0  # Track progress for UI display
 
         for index, current_course in enumerate(courses):
             self.course = current_course
-            self.total_courses_processed = index + 1
+            self.total_courses_processed = (
+                index + 1
+            )  # Update processing counter for UI thread
 
             logger.info(
                 f"Processing course {index + 1} / {self.total_courses}: {str(self.course)}"
@@ -1137,7 +1142,7 @@ class Udemy:
                     self.valid_courses.append(self.course)
                     logger.info("Added for enrollment")
 
-                if len(self.valid_courses) >= random.randint(40, 45):
+                if len(self.valid_courses) >= random.randint(40, 50):
                     self.bulk_checkout()
                     self.valid_courses.clear()
             self.update_progress()
@@ -1239,8 +1244,7 @@ class Udemy:
             )
         else:
             logger.error("Bulk checkout failed")
-            logger.error(r)
-            logger.error(payload)
+            logger.error(r.text)
             raise Exception("Bulk checkout failed")
 
     # def handle_course_enrollment(self):
@@ -1249,7 +1253,7 @@ class Udemy:
     #     self.course.retry_after = None
 
     #     """Process a course for enrollment"""
-    
+    #     # Check if already enrolled
     #     slug = self.course.url.split("/")[4]
     #     if slug in self.enrolled_courses:
     #         self.print(
@@ -1259,7 +1263,7 @@ class Udemy:
     #         self.already_enrolled_c += 1
     #         return
 
-    
+    #     # Get course details and validate
     #     self.get_course_id()
     #     if not self.course.is_valid:
     #         self.print(self.course.error, color="red")
@@ -1273,7 +1277,7 @@ class Udemy:
     #     elif self.course.is_excluded:
     #         self.excluded_c += 1
     #     else:
-    
+    #         # Handle free vs paid courses
     #         if self.course.is_free:
     #             self.handle_free_course()
     #         else:
@@ -1416,7 +1420,7 @@ class Udemy:
     #     self.initialize_counters()
     #     self.setup_txt_file()
 
-    
+    #     # Create a queue of all courses
     #     course_queue: deque[Course] = deque()
     #     courses = self.scraped_data
     #     total_courses = len(courses)
@@ -1441,7 +1445,7 @@ class Udemy:
     #         try:
     #             self.handle_course_enrollment()
     #             if self.course.ready_time:
-    
+    #                 # Put back in queue
     #                 course_queue.insert(self.course.retry_after // 2, self.course)
     #                 self.print(
     #                     f"Request Throttled. Will retry after {self.course.retry_after} seconds",
