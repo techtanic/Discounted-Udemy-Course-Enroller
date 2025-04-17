@@ -999,9 +999,6 @@ class Udemy:
             return
         self.course.url = r.url
         try:
-            # c:\Mnz-PC\CODE\Discounted-Udemy-Course-Enroller\base.py:1001: MarkupResemblesLocatorWarning: The input looks more like a 
-            # filename than markup. You may want to open this file and pass the filehandle into Beautiful Soup.
-
             soup = bs(r.content, "html5lib")
         except Exception as e:
             with open("error.txt", "w") as f:
