@@ -9,12 +9,17 @@ from rich.console import Console
 from rich.layout import Layout
 from rich.live import Live
 from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn,TimeRemainingColumn
+from rich.progress import (
+    Progress,
+    SpinnerColumn,
+    BarColumn,
+    TextColumn,
+    TimeRemainingColumn,
+)
 from rich.table import Table
 from rich.text import Text
 from rich import box
-
-from base import VERSION, LoginException, Scraper, Udemy, scraper_dict
+from base import VERSION, LoginException, Scraper, Udemy, scraper_dict,logger
 
 
 console = Console()
@@ -40,14 +45,8 @@ def handle_error(error_message, error=None, exit_program=True):
         console.print("[yellow]Full traceback:[/yellow]")
         console.print(Panel(trace, border_style="red"))
 
-        
-        with open("log.txt", "a", encoding="utf-8") as log_file:
-            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-            log_file.write(f"[{timestamp}] [EXCEPTION] {error_message}\n")
-            log_file.write(f"[{timestamp}] [DETAILS] {error_details}\n")
-            log_file.write(f"[{timestamp}] [TRACEBACK] {trace}\n\n")
-            log_file.flush()
-            os.fsync(log_file.fileno())
+        logger.exception(f"{error_message} - Details: {error_details}")
+
     if exit_program:
         sys.exit(1)
 
@@ -64,7 +63,7 @@ def create_layout() -> Layout:
 
     layout["main"].split(
         Layout(name="stats", size=10),
-        Layout(name="course_info", ratio=1),
+        Layout(name="course_info", size=12),
     )
 
     return layout
@@ -73,7 +72,7 @@ def create_layout() -> Layout:
 def create_header() -> Panel:
     """Create the header panel."""
     return Panel(
-        f"[bold blue]Discounted Udemy Course Enroller[/bold blue] [cyan]{VERSION}[/cyan] - [yellow]{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}[/yellow]",
+        f"[bold blue]Discounted Udemy Course Enroller[/bold blue] [cyan]{VERSION}[/cyan] | Logged in as: [bold green]{udemy.display_name}[/bold green] | [yellow]{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}[/yellow]",
         style="white on blue",
     )
 
@@ -165,52 +164,32 @@ def create_course_panel(udemy: Udemy, total_courses: int) -> Panel:
     )
 
 
-def create_scraping_progress(sites):
-    """Create a progress object for scraping."""
-    progress = Progress(
-        SpinnerColumn(),
-        TextColumn("[bold blue]{task.description}"),
-        BarColumn(bar_width=40),
-        TextColumn("[progress.percentage_completed]"),
-        TimeRemainingColumn(),
-    )
+def create_scraping_thread(site: str):
 
-    task_ids = {}
-    for site in sites:
-        task_ids[site] = progress.add_task(site, total=100)
-
-    return progress, task_ids
-
-
-def update_scraping_progress(progress, task_ids, site):
-    """Update the scraping progress for a site."""
     code_name = scraper_dict[site]
+    task_id = udemy.progress.add_task(site, total=100)
     try:
+        threading.Thread(target=getattr(scraper, code_name), daemon=True).start()
         while getattr(scraper, f"{code_name}_length") == 0:
-            time.sleep(0.5)
+            time.sleep(0.1)
         if getattr(scraper, f"{code_name}_length") == -1:
             raise Exception(f"Error in: {site}")
-        total = getattr(scraper, f"{code_name}_length")
-        if total > 0:
-            progress.update(task_ids[site], total=total)
 
-            while not getattr(scraper, f"{code_name}_done"):
-                time.sleep(0.5)
-                current = getattr(scraper, f"{code_name}_progress")
-                progress.update(task_ids[site], completed=current)
+        udemy.progress.update(task_id, total=getattr(scraper, f"{code_name}_length"))
 
-            progress.update(task_ids[site], completed=total)
+        while not getattr(scraper, f"{code_name}_done") and not getattr(
+            scraper, f"{code_name}_error"
+        ):
+            current = getattr(scraper, f"{code_name}_progress")
+            udemy.progress.update(task_id, completed=current)
+            time.sleep(0.2)
+        udemy.progress.update(task_id, completed=getattr(scraper, f"{code_name}_length"))
+        if getattr(scraper, f"{code_name}_error"):
+            raise Exception(f"Error in: {site}")
     except Exception:
         error = getattr(scraper, f"{code_name}_error", traceback.format_exc())
         handle_error(f"Error in {site}", error=error, exit_program=True)
 
-
-def create_scraping_thread(site: str):
-    """Create a thread for scraping a site, but return immediately."""
-    code_name = scraper_dict[site]
-    thread = threading.Thread(target=getattr(scraper, code_name), daemon=True)
-    thread.start()
-    return thread
 
 
 if __name__ == "__main__":
@@ -292,20 +271,15 @@ if __name__ == "__main__":
             "\n[bold cyan]Scraping courses from selected sites...[/bold cyan]"
         )
 
-        progress, task_ids = create_scraping_progress(udemy.sites)
-
-        threads = {}
-        for site in udemy.sites:
-            threads[site] = create_scraping_thread(site)
-
-        with progress:
-            for site in udemy.sites:
-                update_scraping_progress(progress, task_ids, site)
-
-        for thread in threads.values():
-            thread.join()
-
-        udemy.scraped_data = scraper.get_scraped_courses(lambda x: None)
+        udemy.progress = Progress(
+            SpinnerColumn(finished_text="🟢"),
+            TextColumn("[bold blue]{task.description}"),
+            BarColumn(),
+            TextColumn("{task.percentage:.0f}%"),
+            TimeRemainingColumn(elapsed_when_finished=True),
+        )
+        with udemy.progress:
+            udemy.scraped_data = scraper.get_scraped_courses(create_scraping_thread)
         total_courses = len(udemy.scraped_data)
         console.print(f"[green]Found {total_courses} courses to process[/green]")
 
@@ -320,26 +294,13 @@ if __name__ == "__main__":
 
         with Live(layout, screen=False, transient=True) as live:
 
-            original_print = udemy.print
-
-            def print_override(content, color="red", **kwargs):
+            def update_progress():
                 layout["main"]["course_info"].update(
                     create_course_panel(udemy, total_courses)
                 )
                 layout["main"]["stats"].update(create_stats_panel(udemy))
-
-                if color == "red" and "error" in content.lower():
-                    with open("log.txt", "a", encoding="utf-8") as log_file:
-                        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-                        log_file.write(f"[{timestamp}] [ERROR] {content}\n")
-                        log_file.write(f"[{timestamp}] [TRACEBACK] {traceback.format_exc()}\n\n")
-                        log_file.flush()
-                        os.fsync(log_file.fileno())
-                    console.print_exception()
-
-                return original_print(content, color, **kwargs)
-
-            udemy.print = print_override
+                live.update(layout)
+            udemy.update_progress = update_progress
 
             try:
                 udemy.start_new_enroll()
@@ -349,10 +310,6 @@ if __name__ == "__main__":
                 handle_error(
                     "An unexpected error occurred", error=e, exit_program=False
                 )
-            finally:
-                
-                udemy.print = original_print
-
         console.print(
             Panel.fit(f"[bold blue]Enrollment Results[/bold blue]", border_style="cyan")
         )
@@ -373,7 +330,6 @@ if __name__ == "__main__":
         table.add_row("Expired Courses", f"[red]{udemy.expired_c}[/red]")
 
         console.print(table)
-        console.input("\n[cyan]Press Enter to exit...[/cyan]")
 
     except Exception as e:
         handle_error("A critical error occurred", error=e, exit_program=True)

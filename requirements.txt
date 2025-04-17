@@ -5,6 +5,5 @@ bs4
 requests
 html5lib
 pyopenssl
-colorama
-tqdm
 rich
+loguru

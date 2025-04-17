@@ -1,13 +1,13 @@
+import os
 import sys
 import threading
 import time
 import traceback
-import os
 from webbrowser import open as web
 
 import FreeSimpleGUI as sg
 
-from base import LINKS, VERSION, LoginException, Scraper, Udemy, scraper_dict
+from base import LINKS, VERSION, LoginException, Scraper, Udemy, scraper_dict, logger
 from images import (
     auto_login,
     back,
@@ -92,9 +92,7 @@ def scrape():
 
         total_courses = len(udemy.scraped_data)
 
-        original_print = udemy.print
-
-        def print_override(content, color="red", **kwargs):
+        def update_progress():
 
             if hasattr(udemy, "course") and udemy.course:
                 main_window["current_course_title"].update(value=udemy.course.title)
@@ -119,21 +117,13 @@ def scrape():
             ready_count = len(getattr(udemy, "valid_courses", []))
             main_window["stat_ready_enroll"].update(value=f"{ready_count}")
 
-            if color == "red" and "error" in content.lower():
-                main_window.write_event_value(
-                    "Error", f"{content}\n\nVersion:{VERSION}|:|Error"
-                )
 
-            return original_print(content, color, **kwargs)
-
-        udemy.print = print_override
+        udemy.update_progress = update_progress
 
         udemy.total_courses_processed = 0
 
         # Start enrollment process
         udemy.start_new_enroll()
-
-        udemy.print = original_print
 
         main_window["enrollment_panel"].update(visible=False)
         main_window["done_col"].update(visible=True)
@@ -153,13 +143,8 @@ def scrape():
     except Exception:
         e = traceback.format_exc()
 
-        with open("log.txt", "a", encoding="utf-8") as log_file:
-            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-            log_file.write(f"[{timestamp}] [EXCEPTION] {e}\n")
-            log_file.flush()
-            os.fsync(log_file.fileno())
+        logger.exception(f"Error during scraping/enrollment: {e}\nCourse: {str(udemy.course)}")
 
-        # Only send to event system, no popup here
         main_window.write_event_value(
             "Error",
             e + f"\n\n{str(udemy.course)}" + f"|:|Error {VERSION}",
@@ -601,7 +586,7 @@ done_col = [
     ],
     [
         sg.Text(
-            "Amount Saved: $                                         ",
+            "Amount Saved:                                   ",
             key="as_c",
             text_color="#00FA9A",
         )
@@ -651,12 +636,12 @@ stats_panel = [
         sg.Text("0", key="stat_expired", text_color="#FF0000", size=(8, 1)),
     ],
     [
-        sg.Text("Amount Saved:", text_color="#4deeea", size=(18, 1)),
+        sg.Text("Amount Saved:", text_color="#4deeea", size=(14, 1)),
         sg.Text(
             f"0 {udemy.currency.upper()}",
             key="stat_amount_saved",
             text_color="#00FA9A",
-            size=(8, 1),
+            size=(10, 1),
         ),
         sg.Text("Excluded Courses:", text_color="#4deeea", size=(15, 1)),
         sg.Text("0", key="stat_excluded", text_color="#FF4500", size=(8, 1)),
@@ -788,11 +773,8 @@ while True:
         msg = values["Error"].split("|:|")
         error_text = msg[0]
         title = msg[1]
-        with open("log.txt", "a", encoding="utf-8") as log_file:
-            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-            log_file.write(f"[{timestamp}] [EXCEPTION] {error_text}\n")
-            log_file.flush()
-            os.fsync(log_file.fileno())
+        
+        logger.exception(f"GUI Error Popup: {title} - {error_text}")
 
         sg.popup_scrolled(error_text, title=title)
     elif event == "Update-Menu":
