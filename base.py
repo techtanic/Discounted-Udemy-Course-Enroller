@@ -900,6 +900,7 @@ class Udemy:
                 r = r.json()
             except requests.exceptions.JSONDecodeError:
                 logger.error(r.text)
+                raise Exception("JSON Decode Error in get_enrolled_courses")
             for course in r["results"]:
                 slug = course["url"].split("/")[2]
                 courses[slug] = course["enrollment_time"]
@@ -998,6 +999,9 @@ class Udemy:
             return
         self.course.url = r.url
         try:
+            # c:\Mnz-PC\CODE\Discounted-Udemy-Course-Enroller\base.py:1001: MarkupResemblesLocatorWarning: The input looks more like a 
+            # filename than markup. You may want to open this file and pass the filehandle into Beautiful Soup.
+
             soup = bs(r.content, "html5lib")
         except Exception as e:
             with open("error.txt", "w") as f:
@@ -1008,6 +1012,7 @@ class Udemy:
         course_id = soup.find("body").get("data-clp-course-id", "invalid")
         if course_id == "invalid":
             self.course.is_valid = False
+            logger.error(soup.prettify(encoding="utf-8"))
             self.course.error = "Course ID not found: Report to developer"
             return
 
@@ -1229,8 +1234,8 @@ class Udemy:
         if r.get("status") == "succeeded":
             for course in self.valid_courses:
                 self.course = course
-
-                self.enrolled_courses[course.course_id] = self.get_now_to_utc()
+                slug = self.course.url.split("/")[4]
+                self.enrolled_courses[slug] = self.get_now_to_utc()
                 self.amount_saved_c += (
                     Decimal(str(course.price))
                     if course.price is not None
@@ -1244,7 +1249,7 @@ class Udemy:
             )
         else:
             logger.error("Bulk checkout failed")
-            logger.error(r.text)
+            logger.error(r)
             raise Exception("Bulk checkout failed")
 
     # def handle_course_enrollment(self):
