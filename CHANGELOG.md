@@ -2,6 +2,7 @@
 
 ## v2.3.3
 
+- Improved all scrapers for better performance.
 - Added `Courson` as a new coupon source
 - Added `Course Joiner` as a new coupon source
 - Added Course class for better course management
