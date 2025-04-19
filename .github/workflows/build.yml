@@ -21,6 +21,16 @@ jobs:
       - name: Install dependencies and PyInstaller
         run: pip install -r requirements.txt pyinstaller -U
 
+      - name: Install UPX for compression
+        shell: pwsh
+        run: |
+          $ProgressPreference = 'SilentlyContinue'
+          Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v5.0.0/upx-5.0.0-win64.zip" -OutFile "upx.zip"
+          Expand-Archive -Path "upx.zip" -DestinationPath "upx"
+          $env:PATH = "$env:PATH;$pwd\upx\upx-5.0.0-win64"
+          # Verify UPX is available
+          upx --version
+
       - name: Cache PyInstaller build files
         uses: actions/cache@v4
         with:
@@ -31,7 +41,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pyinstaller-
 
+      - name: Analyze imports
+        run: |
+          pip install pyinstaller-versioninfo
+          # Create basic spec files for analysis
+          pyi-makespec --name "DUCE-GUI-windows" gui.py
+          pyi-makespec --name "DUCE-CLI-windows" cli.py
+
       - name: Build Executables
+        shell: pwsh
         run: |
           # Build GUI
           pyinstaller -y -F -w -i "extra/DUCE-LOGO.ico" --clean --name "DUCE-GUI-windows" `
@@ -40,7 +58,16 @@ jobs:
           --add-data "default-duce-gui-settings.json;." `
           --add-data "README.md;." `
           --add-data "LICENSE;." `
+          --strip `
+          --upx-dir="$pwd\upx\upx-5.0.0-win64" `
+          --exclude-module tkinter `
+          --exclude-module matplotlib `
+          --exclude-module numpy `
+          --exclude-module pytest `
+          --exclude-module unittest `
+          --noupx-exclude="vcruntime140.dll" `
           "gui.py"
+          
           # Build CLI
           pyinstaller -y -F -c -i "extra/DUCE-LOGO.ico" --clean --name "DUCE-CLI-windows" `
           --add-data "base.py;." `
@@ -48,7 +75,19 @@ jobs:
           --add-data "default-duce-cli-settings.json;." `
           --add-data "README.md;." `
           --add-data "LICENSE;." `
+          --strip `
+          --upx-dir="$pwd\upx\upx-5.0.0-win64" `
+          --exclude-module tkinter `
+          --exclude-module matplotlib `
+          --exclude-module numpy `
+          --exclude-module pytest `
+          --exclude-module unittest `
+          --noupx-exclude="vcruntime140.dll" `
           "cli.py"
+          
+          # Print size information
+          Write-Output "File sizes:"
+          Get-ChildItem -Path "./dist" | Select-Object Name, @{Name="SizeInMB";Expression={"{0:N2} MB" -f ($_.Length/1MB)}}
 
       - name: Upload Windows Package
         uses: actions/upload-artifact@v4
