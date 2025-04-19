@@ -9,15 +9,6 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    strategy:
-      matrix:
-        include:
-          - name: "DUCE-GUI-windows"
-            mode: "-w"
-            script: "gui"
-          - name: "DUCE-CLI-windows"
-            mode: "-c"
-            script: "cli"
     steps:
       - uses: actions/checkout@v4
 
@@ -30,18 +21,27 @@ jobs:
       - name: Install dependencies and PyInstaller
         run: pip install -r requirements.txt pyinstaller -U
 
-      - name: Build ${{ matrix.name }}
-        run: >
-          pyinstaller -y -F ${{ matrix.mode }} -i "extra/DUCE-LOGO.ico" --clean --name "${{ matrix.name }}"
-          --add-data "base.py;."
-          --add-data "colors.py;."
-          --add-data "default-duce-${{ matrix.script }}-settings.json;."
-          --add-data "README.md;."
-          --add-data "LICENSE;."
-          "${{ matrix.script }}.py"
+      - name: Build Executables
+        run: |
+          # Build GUI
+          pyinstaller -y -F -w -i "extra/DUCE-LOGO.ico" --clean --name "DUCE-GUI-windows" `
+          --add-data "base.py;." `
+          --add-data "colors.py;." `
+          --add-data "default-duce-gui-settings.json;." `
+          --add-data "README.md;." `
+          --add-data "LICENSE;." `
+          "gui.py"
+          # Build CLI
+          pyinstaller -y -F -c -i "extra/DUCE-LOGO.ico" --clean --name "DUCE-CLI-windows" `
+          --add-data "base.py;." `
+          --add-data "colors.py;." `
+          --add-data "default-duce-cli-settings.json;." `
+          --add-data "README.md;." `
+          --add-data "LICENSE;." `
+          "cli.py"
 
-      - name: Upload ${{ matrix.name }}.exe
+      - name: Upload Windows Package
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.name }}.exe
-          path: ./dist/${{ matrix.name }}.exe
+          name: DUCE-windows-package
+          path: ./dist/
