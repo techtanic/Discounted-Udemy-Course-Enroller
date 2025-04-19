@@ -1109,6 +1109,11 @@ class Udemy:
             except requests.exceptions.ConnectionError:
                 r = None
                 continue
+            except Exception as e:
+                logger.error(f"Error fetching course ID: {e}")
+                logger.error(f"Course URL: {url}")
+                r = None
+                continue
 
         if r is None:
             logger.error("Failed to fetch course ID after 3 attempts")
@@ -1122,7 +1127,6 @@ class Udemy:
         course_id = soup.find("body").get("data-clp-course-id", "invalid")
         if course_id == "invalid":
             self.course.is_valid = False
-            logger.error(soup.prettify(encoding="utf-8"))
             self.course.error = "Course ID not found: Report to developer"
             return
 

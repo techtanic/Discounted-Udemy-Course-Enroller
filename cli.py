@@ -185,6 +185,8 @@ def create_scraping_thread(site: str):
             time.sleep(0.1)
             
         udemy.progress.update(task_id, completed=getattr(scraper, f"{code_name}_length"))
+        logger.debug(f"Courses Found {code_name}: {len(getattr(scraper, f'{code_name}_data'))}")
+        
         if getattr(scraper, f"{code_name}_error"):
             raise Exception(f"Error in: {site}")
     except Exception:
