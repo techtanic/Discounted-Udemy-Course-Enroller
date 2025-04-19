@@ -3,7 +3,7 @@ rookiepy
 cloudscraper
 bs4
 requests
-html5lib
 pyopenssl
 rich
 loguru
+lmxl

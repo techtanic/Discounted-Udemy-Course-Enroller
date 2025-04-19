@@ -33,6 +33,7 @@ sg.set_options(
 
 def update_enrolled_courses():
     while True:
+        logger.debug(f"Enrolled courses count: {len(udemy.enrolled_courses)}")
         new_menu = [
             ["Help", ["Support", "Github", "Discord"]],
             [f"Total Courses: {len(udemy.enrolled_courses)}"],
@@ -42,6 +43,7 @@ def update_enrolled_courses():
 
 
 def create_scraping_thread(site: str):
+    logger.info(f"Launching scraping thread for site: {site}")
     code_name = scraper_dict[site]
     main_window[f"i{site}"].update(visible=False)
     main_window[f"p{site}"].update(0, visible=True)
@@ -51,6 +53,7 @@ def create_scraping_thread(site: str):
         while getattr(scraper, f"{code_name}_length") == 0:
             time.sleep(0.1)
         if getattr(scraper, f"{code_name}_length") == -1:
+
             raise Exception(f"Error in: {site}")
 
         main_window[f"p{site}"].update(0, max=getattr(scraper, f"{code_name}_length"))
@@ -58,14 +61,17 @@ def create_scraping_thread(site: str):
             scraper, f"{code_name}_error"
         ):
             main_window[f"p{site}"].update(
-                getattr(scraper, f"{code_name}_progress") + 1
+                getattr(scraper, f"{code_name}_progress") + 1,
+                max=getattr(scraper, f"{code_name}_length"),
             )
+
             time.sleep(0.1)
 
         if getattr(scraper, f"{code_name}_error"):
             raise Exception(f"Error in: {site}")
     except Exception:
         error_message = getattr(scraper, f"{code_name}_error", "Unknown Error")
+        logger.exception(f"Error in {site}: {error_message}")
         main_window.write_event_value(
             "Error", f"{error_message}|:|Unknown Error in: {site} {VERSION}"
         )
@@ -117,7 +123,6 @@ def scrape():
             ready_count = len(getattr(udemy, "valid_courses", []))
             main_window["stat_ready_enroll"].update(value=f"{ready_count}")
 
-
         udemy.update_progress = update_progress
 
         udemy.total_courses_processed = 0
@@ -143,7 +148,9 @@ def scrape():
     except Exception:
         e = traceback.format_exc()
 
-        logger.exception(f"Error during scraping/enrollment: {e}\nCourse: {str(udemy.course)}")
+        logger.exception(
+            f"Error during scraping/enrollment: {e}\nCourse: {str(udemy.course)}"
+        )
 
         main_window.write_event_value(
             "Error",
@@ -155,6 +162,7 @@ def scrape():
 
 
 udemy = Udemy("gui")
+logger.info("Starting GUI application")
 udemy.load_settings()
 login_title, main_title = udemy.check_for_update()
 
@@ -237,7 +245,7 @@ if login_error:
     login_window.bind("m", "m_login")
     while True:
         event, values = login_window.read()
-
+        logger.info(f"Login window event: {event}")
         if event in (None,):
             login_window.close()
             sys.exit()
@@ -255,7 +263,7 @@ if login_error:
                     break
                 except Exception:
                     e = traceback.format_exc()
-                    print(e)
+                    logger.error(e)
                     sg.popup_auto_close(
                         "Make sure you are logged in to udemy.com in chrome browser",
                         title="Error",
@@ -310,6 +318,7 @@ if login_error:
                     )
             except Exception:
                 e = traceback.format_exc()
+                logger.exception()
                 sg.popup_scrolled(e, title=f"Unknown Error {VERSION}")
 
 checkbox_lo = []
@@ -713,8 +722,10 @@ main_window = sg.Window(
 threading.Thread(target=update_enrolled_courses, daemon=True).start()
 while True:
     event, values = main_window.read()
+
+    logger.info(f"Main window event: {event}")
     if event == "Dummy":
-        print(values)
+        logger.debug(f"Dummy event values: {values}")
 
     if event in (None, "Exit"):
         break
@@ -773,7 +784,7 @@ while True:
         msg = values["Error"].split("|:|")
         error_text = msg[0]
         title = msg[1]
-        
+
         logger.exception(f"GUI Error Popup: {title} - {error_text}")
 
         sg.popup_scrolled(error_text, title=title)

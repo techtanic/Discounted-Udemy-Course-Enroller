@@ -26,6 +26,7 @@ console = Console()
 
 
 def handle_error(error_message, error=None, exit_program=True):
+    logger.error(f"ERROR: {error_message}")
     """
     Handle errors consistently throughout the application.
 
@@ -63,7 +64,7 @@ def create_layout() -> Layout:
 
     layout["main"].split(
         Layout(name="stats", size=10),
-        Layout(name="course_info", size=12),
+        Layout(name="course_info", size=14),
     )
 
     return layout
@@ -181,8 +182,9 @@ def create_scraping_thread(site: str):
             scraper, f"{code_name}_error"
         ):
             current = getattr(scraper, f"{code_name}_progress")
-            udemy.progress.update(task_id, completed=current)
-            time.sleep(0.2)
+            udemy.progress.update(task_id, completed=current, total=getattr(scraper, f"{code_name}_length"))
+            time.sleep(0.1)
+            
         udemy.progress.update(task_id, completed=getattr(scraper, f"{code_name}_length"))
         if getattr(scraper, f"{code_name}_error"):
             raise Exception(f"Error in: {site}")
@@ -194,7 +196,7 @@ def create_scraping_thread(site: str):
 
 if __name__ == "__main__":
     try:
-
+        logger.info("Starting CLI application")
         udemy = Udemy("cli")
         udemy.load_settings()
         login_title, main_title = udemy.check_for_update()
@@ -231,12 +233,13 @@ if __name__ == "__main__":
                     password = console.input("[cyan]Password: [/cyan]")
                     login_method = "Email and Password"
 
+                logger.info(f"Trying to login using {login_method}")
                 console.print(f"[cyan]Trying to login using {login_method}...[/cyan]")
                 if "Email" in login_method:
                     with console.status("[cyan]Logging in...[/cyan]"):
                         udemy.manual_login(email, password)
 
-                with console.status("[cyan]Getting session info...[/cyan]"):
+                with console.status("[cyan]Getting Enrolled Courses...[/cyan]"):
                     udemy.get_session_info()
 
                 if "Email" in login_method:
@@ -255,6 +258,7 @@ if __name__ == "__main__":
 
         udemy.save_settings()
         console.print(f"[bold green]Logged in as {udemy.display_name}[/bold green]")
+        logger.info(f"Logged in")
 
         user_dumb = udemy.is_user_dumb()
         if user_dumb:
@@ -270,6 +274,7 @@ if __name__ == "__main__":
         console.print(
             "\n[bold cyan]Scraping courses from selected sites...[/bold cyan]"
         )
+        logger.info("Scraping courses from selected sites")
 
         udemy.progress = Progress(
             SpinnerColumn(finished_text="🟢"),
@@ -282,7 +287,7 @@ if __name__ == "__main__":
             udemy.scraped_data = scraper.get_scraped_courses(create_scraping_thread)
         total_courses = len(udemy.scraped_data)
         console.print(f"[green]Found {total_courses} courses to process[/green]")
-
+        
         layout = create_layout()
         layout["header"].update(create_header())
         layout["footer"].update(create_footer())

@@ -14,6 +14,7 @@ from html import unescape
 from urllib.parse import parse_qs, unquote, urlparse, urlsplit, urlunparse
 
 import cloudscraper
+import concurrent
 import requests
 import rookiepy
 from bs4 import BeautifulSoup as bs
@@ -36,13 +37,13 @@ logger.info(f"Program started - {VERSION}")
 scraper_dict: dict = {
     "Real Discount": "rd",
     "Courson": "cxyz",
-    "Course Joiner": "cj",
-    "Discudemy": "du",
-    "E-next": "en",
     "IDownloadCoupons": "idc",
-    "Course Vania": "cv",
+    "Tutorial Bar": "tb",
+    "E-next": "en",
+    "Discudemy": "du",
     "Udemy Freebies": "uf",
-    # "Tutorial Bar": "tb",
+    "Course Joiner": "cj",
+    "Course Vania": "cv",
 }
 
 LINKS = {
@@ -88,7 +89,7 @@ class Course:
         self.url = self.normalize_link(url)
         self.site = site
         self.course_id = None
-
+        self.slug = self.set_slug()
         self.coupon_code = self.extract_coupon_code()
         self.is_coupon_valid = False
 
@@ -124,6 +125,18 @@ class Course:
                 parsed_url.fragment,
             )
         )
+
+    def set_slug(self):
+        """Set course slug from URL"""
+        parsed_url = urlparse(self.url)
+        path_parts = parsed_url.path.split("/")
+        if len(path_parts) > 2 and path_parts[1] == "course":
+            return path_parts[2]
+        elif len(path_parts) > 1:
+            return path_parts[1]
+        else:
+            logger.error(f"Invalid URL format: {self.url}")
+        return None
 
     def extract_coupon_code(self):
         """Extract coupon code from URL if present"""
@@ -203,9 +216,11 @@ class Scraper:
             setattr(self, f"{code_name}_error", "")
 
     def get_scraped_courses(self, target: object) -> dict:
+        logger.info(f"Starting scrape for sites: {self.sites}")
         threads = []
-        scraped_data = []
+        scraped_data = set()
         for site in self.sites:
+            logger.info(f"Scraping site: {site}")
             t = threading.Thread(
                 target=target,
                 args=(site,),
@@ -216,13 +231,16 @@ class Scraper:
             time.sleep(0.2)
         for t in threads:
             t.join()
+        logger.info("All scraping threads completed, combining results")
         for site in self.sites:
             courses: list[Course] = getattr(self, f"{scraper_dict[site]}_data")
 
             for course in courses:
                 course.site = site
-                scraped_data.append(course)
-        return scraped_data
+                scraped_data.add(course)
+
+        logger.info(f"Scraping finished. Found {len(scraped_data)} unique courses.")
+        return list(scraped_data)
 
     def append_to_list(self, title: str, link: str):
         target = getattr(self, f"{inspect.stack()[1].function}_data")
@@ -230,16 +248,17 @@ class Scraper:
         target.append(course)
 
     def fetch_page(self, url: str, headers: dict = None) -> requests.Response:
-        return requests.get(url, headers=headers)
+        return requests.get(url, headers=headers, timeout=(10, 30))
 
     def parse_html(self, content: str):
-        return bs(content, "html5lib")
+        return bs(content, "lxml")
 
     def set_attr(self, attr: str, value):
         site_code = inspect.stack()[1].function
         setattr(self, f"{site_code}_{attr}", value)
 
     def handle_exception(self):
+        logger.exception("An error occurred")
         site_code = inspect.stack()[1].function
         error_trace = traceback.format_exc()
         setattr(self, f"{site_code}_error", error_trace)
@@ -271,104 +290,146 @@ class Scraper:
             head = {
                 "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36 Edg/92.0.902.84",
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+                "referer": "https://www.discudemy.com",
             }
 
-            for page in range(1, 4):
-                content = self.fetch_page(
-                    f"https://www.discudemy.com/all/{page}", headers=head
-                ).content
-                soup = self.parse_html(content)
-                page_items = soup.find_all("a", {"class": "card-header"})
-                all_items.extend(page_items)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                future_page = [
+                    executor.submit(
+                        self.fetch_page,
+                        f"https://www.discudemy.com/all/{page}",
+                        headers=head,
+                    )
+                    for page in range(1, 11)
+                ]
+                self.set_attr("length", 11)
 
-            self.set_attr("length", len(all_items))
-            if self.debug:
-                logger.info(f"Length: {self.du_length}")
-            for index, item in enumerate(all_items):
-                self.set_attr("progress", index)
+                for i, future in enumerate(
+                    concurrent.futures.as_completed(future_page)
+                ):
+                    content = future.result().content
+                    soup = self.parse_html(content)
+                    page_items = soup.find_all("a", {"class": "card-header"})
+                    all_items.extend(page_items)
+                    self.set_attr("progress", i + 1)
+
+                self.set_attr("length", len(all_items))
+
+            def _fetch_course_details(item, headers):
+                """Helper method to fetch course details"""
                 title = item.string
                 url = item["href"].split("/")[-1]
                 content = self.fetch_page(
-                    f"https://www.discudemy.com/go/{url}", headers=head
+                    f"https://www.discudemy.com/go/{url}", headers=headers
                 ).content
                 soup = self.parse_html(content)
                 link = soup.find("div", {"class": "ui segment"}).a["href"]
-                if self.debug:
-                    print(title, link)
-                self.append_to_list(title, link)
+                return title, link
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=7) as executor:
+                future_course_details = [
+                    executor.submit(_fetch_course_details, item, head)
+                    for item in all_items
+                ]
+                for i, future in enumerate(
+                    concurrent.futures.as_completed(future_course_details)
+                ):
+                    title, link = future.result()
+                    if "udemy.com" in link:
+                        link = self.cleanup_link(link)
+                        self.append_to_list(title, link)
+                    else:
+                        logger.error(f"Unknown link format: {link}")
+                    self.set_attr("progress", i + 1)
 
         except:
             self.handle_exception()
         self.set_attr("done", True)
-        if self.debug:
-            logger.info(f"Return Length: {len(self.du_data)}")
 
     def uf(self):
         try:
             all_items = []
-            for page in range(1, 4):
-                response = self.fetch_page(
-                    f"https://www.udemyfreebies.com/free-udemy-courses/{page}"
-                )
-                content = response.content
-                soup = self.parse_html(content)
-                page_items = soup.find_all("a", {"class": "theme-img"})
-                all_items.extend(page_items)
-            self.set_attr("length", len(all_items))
-            if self.debug:
-                print("Length:", self.uf_length)
-            for index, item in enumerate(all_items):
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                self.set_attr("length", 5)
+                future_page = [
+                    executor.submit(
+                        self.fetch_page,
+                        f"https://www.udemyfreebies.com/free-udemy-courses/{page}",
+                    )
+                    for page in range(1, 6)
+                ]
+                for i, future in enumerate(
+                    concurrent.futures.as_completed(future_page)
+                ):
+                    content = future.result().content
+                    soup = self.parse_html(content)
+                    page_items = soup.find_all("a", {"class": "theme-img"})
+                    all_items.extend(page_items)
+                    self.set_attr("progress", i + 1)
+
+            def _fetch_course_details(item):
+                """Helper method to fetch course details"""
                 title = item.img["alt"]
-                link = self.fetch_page(
+                link = requests.get(
                     f"https://www.udemyfreebies.com/out/{item['href'].split('/')[4]}"
                 ).url
-                self.append_to_list(title, link)
-                self.set_attr("progress", index)
+                return title, link
 
+            self.set_attr("length", len(all_items))
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                future_course_details = [
+                    executor.submit(_fetch_course_details, item) for item in all_items
+                ]
+                for i, future in enumerate(
+                    concurrent.futures.as_completed(future_course_details)
+                ):
+                    title, link = future.result()
+                    if "udemy.com" in link:
+                        link = self.cleanup_link(link)
+                        self.append_to_list(title, link)
+                    else:
+                        logger.error(f"Unknown link format: {link}")
+                    self.set_attr("progress", i + 1)
         except:
             self.handle_exception()
         self.set_attr("done", True)
-        if self.debug:
-            logger.info(f"Return Length: {len(self.uf_data)}")
 
     def tb(self):
         try:
             all_items = []
+            self.set_attr("length", 5)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                future_page = [
+                    executor.submit(
+                        self.fetch_page,
+                        f"https://www.tutorialbar.com/wp-json/wp/v2/posts?categories=55&per_page=100&page={page}",
+                    )
+                    for page in range(1, 6)
+                ]
+                for i, future in enumerate(
+                    concurrent.futures.as_completed(future_page)
+                ):
+                    content = future.result().json()
+                    all_items.extend(content)
+                    self.set_attr("progress", i + 1)
 
-            for page in range(1, 5):
-                response = self.fetch_page(
-                    f"https://www.tutorialbar.com/all-courses/page/{page}"
-                )
-                content = response.content
-                soup = self.parse_html(content)
-                page_items = soup.find_all(
-                    "h2", class_="mb15 mt0 font110 mobfont100 fontnormal lineheight20"
-                )
-                all_items.extend(page_items)
             self.set_attr("length", len(all_items))
-            if self.debug:
-                logger.info(f"Length: {self.tb_length}")
 
-            for index, item in enumerate(all_items):
-                self.set_attr("progress", index)
-                title = item.a.string
-                url = item.a["href"]
-                content = self.fetch_page(url).content
-                soup = self.parse_html(content)
-                link = soup.find("a", class_="btn_offer_block re_track_btn")["href"]
+            for i, item in enumerate(all_items):
+                title = item["title"]["rendered"]
+                link = item["acf"]["course_url"]
                 if "www.udemy.com" in link:
                     self.append_to_list(title, link)
-
+                self.set_attr("progress", i + 1)
         except:
             self.handle_exception()
         self.set_attr("done", True)
-        if self.debug:
-            logger.info(f"Return Length: {len(self.tb_data)}")
 
     def rd(self):
-        all_items = []
-
         try:
+            all_items = []
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36 Edg/92.0.902.84",
                 "Host": "cdn.real.discount",
@@ -390,8 +451,6 @@ class Scraper:
             all_items.extend(r["items"])
 
             self.set_attr("length", len(all_items))
-            if self.debug:
-                logger.info(f"Length: {self.rd_length}")
             for index, item in enumerate(all_items):
                 self.set_attr("progress", index)
                 if item["store"] == "Sponsored":
@@ -404,42 +463,36 @@ class Scraper:
 
         except:
             self.handle_exception()
-        if self.debug:
-            logger.info(f"Return Length: {len(self.rd_data)}")
         self.set_attr("done", True)
 
     def cv(self):
         try:
             content = self.fetch_page("https://coursevania.com/courses/").content
-            soup = self.parse_html(content)
+
             try:
-                nonce = json.loads(
-                    re.search(
-                        r"var stm_lms_nonces = ({.*?});", soup.text, re.DOTALL
-                    ).group(1)
-                )["load_content"]
-                if self.debug:
-                    logger.info(f"Nonce: {nonce}")
+                nonce = re.search(
+                    r"load_content\"\:\"(.*?)\"", content.decode("utf-8"), re.DOTALL
+                ).group(1)
+                logger.debug(f"Nonce: {nonce}")
             except IndexError:
                 self.set_attr("error", "Nonce not found")
                 self.set_attr("length", -1)
                 self.set_attr("done", True)
                 return
             r = requests.get(
-                "https://coursevania.com/wp-admin/admin-ajax.php?&template=courses/grid&args={%22posts_per_page%22:%2260%22}&action=stm_lms_load_content&nonce="
+                "https://coursevania.com/wp-admin/admin-ajax.php?&template=courses/grid&args={%22posts_per_page%22:%22500%22}&action=stm_lms_load_content&sort=date_high&nonce="
                 + nonce
-                + "&sort=date_high"
             ).json()
 
             soup = self.parse_html(r["content"])
             page_items = soup.find_all(
                 "div", {"class": "stm_lms_courses__single--title"}
             )
+
             self.set_attr("length", len(page_items))
-            if self.debug:
-                logger.info(f"Small Length: {self.cv_length}")
-            for index, item in enumerate(page_items):
-                self.set_attr("progress", index)
+
+            def _fetch_course_details(item):
+                """Helper method to fetch course details"""
                 title = item.h5.string
                 content = self.fetch_page(item.a["href"]).content
                 soup = self.parse_html(content)
@@ -447,147 +500,201 @@ class Scraper:
                     "a",
                     {"class": "masterstudy-button-affiliate__link"},
                 )["href"]
-                self.append_to_list(title, link)
+                return title, link
 
+            with concurrent.futures.ThreadPoolExecutor(max_workers=30) as executor:
+                future_course_details = [
+                    executor.submit(_fetch_course_details, item) for item in page_items
+                ]
+                for i, future in enumerate(
+                    concurrent.futures.as_completed(future_course_details)
+                ):
+                    title, link = future.result()
+                    if "udemy.com" in link:
+                        link = self.cleanup_link(link)
+                        self.append_to_list(title, link)
+                    else:
+                        logger.error(f"Unknown link format: {link}")
+                    self.set_attr("progress", i + 1)
         except:
             self.handle_exception()
         self.set_attr("done", True)
-        if self.debug:
-            logger.info(f"Return Length: {len(self.cv_data)}")
 
     def idc(self):
         try:
             all_items = []
-            for page in range(1, 5):
-                content = self.fetch_page(
-                    f"https://idownloadcoupon.com/product-category/udemy/page/{page}"
-                ).content
-                if not content:
-                    self.set_attr("length", -1)
-                    self.set_attr("error", "Empty content")
-                    return
-                soup = self.parse_html(content)
-                page_items = soup.find_all(
-                    "a",
-                    attrs={
-                        "class": "woocommerce-LoopProduct-link woocommerce-loop-product__link"
-                    },
-                )
-                all_items.extend(page_items)
-            self.set_attr("length", len(all_items))
-            if self.debug:
-                logger.info(f"Length: {self.idc_length}")
-            for index, item in enumerate(all_items):
-                self.set_attr("progress", index)
-                title = item.h2.string
-                link_num = item["href"].split("/")[4]
-                if link_num == "85":
-                    continue
-                link = f"https://idownloadcoupon.com/udemy/{link_num}/"
+            self.set_attr("length", 3)
 
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                future_page = [
+                    executor.submit(
+                        self.fetch_page,
+                        f"https://idownloadcoupon.com/wp-json/wp/v2/product?product_cat=15&per_page=100&page={page}",
+                    )
+                    for page in range(1, 4)
+                ]
+                for i, future in enumerate(
+                    concurrent.futures.as_completed(future_page)
+                ):
+                    content = future.result().json()
+                    all_items.extend(content)
+                    self.set_attr("progress", i + 1)
+
+            self.set_attr("length", len(all_items))
+
+            def _fetch_course_details(item):
+                """Helper method to fetch course details"""
+                title = item["title"]["rendered"]
+                link_num = item["id"]
+                if link_num == "85":
+                    return None, None
+                link = f"https://idownloadcoupon.com/udemy/{link_num}/"
                 r = requests.get(
                     link,
                     allow_redirects=False,
                 )
-                link = unquote(r.headers["Location"])
                 if "comidoc.net" in link:
-                    continue
+                    logger.info("Comidoc link: " + link)
+                    return None, None
+                link = unquote(r.headers["Location"])
                 link = self.cleanup_link(link)
-                self.append_to_list(title, link)
+                return title, link
 
+            with concurrent.futures.ThreadPoolExecutor(max_workers=7) as executor:
+                future_course_details = [
+                    executor.submit(_fetch_course_details, item) for item in all_items
+                ]
+                for i, future in enumerate(
+                    concurrent.futures.as_completed(future_course_details)
+                ):
+                    title, link = future.result()
+                    if title and link:
+                        self.append_to_list(title, link)
+                    self.set_attr("progress", i + 1)
         except:
             self.handle_exception()
         self.set_attr("done", True)
-        if self.debug:
-            logger.info(f"Return Length: {len(self.idc_data)}")
 
     def en(self):
-
         try:
             all_items = []
-            for page in range(1, 6):
-                content = self.fetch_page(
-                    f"https://jobs.e-next.in/course/udemy/{page}"
-                ).content
-                soup = self.parse_html(content)
-                page_items = soup.find_all(
-                    "a", {"class": "btn btn-secondary btn-sm btn-block"}
-                )
-                all_items.extend(page_items)
+            self.set_attr("length", 5)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                future_page = [
+                    executor.submit(
+                        self.fetch_page,
+                        f"https://jobs.e-next.in/course/udemy/{page}",
+                    )
+                    for page in range(1, 6)
+                ]
+                for i, future in enumerate(
+                    concurrent.futures.as_completed(future_page)
+                ):
+                    content = future.result().content
+                    soup = self.parse_html(content)
+                    page_items = soup.find_all(
+                        "a", {"class": "btn btn-secondary btn-sm btn-block"}
+                    )
+                    all_items.extend(page_items)
+                    self.set_attr("progress", i + 1)
 
             self.set_attr("length", len(all_items))
-            if self.debug:
-                logger.info(f"Length: {self.en_length}")
-            for index, item in enumerate(all_items):
-                self.set_attr("progress", index)
-                content = self.fetch_page(item["href"]).content
-                soup = self.parse_html(content)
-                title = soup.find("h3").string.strip()
-                link = soup.find("a", {"class": "btn btn-primary"})["href"]
-                self.append_to_list(title, link)
-
+            with concurrent.futures.ThreadPoolExecutor(max_workers=7) as executor:
+                future_course_details = [
+                    executor.submit(
+                        self.fetch_page,
+                        item["href"],
+                    )
+                    for item in all_items
+                ]
+                for i, future in enumerate(
+                    concurrent.futures.as_completed(future_course_details)
+                ):
+                    content = future.result().content
+                    soup = self.parse_html(content)
+                    title = soup.find("h3").string.strip()
+                    try:
+                        link = soup.find("a", {"class": "btn btn-primary"})["href"]
+                    except:
+                        with open("error.html", "w", encoding="utf-8") as f:
+                            f.write(soup.prettify())
+                    self.append_to_list(title, link)
+                    self.set_attr("progress", i + 1)
         except:
             self.handle_exception()
         self.set_attr("done", True)
-        if self.debug:
-            logger.info(f"Return Length: {len(self.en_data)}")
-            logger.info(self.en_data)
 
     def cj(self):
         try:
-
             self.set_attr("length", 4)
-            for page in range(1, 5):
-                content = self.fetch_page(
-                    f"https://www.coursejoiner.com/wp-json/wp/v2/posts?categories=74&per_page=100&page={page}"
-                ).json()
-                for item in content:
-                    title = unescape(item["title"]["rendered"])
-                    title = (
-                        title.replace("–", "-")
-                        .strip()
-                        .removesuffix("- (Free Course)")
-                        .strip()
+            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+                future_page = [
+                    executor.submit(
+                        self.fetch_page,
+                        f"https://www.coursejoiner.com/wp-json/wp/v2/posts?categories=74&per_page=100&page={page}",
                     )
-                    rendered_content = item["content"]["rendered"]
-                    soup = self.parse_html(rendered_content)
-                    link = soup.find("a", string="APPLY HERE")
-                    if link.has_attr("href"):
-                        link = link["href"]
-                        if "udemy.com" in link:
-                            self.append_to_list(title, link)
-                self.set_attr("progress", page)
+                    for page in range(1, 5)
+                ]
+                for i, future in enumerate(
+                    concurrent.futures.as_completed(future_page)
+                ):
+                    content = future.result().json()
+                    if not content:
+                        logger.debug("No more coupons")
+                        break
+                    for item in content:
+                        title = unescape(item["title"]["rendered"])
+                        title = (
+                            title.replace("–", "-")
+                            .strip()
+                            .removesuffix("- (Free Course)")
+                            .strip()
+                        )
+                        rendered_content = item["content"]["rendered"]
+                        soup = self.parse_html(rendered_content)
+                        link = soup.find("a", string="APPLY HERE")
+
+                        if not link:
+                            logger.error("Coupon not found for item: " + str(item))
+
+                        if link and link.has_attr("href"):
+                            link = link["href"]
+                            if "udemy.com" in link:
+                                self.append_to_list(title, link)
+                    self.set_attr("progress", i + 1)
 
         except:
             self.handle_exception()
         self.set_attr("done", True)
-        if self.debug:
-            logger.info(f"Return Length: {len(self.cj_data)}")
 
     def cxyz(self):
         try:
             self.set_attr("length", 10)
-            for page in range(1, 11):
-                content = requests.post(
-                    f"https://courson.xyz/load-more-coupons",
-                    json={"filters": {}, "offset": (page - 1) * 30},
-                ).json()["coupons"]
-                if not content:
-                    break
-                for item in content:
-                    title = item["headline"].strip(' "')
-                    link = f"https://www.udemy.com/course/{item['id_name']}/?couponCode={item['coupon_code']}"
-                    if self.debug:
-                        print(title, link)
-                    self.append_to_list(title, link)
-                self.set_attr("progress", page)
-
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                future_page = [
+                    executor.submit(
+                        requests.post,
+                        f"https://courson.xyz/load-more-coupons",
+                        json={"filters": {}, "offset": (page - 1) * 30},
+                    )
+                    for page in range(1, 11)
+                ]
+                for i, future in enumerate(
+                    concurrent.futures.as_completed(future_page)
+                ):
+                    content = future.result().json()["coupons"]
+                    if not content:
+                        logger.debug("No more coupons")
+                        break
+                    for item in content:
+                        title = item["headline"].strip(' "')
+                        link = f"https://www.udemy.com/course/{item['id_name']}/?couponCode={item['coupon_code']}"
+                        self.append_to_list(title, link)
+                    self.set_attr("progress", i + 1)
         except:
             self.handle_exception()
 
         self.set_attr("done", True)
-        if self.debug:
-            logger.info(f"Return Length: {len(self.cxyz_data)}")
 
 
 class Udemy:
@@ -665,8 +772,7 @@ class Udemy:
         if "course_update_threshold_months" not in self.settings:
             self.settings["course_update_threshold_months"] = 24  # 2 years
 
-        if "Tutorial Bar" in self.settings["sites"]:  # v2.3.3
-            del self.settings["sites"]["Tutorial Bar"]
+        # v2.3.3
 
         if "Vietnamese" not in self.settings["languages"]:
             self.settings["languages"]["Vietnamese"] = True
@@ -741,9 +847,11 @@ class Udemy:
         """Gets cookies from browser
         Sets cookies_dict, cookie_jar
         """
+        logger.info("Fetching cookies from browser")
         cookies = rookiepy.to_cookiejar(rookiepy.load(["www.udemy.com"]))
         self.cookie_dict: dict = requests.utils.dict_from_cookiejar(cookies)
         self.cookie_jar = cookies
+        logger.info("Cookies fetched")
 
     def manual_login(self, email: str, password: str):
         """Manual Login to Udemy using email and password and sets cookies
@@ -754,7 +862,7 @@ class Udemy:
             LoginException: Login Error
         """
         # s = cloudscraper.CloudScraper()
-
+        logger.info("Trying to login with email and password")
         s = requests.session()
         r = s.get(
             "https://www.udemy.com/join/signup-popup/?locale=en_US&response_type=html&next=https%3A%2F%2Fwww.udemy.com%2Flogout%2F",
@@ -827,6 +935,7 @@ class Udemy:
         """Get Session info
         Sets Client Session, currency and name
         """
+        logger.info("Getting session info")
         s = cloudscraper.CloudScraper()
         # headers = {
         #     "authorization": "Bearer " + self.cookie_dict["access_token"],
@@ -882,6 +991,7 @@ class Udemy:
         s.headers.update(headers)
         s.keep_alive = False
         self.client = s
+        logger.info("Session info retrieved")
         self.get_enrolled_courses()
 
     def get_enrolled_courses(self):
@@ -890,6 +1000,7 @@ class Udemy:
 
         {slug:enrollment_time}
         """
+        logger.info("Getting enrolled courses")
         next_page = "https://www.udemy.com/api-2.0/users/me/subscribed-courses/?ordering=-enroll_time&fields[course]=enrollment_time,url&page_size=100"
         courses = {}
         while next_page:
@@ -906,6 +1017,7 @@ class Udemy:
                 courses[slug] = course["enrollment_time"]
             next_page = r["next"]
         self.enrolled_courses = courses
+        logger.info(f"Enrolled courses: {len(courses)}")
 
     # Course filtering and exclusion logic
     def is_keyword_excluded(self) -> bool:
@@ -990,22 +1102,23 @@ class Udemy:
         if self.course.course_id:
             return
         url = re.sub(r"\W+$", "", unquote(self.course.url))
-        try:
-            r = self.client.get(url)
-        except requests.exceptions.ConnectionError:
-            if self.debug:
-                logger.error(r.text)
-            self.course.retry = True
-            return
-        self.course.url = r.url
-        try:
-            soup = bs(r.content, "html5lib")
-        except Exception as e:
-            with open("error.txt", "w") as f:
-                f.write(r.text)
-                f.flush()
-                os.fsync(f.fileno())
+        r = None
+        for _ in range(3):
+            try:
+                r = self.client.get(url)
+            except requests.exceptions.ConnectionError:
+                r = None
+                continue
 
+        if r is None:
+            logger.error("Failed to fetch course ID after 3 attempts")
+            self.course.is_valid = False
+            self.course.error = "Failed to fetch course ID: Report to developer"
+            return
+
+        self.course.url = r.url
+
+        soup = bs(r.content, "lxml")
         course_id = soup.find("body").get("data-clp-course-id", "invalid")
         if course_id == "invalid":
             self.course.is_valid = False
@@ -1031,11 +1144,15 @@ class Udemy:
         if self.course.coupon_code:
             url += f",redeem_coupon&couponCode={self.course.coupon_code}"
         try:
+            r = None
             r = self.client.get(url).json()
         except Exception as e:
-            logger.exception(
-                f"Error fetching course data for {url}: {e}\nResponse: {getattr(r, 'text', 'No response text')}"
-            )
+            logger.error(f"Error fetching course data: {e}")
+            logger.error(f"Course ID: {self.course.course_id}")
+            logger.error(f"Coupon Code: {self.course.coupon_code}")
+            logger.error(f"URL: {url}")
+            logger.error("Response:" + str(r))
+            logger.exception("Exception occurred")
         if self.debug:
             os.makedirs("test/", exist_ok=True)
             with open("test/check_course.json", "w") as f:
@@ -1069,13 +1186,10 @@ class Udemy:
     def is_already_enrolled(self):
         """Check if the course is already enrolled."""
         # Ensure course URL is valid before splitting
-        if (
-            not self.course
-            or not self.course.url
-            or len(self.course.url.split("/")) < 5
-        ):
-            return False  # Cannot determine slug
-        slug = self.course.url.split("/")[4]
+        slug = self.course.slug
+        if not slug or not isinstance(slug, str):
+            logger.error("SLUG NOT FOUND")
+            return False
         return slug in self.enrolled_courses
 
     def start_new_enroll(
@@ -1100,9 +1214,8 @@ class Udemy:
                 f"Processing course {index + 1} / {self.total_courses}: {str(self.course)}"
             )
             if self.is_already_enrolled():
-                slug = self.course.url.split("/")[4]
                 logger.info(
-                    f"Already enrolled on {self.get_date_from_utc(self.enrolled_courses[slug])}"
+                    f"Already enrolled on {self.get_date_from_utc(self.enrolled_courses[self.course.slug])}"
                 )
                 self.already_enrolled_c += 1
             else:
@@ -1144,7 +1257,7 @@ class Udemy:
                     self.valid_courses.append(self.course)
                     logger.info("Added for enrollment")
 
-                if len(self.valid_courses) >= random.randint(40, 50):
+                if len(self.valid_courses) >= 30:
                     self.bulk_checkout()
                     self.valid_courses.clear()
             self.update_progress()
@@ -1167,7 +1280,7 @@ class Udemy:
             if not course.is_free:
                 items.append(
                     {
-                        "buyable": {"id": course.course_id, "type": "course"},
+                        "buyable": {"id": str(course.course_id), "type": "course"},
                         "discountInfo": {"code": course.coupon_code},
                         "price": {"amount": 0, "currency": self.currency.upper()},
                     }
@@ -1184,21 +1297,20 @@ class Udemy:
                 "payment_method": "free-method",
                 "payment_vendor": "Free",
             },
-            "shopping_info": {
-                "items": items,
-                "is_cart": False,
-            },
+            "shopping_info": {"items": items, "is_cart": False},
         }
         headers = {
-            "User-Agent": "okhttp/4.9.2 UdemyAndroid 8.9.2(499) (phone)",
+            "User-Agent": "okhttp/4.10.0 UdemyAndroid 9.7.0(515) (phone)",
+            # "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:119.0) Gecko/20100101 Firefox/119.0",
             "Accept": "application/json, text/plain, */*",
             "Accept-Language": "en-US",
             # "Referer": f"https://www.udemy.com/payment/checkout/express/course/{self.course.course_id}/?discountCode={self.course.coupon_code}",
-            "Referer": "https://www.udemy.com/cart/",
+            "Referer": "https://www.udemy.com/payment/checkout/express/",
             "Content-Type": "application/json",
             "X-Requested-With": "XMLHttpRequest",
             "x-checkout-is-mobile-app": "true",
-            "Origin": "https://www.udemy.com",
+            # "Origin": "https://www.udemy.com",
+            "Host": "www.udemy.com",
             "DNT": "1",
             "Sec-GPC": "1",
             "Connection": "keep-alive",
@@ -1207,47 +1319,68 @@ class Udemy:
             "Sec-Fetch-Site": "same-origin",
             "Priority": "u=0",
         }
-        r = self.client.post(
-            "https://www.udemy.com/payment/checkout-submit/",
-            json=payload,
-            headers=headers,
-        )
-        try:
-            if r.headers.get("retry-after"):
-                logger.error(
-                    "Something really bad happened during bulk checkout, Please report this to the developer"
-                )
-                logger.error(r.text)
-                exit()
-            if r.status_code == 504:
-                r = {"status": "succeeded", "message": "Request Timeout"}
-            else:
-                r = r.json()
-        except Exception as e:
-            logger.exception(
-                f"Unknown Error during bulk checkout: {e}\nResponse: {r.text}"
+        for _ in range(0, 3):
+            r = self.client.post(
+                "https://www.udemy.com/payment/checkout-submit/",
+                json=payload,
+                headers=headers,
             )
-            return
-        if r.get("status") == "succeeded":
-            for course in self.valid_courses:
-                self.course = course
-                slug = self.course.url.split("/")[4]
-                self.enrolled_courses[slug] = self.get_now_to_utc()
-                self.amount_saved_c += (
-                    Decimal(str(course.price))
-                    if course.price is not None
-                    else Decimal(0)
+            try:
+                if r.headers.get("retry-after"):
+                    logger.error(
+                        "Something really bad happened during bulk checkout, Please report this to the developer"
+                    )
+                    logger.error(r.text)
+                    exit()
+                if r.status_code == 504:
+                    r = {"status": "succeeded", "message": "Request Timeout"}
+                else:
+                    r = r.json()
+            except Exception as e:
+                logger.exception(
+                    f"Unknown Error during bulk checkout: {e}\nResponse: {r.text} {payload}"
                 )
-                self.successfully_enrolled_c += 1
-                self.save_course()
-            logger.success(
-                f"Successfully Enrolled To {len(self.valid_courses)} Courses :)",
-                color="green",
-            )
+                return
+            if r.get("status") == "succeeded":
+                for course in self.valid_courses:
+                    self.course = course
+                    self.enrolled_courses[self.course.slug] = self.get_now_to_utc()
+                    self.amount_saved_c += (
+                        Decimal(str(course.price))
+                        if course.price is not None
+                        else Decimal(0)
+                    )
+                    self.successfully_enrolled_c += 1
+                    self.save_course()
+                logger.success(
+                    f"Successfully Enrolled To {len(self.valid_courses)} Courses :)",
+                    color="green",
+                )
+                return
         else:
-            logger.error("Bulk checkout failed")
             logger.error(r)
+            logger.error(payload)
             raise Exception("Bulk checkout failed")
+
+    def free_checkout(self):
+        self.client.get(
+            f"https://www.udemy.com/course/subscribe/?courseId={self.course.course_id}"
+        )
+        r = self.client.get(
+            f"https://www.udemy.com/api-2.0/users/me/subscribed-courses/{self.course.course_id}/?fields%5Bcourse%5D=%40default%2Cbuyable_object_type%2Cprimary_subcategory%2Cis_private"
+        )
+
+        if r.headers.get("retry-after"):
+            logger.error(
+                "Something really bad happened during free checkout, Please report this to the developer"
+            )
+            logger.error(r.text)
+            raise Exception(
+                "Something really bad happened during free checkout, Please report this to the developer"
+            )
+
+        r = r.json()
+        self.course.status = r.get("_class") == "course"
 
     # def handle_course_enrollment(self):
     #     self.course.retry = False
@@ -1374,22 +1507,6 @@ class Udemy:
     #         return
     #     self.course.status = r.get("status")
     #     self.course.error = r.get("message")
-
-    # def free_checkout(self):
-    #     self.client.get(
-    #         f"https://www.udemy.com/course/subscribe/?courseId={self.course.course_id}"
-    #     )
-    #     r = self.client.get(
-    #         f"https://www.udemy.com/api-2.0/users/me/subscribed-courses/{self.course.course_id}/?fields%5Bcourse%5D=%40default%2Cbuyable_object_type%2Cprimary_subcategory%2Cis_private"
-    #     )
-
-    #     if r.headers.get("retry-after"):
-    #         logger.error("Something really bad happened during free checkout, Please report this to the developer")
-    #         logger.error(r.text)
-    #         raise Exception("Something really bad happened during free checkout, Please report this to the developer")
-
-    #     r = r.json()
-    #     self.course.status = r.get("_class") == "course"
 
     # def process_coupon(self):
     #     self.discounted_checkout()
