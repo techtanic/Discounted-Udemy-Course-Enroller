@@ -21,6 +21,16 @@ jobs:
       - name: Install dependencies and PyInstaller
         run: pip install -r requirements.txt pyinstaller -U
 
+      - name: Cache PyInstaller build files
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./build
+            ./dist
+          key: ${{ runner.os }}-pyinstaller-${{ hashFiles('**/*.py', 'requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pyinstaller-
+
       - name: Build Executables
         run: |
           # Build GUI
