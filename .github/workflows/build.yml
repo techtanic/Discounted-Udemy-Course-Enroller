@@ -65,7 +65,6 @@ jobs:
           --exclude-module numpy `
           --exclude-module pytest `
           --exclude-module unittest `
-          --noupx-exclude="vcruntime140.dll" `
           "gui.py"
           
           # Build CLI
@@ -82,7 +81,6 @@ jobs:
           --exclude-module numpy `
           --exclude-module pytest `
           --exclude-module unittest `
-          --noupx-exclude="vcruntime140.dll" `
           "cli.py"
           
           # Print size information
