@@ -2,7 +2,6 @@ import threading
 import time
 import traceback
 import sys
-import os
 from datetime import datetime
 
 from rich.console import Console
