@@ -6,4 +6,4 @@ requests
 pyopenssl
 rich
 loguru
-lmxl
+lxml
