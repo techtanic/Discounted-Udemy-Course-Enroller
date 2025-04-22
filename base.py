@@ -653,7 +653,7 @@ class Scraper:
                     executor.submit(
                         self.fetch_page,
                         f"https://www.coursejoiner.com/wp-json/wp/v2/posts?categories=74&per_page=100&page={page}",
-                        headers=headers
+                        headers=headers,
                     )
                     for page in range(1, 5)
                 ]
@@ -1250,6 +1250,11 @@ class Udemy:
                     logger.error(f"Invalid: {self.course.error}")
                     self.excluded_c += 1
 
+                elif self.is_already_enrolled():
+                    logger.info(
+                        f"Already enrolled on {self.get_date_from_utc(self.enrolled_courses[self.course.slug])}"
+                    )
+                    self.already_enrolled_c += 1
                 elif self.course.is_excluded:
                     self.excluded_c += 1
 
@@ -1383,6 +1388,9 @@ class Udemy:
                     color="green",
                 )
                 return
+            logger.error(f"Bulk checkout failed {_+1}: {r.get('message')}, Retrying...")
+            time.sleep(1)
+
         else:
             logger.error(r)
             logger.error(payload)
