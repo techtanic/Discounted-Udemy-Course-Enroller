@@ -1388,8 +1388,8 @@ class Udemy:
                     color="green",
                 )
                 return
-            logger.error(f"Bulk checkout failed {_+1}: {r.get('message')}, Retrying...")
-            time.sleep(1)
+            logger.error(f"Bulk checkout failed {_+1}: {r}, Retrying...")
+            time.sleep(6)
 
         else:
             logger.error(r)
