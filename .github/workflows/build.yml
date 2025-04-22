@@ -43,3 +43,25 @@ jobs:
         with:
           name: DUCE-windows-package
           path: ./dist/
+
+      - name: Get Version
+        if: github.event_name == 'workflow_dispatch'
+        id: get_version
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path .\base.py -Pattern 'VERSION = "(v.*?)"').Matches.Groups[1].Value
+          echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          echo "TAG=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Create Draft Release and Tag
+        if: github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_version.outputs.TAG }}
+          name: ${{ steps.get_version.outputs.TAG }}
+          body: |
+            Draft release for version ${{ steps.get_version.outputs.TAG }}
+          draft: true
+          prerelease: false
+          files: |
+            ./dist/*
