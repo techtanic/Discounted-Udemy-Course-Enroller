@@ -326,7 +326,7 @@ class Scraper:
                 link = soup.find("div", {"class": "ui segment"}).a["href"]
                 return title, link
 
-            with concurrent.futures.ThreadPoolExecutor(max_workers=7) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
                 future_course_details = [
                     executor.submit(_fetch_course_details, item, head)
                     for item in all_items
