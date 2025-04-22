@@ -55,7 +55,6 @@ def create_scraping_thread(site: str):
         if getattr(scraper, f"{code_name}_length") == -1:
 
             raise Exception(f"Error in: {site}")
-
         main_window[f"p{site}"].update(0, max=getattr(scraper, f"{code_name}_length"))
         while not getattr(scraper, f"{code_name}_done") and not getattr(
             scraper, f"{code_name}_error"
@@ -66,7 +65,9 @@ def create_scraping_thread(site: str):
             )
 
             time.sleep(0.1)
-        logger.info(f"Courses Found {code_name}: {len(getattr(scraper, f'{code_name}_data'))}")
+        logger.info(
+            f"Courses Found {code_name}: {len(getattr(scraper, f'{code_name}_data'))}"
+        )
         if getattr(scraper, f"{code_name}_error"):
             raise Exception(f"Error in: {site}")
     except Exception:

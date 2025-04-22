@@ -24,7 +24,7 @@ from rich.traceback import install as rich_traceback_install
 
 rich_traceback_install()
 
-VERSION = "v2.3.3"
+VERSION = "v2.3.4"
 
 
 log_file_path = "duce.log"
@@ -248,7 +248,7 @@ class Scraper:
         target.append(course)
 
     def fetch_page(self, url: str, headers: dict = None) -> requests.Response:
-        return requests.get(url, headers=headers, timeout=(10, 30))
+        return requests.get(url, headers=headers, timeout=(30, 30))
 
     def parse_html(self, content: str):
         return bs(content, "lxml")
@@ -627,18 +627,41 @@ class Scraper:
     def cj(self):
         try:
             self.set_attr("length", 4)
+
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:137.0) Gecko/20100101 Firefox/137.0",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.5",
+                # 'Accept-Encoding': 'gzip, deflate, br, zstd',
+                "DNT": "1",
+                "Sec-GPC": "1",
+                "Alt-Used": "www.coursejoiner.com",
+                "Connection": "keep-alive",
+                # 'Cookie': 'ezosuibasgeneris-1=f7de3a73-8edf-4957-6bd7-c03d6192a105; cf_clearance=Vo1nMPpI9BOvaSvzT1RuuxxHQDU.SjH0Gvy_1Q5A8eA-1745306395-1.2.1.1-a7L2AgL7rcy4jHX.whQY0bjrjQwiz78KBWIOzX6_b8wBevOqdlK5yNLXDzSk1KJao2pu7ogq5pFL.TfdYmOQY3hz5c3Zk8BvRZVu0fyENuYVk1PNX.Q.UswXoe.LOSzsPpOBzySIOo5frr2Wv.ez2dE9GvPfPKG_a3WgmI.da5J94k2bQrs2w5tGdPlZgBNNuXlln_g9hIWQf8FNPXNjYQajWhZMZRJEqrwN6J8axTX8InJ_Fpt4wJaP6AvwcE28Lw6sgnWHLjVlrSdW9u.ZmTXvB7rDVVF5fKTSydwn5v0iI_4ch8TQPx6gFD_JHdnhTuVyzp64J.cKe1Uh53n_.DbRv8sCkUP9lfl_I2VGlog; ezoictest=stable; ezopvc_664594=1; ezoab_664594=mod24-c; active_template::664594=pub_site.1745306394; ezoadgid_664594=-1; wssplashchk=c03df4b443bf0a1a0365c55282e792b435f0599b.1745309995.1',
+                "Upgrade-Insecure-Requests": "1",
+                "Sec-Fetch-Dest": "document",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-Site": "cross-site",
+                "Priority": "u=4",
+                "Pragma": "no-cache",
+                "Cache-Control": "no-cache",
+                # Requests doesn't support trailers
+                # 'TE': 'trailers',
+            }
             with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
                 future_page = [
                     executor.submit(
                         self.fetch_page,
                         f"https://www.coursejoiner.com/wp-json/wp/v2/posts?categories=74&per_page=100&page={page}",
+                        headers=headers
                     )
                     for page in range(1, 5)
                 ]
                 for i, future in enumerate(
                     concurrent.futures.as_completed(future_page)
                 ):
-                    content = future.result().json()
+                    content = future.result()
+                    content = content.json()
                     if not content:
                         logger.debug("No more coupons")
                         break
@@ -972,8 +995,7 @@ class Udemy:
             headers=headers,
         )
         r = r.json()
-        if self.debug:
-            logger.info(r)
+        logger.debug(r)
         if not r["header"]["isLoggedIn"]:
             raise LoginException("Login Failed")
 
@@ -1147,20 +1169,20 @@ class Udemy:
         url = f"https://www.udemy.com/api-2.0/course-landing-components/{self.course.course_id}/me/?components=purchase"
         if self.course.coupon_code:
             url += f",redeem_coupon&couponCode={self.course.coupon_code}"
-        try:
-            r = None
-            r = self.client.get(url).json()
-        except Exception as e:
-            logger.error(f"Error fetching course data: {e}")
-            logger.error(f"Course ID: {self.course.course_id}")
-            logger.error(f"Coupon Code: {self.course.coupon_code}")
-            logger.error(f"URL: {url}")
-            logger.error("Response:" + str(r))
-            logger.exception("Exception occurred")
-        if self.debug:
-            os.makedirs("test/", exist_ok=True)
-            with open("test/check_course.json", "w") as f:
-                json.dump(r, f, indent=4)
+
+        for _ in range(3):
+            try:
+                r = self.client.get(url)
+                r = r.json()
+                break
+            except requests.exceptions.ConnectionError:
+                r = None
+            except Exception as e:
+                logger.error(f"Error fetching course data: {e}")
+                logger.error(f"Course ID: {self.course.course_id}")
+                logger.error(f"Coupon Code: {self.course.coupon_code}")
+                logger.error(f"URL: {url}")
+                r = None
         amount = (
             r.get("purchase", {})
             .get("data", {})
@@ -1261,7 +1283,7 @@ class Udemy:
                     self.valid_courses.append(self.course)
                     logger.info("Added for enrollment")
 
-                if len(self.valid_courses) >= 30:
+                if len(self.valid_courses) >= 20:
                     self.bulk_checkout()
                     self.valid_courses.clear()
             self.update_progress()
@@ -1308,11 +1330,11 @@ class Udemy:
             # "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:119.0) Gecko/20100101 Firefox/119.0",
             "Accept": "application/json, text/plain, */*",
             "Accept-Language": "en-US",
-            # "Referer": f"https://www.udemy.com/payment/checkout/express/course/{self.course.course_id}/?discountCode={self.course.coupon_code}",
-            "Referer": "https://www.udemy.com/payment/checkout/express/",
+            "Referer": f"https://www.udemy.com/payment/checkout/express/course/{self.course.course_id}/?discountCode={self.course.coupon_code}",
+            # "Referer": "https://www.udemy.com/payment/checkout/express/",
             "Content-Type": "application/json",
             "X-Requested-With": "XMLHttpRequest",
-            "x-checkout-is-mobile-app": "true",
+            "x-checkout-is-mobile-app": "false",
             # "Origin": "https://www.udemy.com",
             "Host": "www.udemy.com",
             "DNT": "1",

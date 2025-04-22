@@ -181,18 +181,25 @@ def create_scraping_thread(site: str):
             scraper, f"{code_name}_error"
         ):
             current = getattr(scraper, f"{code_name}_progress")
-            udemy.progress.update(task_id, completed=current, total=getattr(scraper, f"{code_name}_length"))
+            udemy.progress.update(
+                task_id,
+                completed=current,
+                total=getattr(scraper, f"{code_name}_length"),
+            )
             time.sleep(0.1)
-            
-        udemy.progress.update(task_id, completed=getattr(scraper, f"{code_name}_length"))
-        logger.debug(f"Courses Found {code_name}: {len(getattr(scraper, f'{code_name}_data'))}")
-        
+
+        udemy.progress.update(
+            task_id, completed=getattr(scraper, f"{code_name}_length")
+        )
+        logger.debug(
+            f"Courses Found {code_name}: {len(getattr(scraper, f'{code_name}_data'))}"
+        )
+
         if getattr(scraper, f"{code_name}_error"):
             raise Exception(f"Error in: {site}")
     except Exception:
         error = getattr(scraper, f"{code_name}_error", traceback.format_exc())
         handle_error(f"Error in {site}", error=error, exit_program=True)
-
 
 
 if __name__ == "__main__":
@@ -288,7 +295,7 @@ if __name__ == "__main__":
             udemy.scraped_data = scraper.get_scraped_courses(create_scraping_thread)
         total_courses = len(udemy.scraped_data)
         console.print(f"[green]Found {total_courses} courses to process[/green]")
-        
+
         layout = create_layout()
         layout["header"].update(create_header())
         layout["footer"].update(create_footer())
@@ -306,6 +313,7 @@ if __name__ == "__main__":
                 )
                 layout["main"]["stats"].update(create_stats_panel(udemy))
                 live.update(layout)
+
             udemy.update_progress = update_progress
 
             try:

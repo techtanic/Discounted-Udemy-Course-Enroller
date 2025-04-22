@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.3.4
+
+- Fixed Some scrappers
+- Optimized enrollment process
+
 ## v2.3.3
 
 - Improved all scrapers for better performance.
