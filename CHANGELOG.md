@@ -3,6 +3,7 @@
 ## v2.3.4
 
 - Fixed Some scrappers
+- Fixed Errors during enrollment
 - Optimized enrollment process
 
 ## v2.3.3
