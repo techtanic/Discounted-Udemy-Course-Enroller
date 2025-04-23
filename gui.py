@@ -122,7 +122,7 @@ def scrape():
             main_window["stat_expired"].update(value=f"{udemy.expired_c}")
 
             ready_count = len(getattr(udemy, "valid_courses", []))
-            main_window["stat_ready_enroll"].update(value=f"{ready_count}")
+            main_window["stat_ready_enroll"].update(value=f"{ready_count}/20")
 
         udemy.update_progress = update_progress
 
@@ -656,7 +656,7 @@ stats_panel = [
         sg.Text("Excluded Courses:", text_color="#4deeea", size=(15, 1)),
         sg.Text("0", key="stat_excluded", text_color="#FF4500", size=(8, 1)),
         sg.Text("Pending Enrollment:", text_color="#4deeea", size=(15, 1)),
-        sg.Text("0", key="stat_ready_enroll", text_color="#FFA500", size=(8, 1)),
+        sg.Text("0/20", key="stat_ready_enroll", text_color="#FFA500", size=(8, 1)),
     ],
 ]
 

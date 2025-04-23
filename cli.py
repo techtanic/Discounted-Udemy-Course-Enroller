@@ -122,7 +122,7 @@ def create_stats_panel(udemy: Udemy) -> Panel:
         "Excluded Courses:",
         f"[yellow]{udemy.excluded_c}[/yellow]",
         "Pending Enrollment:",
-        f"[orange1]{len(getattr(udemy, 'valid_courses', []))}[/orange1]",
+        f"[orange1]{len(getattr(udemy, 'valid_courses', []))}/20[/orange1]",
     )
 
     grid = Table.grid(padding=2)

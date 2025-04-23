@@ -63,19 +63,6 @@ class LoginException(Exception):
     pass
 
 
-class RaisingThread(threading.Thread):
-    def run(self):
-        self._exc = None
-        try:
-            super().run()
-        except Exception as e:
-            self._exc = e
-
-    def join(self, timeout=None):
-        super().join(timeout=timeout)
-        if self._exc:
-            raise self._exc
-
 
 def resource_path(relative_path):
     if hasattr(sys, "_MEIPASS"):
@@ -1220,7 +1207,7 @@ class Udemy:
 
     def start_new_enroll(
         self,
-    ):  # no queue, bulk checkout - Now filters courses first, Experimental
+        ):  # no queue, bulk checkout - Now filters courses first, Experimental
         """Filters scraped courses based on validity, settings, and coupon status."""
         logger.info("Starting enrollment process")
         self.setup_txt_file()
@@ -1287,7 +1274,8 @@ class Udemy:
                 if self.course.is_coupon_valid:
                     self.valid_courses.append(self.course)
                     logger.info("Added for enrollment")
-
+                
+                self.update_progress()
                 if len(self.valid_courses) >= 20:
                     self.bulk_checkout()
                     self.valid_courses.clear()
@@ -1328,19 +1316,19 @@ class Udemy:
                 "payment_method": "free-method",
                 "payment_vendor": "Free",
             },
-            "shopping_info": {"items": items, "is_cart": False},
+            "shopping_info": {"items": items, "is_cart": True},
         }
         headers = {
             "User-Agent": "okhttp/4.10.0 UdemyAndroid 9.7.0(515) (phone)",
             # "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:119.0) Gecko/20100101 Firefox/119.0",
             "Accept": "application/json, text/plain, */*",
             "Accept-Language": "en-US",
-            "Referer": f"https://www.udemy.com/payment/checkout/express/course/{self.course.course_id}/?discountCode={self.course.coupon_code}",
-            # "Referer": "https://www.udemy.com/payment/checkout/express/",
+            # "Referer": f"https://www.udemy.com/payment/checkout/express/course/{self.course.course_id}/?discountCode={self.course.coupon_code}",
+            "Referer": "https://www.udemy.com/payment/checkout/",
             "Content-Type": "application/json",
             "X-Requested-With": "XMLHttpRequest",
             "x-checkout-is-mobile-app": "false",
-            # "Origin": "https://www.udemy.com",
+            "Origin": "https://www.udemy.com",
             "Host": "www.udemy.com",
             "DNT": "1",
             "Sec-GPC": "1",
@@ -1349,8 +1337,10 @@ class Udemy:
             "Sec-Fetch-Mode": "cors",
             "Sec-Fetch-Site": "same-origin",
             "Priority": "u=0",
+            "X-CSRF-Token": self.client.cookies.get("csrftoken",domain="www.udemy.com"),    
+            
         }
-        for _ in range(0, 6):
+        for _ in range(0, 3):
             r = self.client.post(
                 "https://www.udemy.com/payment/checkout-submit/",
                 json=payload,
