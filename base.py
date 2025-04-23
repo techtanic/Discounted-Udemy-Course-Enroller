@@ -974,7 +974,6 @@ class Udemy:
         #     "dnt": "1",
         #     "User-Agent": "okhttp/4.9.2 UdemyAndroid 8.9.2(499) (phone)",
         # }
-
         headers = {
             "User-Agent": "okhttp/4.9.2 UdemyAndroid 8.9.2(499) (phone)",
             "Accept": "application/json, text/plain, */*",
@@ -995,7 +994,6 @@ class Udemy:
             headers=headers,
         )
         r = r.json()
-        logger.debug(r)
         if not r["header"]["isLoggedIn"]:
             raise LoginException("Login Failed")
 
@@ -1036,6 +1034,8 @@ class Udemy:
                 raise Exception("JSON Decode Error in get_enrolled_courses")
             for course in r["results"]:
                 slug = course["url"].split("/")[2]
+                if slug == "draft":
+                    slug = course["url"].split("/")[3]
                 courses[slug] = course["enrollment_time"]
             next_page = r["next"]
         self.enrolled_courses = courses
@@ -1144,7 +1144,7 @@ class Udemy:
             return
 
         self.course.url = r.url
-
+        self.course.set_slug()
         soup = bs(r.content, "lxml")
         course_id = soup.find("body").get("data-clp-course-id", "invalid")
         if course_id == "invalid":
@@ -1350,7 +1350,7 @@ class Udemy:
             "Sec-Fetch-Site": "same-origin",
             "Priority": "u=0",
         }
-        for _ in range(0, 3):
+        for _ in range(0, 6):
             r = self.client.post(
                 "https://www.udemy.com/payment/checkout-submit/",
                 json=payload,
@@ -1389,7 +1389,8 @@ class Udemy:
                 )
                 return
             logger.error(f"Bulk checkout failed {_+1}: {r}, Retrying...")
-            time.sleep(6)
+            self.client.get("https://www.udemy.com/payment/checkout/", headers=headers)
+            time.sleep(5 + _)
 
         else:
             logger.error(r)

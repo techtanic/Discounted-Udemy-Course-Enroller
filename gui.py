@@ -266,7 +266,7 @@ if login_error:
                     e = traceback.format_exc()
                     logger.error(e)
                     sg.popup_auto_close(
-                        "Make sure you are logged in to udemy.com in chrome browser",
+                        "Make sure you are logged in to udemy.com in your browser",
                         title="Error",
                         auto_close_duration=3,
                         no_titlebar=True,
