@@ -76,7 +76,7 @@ class Course:
         self.url = None
         self.slug = None
         self.course_id = None
-        self.coupon_code = self.extract_coupon_code()
+        self.coupon_code = None
         self.is_coupon_valid = False
 
         self.is_free = False
@@ -95,6 +95,7 @@ class Course:
         self.ready_time = None
         self.error: str = None
         self.set_url(url)
+        self.extract_coupon_code()
 
     def set_url(self, url: str):
         """Set course URL and normalize it"""
@@ -129,12 +130,13 @@ class Course:
         else:
             logger.error(f"Invalid URL format: {self.url}")
             slug = None
+        logger.debug(f"Course slug: {slug}")
         self.slug = slug
 
     def extract_coupon_code(self):
         """Extract coupon code from URL if present"""
         params = parse_qs(urlsplit(self.url).query)
-        return params.get("couponCode", [None])[0]
+        self.coupon_code = params.get("couponCode", [None])[0]
 
     def __str__(self):
         return f"{self.title} - {self.url}"
@@ -320,8 +322,6 @@ class Scraper:
                     if "udemy.com" in link:
                         link = self.cleanup_link(link)
                         self.append_to_list(title, link)
-                    else:
-                        logger.error(f"Unknown link format: {link}")
                     self.set_attr("progress", i + 1)
 
         except:
@@ -1127,7 +1127,7 @@ class Udemy:
             self.course.error = "Failed to fetch course ID: Report to developer"
             return
 
-        self.course.set_url(url)
+        self.course.set_url(r.url)
         soup = bs(r.content, "lxml")
         course_id = soup.find("body").get("data-clp-course-id", "invalid")
         if course_id == "invalid":
@@ -1152,7 +1152,7 @@ class Udemy:
         url = f"https://www.udemy.com/api-2.0/course-landing-components/{self.course.course_id}/me/?components=purchase"
         if self.course.coupon_code:
             url += f",redeem_coupon&couponCode={self.course.coupon_code}"
-
+        logger.debug(f"Checking course: {url}")
         for _ in range(3):
             try:
                 r = self.client.get(url)
