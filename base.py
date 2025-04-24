@@ -659,9 +659,6 @@ class Scraper:
                         soup = self.parse_html(rendered_content)
                         link = soup.find("a", string="APPLY HERE")
 
-                        if not link:
-                            logger.error("Coupon not found for item: " + str(item))
-
                         if link and link.has_attr("href"):
                             link = link["href"]
                             if "udemy.com" in link:
@@ -1272,7 +1269,7 @@ class Udemy:
                     logger.info("Added for enrollment")
 
                 self.update_progress()
-                if len(self.valid_courses) >= 20:
+                if len(self.valid_courses) >= 10:
                     self.bulk_checkout()
                     self.valid_courses.clear()
             self.update_progress()
@@ -1280,6 +1277,10 @@ class Udemy:
         if self.valid_courses:
             self.bulk_checkout()
             self.valid_courses.clear()
+        logger.info("Enrollment process completed")
+        logger.info(
+            f"Successfully Enrolled: {self.successfully_enrolled_c}\nAlready Enrolled: {self.already_enrolled_c}\nExpired: {self.expired_c}\nExcluded: {self.excluded_c}"
+        )
 
     def setup_txt_file(self):
         if self.settings["save_txt"]:
@@ -1400,7 +1401,10 @@ class Udemy:
             raise Exception(
                 "Something really bad happened during free checkout, Please report this to the developer"
             )
-
+        if r.status_code == 503:
+            logger.error(r.text)
+            self.course.status = True
+            return
         r = r.json()
         self.course.status = r.get("_class") == "course"
 

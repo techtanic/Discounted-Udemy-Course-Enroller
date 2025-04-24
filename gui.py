@@ -122,7 +122,7 @@ def scrape():
             main_window["stat_expired"].update(value=f"{udemy.expired_c}")
 
             ready_count = len(getattr(udemy, "valid_courses", []))
-            main_window["stat_ready_enroll"].update(value=f"{ready_count}/20")
+            main_window["stat_ready_enroll"].update(value=f"{ready_count}/10")
 
         udemy.update_progress = update_progress
 
