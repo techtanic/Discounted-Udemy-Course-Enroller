@@ -977,6 +977,7 @@ class Udemy:
         )
         r = r.json()
         if not r["header"]["isLoggedIn"]:
+            logger.error("Login Failed: " + str(r))
             raise LoginException("Login Failed")
 
         self.display_name: str = r["header"]["user"]["display_name"]
@@ -986,6 +987,7 @@ class Udemy:
             cookies=self.cookie_dict,
         )
         r = r.json()
+
         self.currency: str = r["user"]["credit"]["currency_code"]
 
         s = cloudscraper.CloudScraper()

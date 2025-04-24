@@ -263,8 +263,7 @@ if login_error:
                     login_window.close()
                     break
                 except Exception:
-                    e = traceback.format_exc()
-                    logger.error(e)
+                    logger.exception("Error in auto login")
                     sg.popup_auto_close(
                         "Make sure you are logged in to udemy.com in your browser",
                         title="Error",
@@ -273,6 +272,7 @@ if login_error:
                     )
 
             except Exception:
+                logger.exception("Error in auto login")
                 e = traceback.format_exc()
                 sg.popup_scrolled(e, title=f"Unknown Error {VERSION}")
 
