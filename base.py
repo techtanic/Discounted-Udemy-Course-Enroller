@@ -63,7 +63,6 @@ class LoginException(Exception):
     pass
 
 
-
 def resource_path(relative_path):
     if hasattr(sys, "_MEIPASS"):
         return os.path.join(sys._MEIPASS, relative_path)
@@ -73,10 +72,10 @@ def resource_path(relative_path):
 class Course:
     def __init__(self, title: str, url: str, site: str = None):
         self.title = title
-        self.url = self.normalize_link(url)
         self.site = site
+        self.url = None
+        self.slug = None
         self.course_id = None
-        self.slug = self.set_slug()
         self.coupon_code = self.extract_coupon_code()
         self.is_coupon_valid = False
 
@@ -95,6 +94,12 @@ class Course:
         self.retry_after = None
         self.ready_time = None
         self.error: str = None
+        self.set_url(url)
+
+    def set_url(self, url: str):
+        """Set course URL and normalize it"""
+        self.url = self.normalize_link(url)
+        self.set_slug()
 
     @staticmethod
     def normalize_link(url: str) -> str:
@@ -118,12 +123,13 @@ class Course:
         parsed_url = urlparse(self.url)
         path_parts = parsed_url.path.split("/")
         if len(path_parts) > 2 and path_parts[1] == "course":
-            return path_parts[2]
+            slug = path_parts[2]
         elif len(path_parts) > 1:
-            return path_parts[1]
+            slug = path_parts[1]
         else:
             logger.error(f"Invalid URL format: {self.url}")
-        return None
+            slug = None
+        self.slug = slug
 
     def extract_coupon_code(self):
         """Extract coupon code from URL if present"""
@@ -161,17 +167,6 @@ class Course:
             traceback.print_exc()
             self.is_valid = False
             self.error = f"Error parsing course metadata: {str(e)}"
-
-    def should_retry(self):
-        """Check if course should be retried based on ready_time"""
-        if self.ready_time is None:
-            return False
-        return time.time() < self.ready_time
-
-    def set_retry_after(self, seconds: int):
-        """Set retry_after time and calculate ready_time"""
-        self.retry_after = seconds + random.randint(0, 5)
-        self.ready_time = time.time() + seconds
 
     def __eq__(self, other):
         if not isinstance(other, Course):
@@ -1130,8 +1125,7 @@ class Udemy:
             self.course.error = "Failed to fetch course ID: Report to developer"
             return
 
-        self.course.url = r.url
-        self.course.set_slug()
+        self.course.set_url(url)
         soup = bs(r.content, "lxml")
         course_id = soup.find("body").get("data-clp-course-id", "invalid")
         if course_id == "invalid":
@@ -1207,7 +1201,7 @@ class Udemy:
 
     def start_new_enroll(
         self,
-        ):  # no queue, bulk checkout - Now filters courses first, Experimental
+    ):  # no queue, bulk checkout - Now filters courses first, Experimental
         """Filters scraped courses based on validity, settings, and coupon status."""
         logger.info("Starting enrollment process")
         self.setup_txt_file()
@@ -1274,7 +1268,7 @@ class Udemy:
                 if self.course.is_coupon_valid:
                     self.valid_courses.append(self.course)
                     logger.info("Added for enrollment")
-                
+
                 self.update_progress()
                 if len(self.valid_courses) >= 20:
                     self.bulk_checkout()
@@ -1337,8 +1331,9 @@ class Udemy:
             "Sec-Fetch-Mode": "cors",
             "Sec-Fetch-Site": "same-origin",
             "Priority": "u=0",
-            "X-CSRF-Token": self.client.cookies.get("csrftoken",domain="www.udemy.com"),    
-            
+            "X-CSRF-Token": self.client.cookies.get(
+                "csrftoken", domain="www.udemy.com"
+            ),
         }
         for _ in range(0, 3):
             r = self.client.post(
