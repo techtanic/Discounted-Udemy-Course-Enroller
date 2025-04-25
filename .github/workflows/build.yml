@@ -30,6 +30,7 @@ jobs:
           --add-data "README.md;." `
           --add-data "LICENSE;." `
           "gui.py"
+
           # Build CLI
           pyinstaller -y -F -c -i "extra/DUCE-LOGO.ico" --clean --name "DUCE-CLI-windows" `
           --add-data "base.py;." `
