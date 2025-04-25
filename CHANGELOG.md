@@ -5,7 +5,7 @@
 - Fixed Some scrappers
 - Fixed Errors during enrollment
 - Optimized enrollment process
-- Handled few edge cases where the course was already enrolled but not detected
+- Fixed few edge cases where the course was already enrolled but not detected
 
 ## v2.3.3
 
