@@ -29,7 +29,6 @@ jobs:
           --add-data "default-duce-gui-settings.json;." `
           --add-data "README.md;." `
           --add-data "LICENSE;." `
-           --uac-admin `
           "gui.py"
           # Build CLI
           pyinstaller -y -F -c -i "extra/DUCE-LOGO.ico" --clean --name "DUCE-CLI-windows" `
@@ -37,7 +36,6 @@ jobs:
           --add-data "default-duce-cli-settings.json;." `
           --add-data "README.md;." `
           --add-data "LICENSE;." `
-            --uac-admin `
           "cli.py"
 
       - name: Upload Windows Package
