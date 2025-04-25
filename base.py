@@ -1269,7 +1269,7 @@ class Udemy:
                     logger.info("Added for enrollment")
 
                 self.update_progress()
-                if len(self.valid_courses) >= 10:
+                if len(self.valid_courses) >= 5:
                     self.bulk_checkout()
                     self.valid_courses.clear()
             self.update_progress()
