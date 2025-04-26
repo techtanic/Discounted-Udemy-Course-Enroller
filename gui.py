@@ -242,8 +242,6 @@ if login_error:
     ]
 
     login_window = sg.Window(login_title, login_layout, finalize=True)
-    login_window.bind("a", "a_login")
-    login_window.bind("m", "m_login")
     while True:
         event, values = login_window.read()
         logger.info(f"Login window event: {event}")
