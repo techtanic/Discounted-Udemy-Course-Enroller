@@ -1,3 +1,4 @@
+import concurrent
 import inspect
 import json
 import os
@@ -7,14 +8,12 @@ import sys
 import threading
 import time
 import traceback
-from collections import deque
 from datetime import datetime, timezone
 from decimal import Decimal
 from html import unescape
 from urllib.parse import parse_qs, unquote, urlparse, urlsplit, urlunparse
 
 import cloudscraper
-import concurrent
 import requests
 import rookiepy
 from bs4 import BeautifulSoup as bs

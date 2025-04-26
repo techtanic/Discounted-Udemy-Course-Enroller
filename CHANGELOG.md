@@ -1,11 +1,8 @@
 # Changelog
 
-## v2.3.5
-- fix: Remove unnecessary key bindings from login window
-
-
 ## v2.3.4
 
+- Remove unnecessary key bindings from login window
 - Fixed Some scrappers
 - Fixed Errors during enrollment
 - Optimized enrollment process
