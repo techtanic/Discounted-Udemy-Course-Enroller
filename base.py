@@ -25,6 +25,13 @@ rich_traceback_install()
 
 VERSION = "v2.3.4"
 
+if getattr(sys, 'frozen', False):
+    # PyInstaller creates a temp folder and stores path in _MEIPASS
+    if hasattr(sys, '_MEIPASS'):
+        bundle_dir = sys._MEIPASS
+    else:
+        bundle_dir = os.path.dirname(sys.executable)
+    os.chdir(bundle_dir)
 
 log_file_path = "duce.log"
 
