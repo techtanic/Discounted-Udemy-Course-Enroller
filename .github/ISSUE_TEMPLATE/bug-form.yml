@@ -45,12 +45,9 @@ body:
   - type: input
     id: logs
     attributes:
-      label: Log file `duce.log`
+      label: Upload Log file `duce.log`
       description: |
-        Please copy and paste any relevant log output below.
-        **Alternatively, you can drag and drop `duce.log` from the application folder into this text area.**
-        The content will be automatically formatted as code.
-      render: shell
+        Drag and drop `duce.log` from the application folder into this text area.**
 
   - type: checkboxes
     id: terms
