@@ -42,7 +42,7 @@ body:
     validations:
       required: true
 
-  - type: input
+  - type: textarea
     id: logs
     attributes:
       label: Upload Log file `duce.log`
