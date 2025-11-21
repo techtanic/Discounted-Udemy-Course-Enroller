@@ -18,10 +18,20 @@ import requests
 import rookiepy
 from bs4 import BeautifulSoup as bs
 from loguru import logger
-from rich import print
-from rich.traceback import install as rich_traceback_install
 
-rich_traceback_install()
+try:  # Prefer Rich for nicer console output when available
+    from rich import print as rich_print  # type: ignore
+    from rich.traceback import install as rich_traceback_install  # type: ignore
+
+    rich_traceback_install()
+    print = rich_print  # type: ignore
+except ImportError:  # Fallback gracefully when Rich isn’t installed
+    import builtins
+
+    def rich_traceback_install():  # noqa: D401 - simple no-op fallback
+        """Fallback when Rich tracebacks are unavailable."""
+
+    print = builtins.print  # type: ignore
 
 VERSION = "v2.3.6"
 
@@ -278,11 +288,17 @@ class Scraper:
 
     def cleanup_link(self, link: str) -> str:
         parsed_url = urlparse(link)
+        netloc = parsed_url.netloc.lower()
 
-        if parsed_url.netloc.lower() == "www.udemy.com" or parsed_url.netloc.lower() == "udemy.com":
+        if netloc.endswith("udemy.com"):
+            if netloc == "trk.udemy.com":
+                query_params = parse_qs(parsed_url.query)
+                redirect_target = query_params.get("url") or query_params.get("to")
+                if redirect_target:
+                    return unquote(redirect_target[0])
             return link
 
-        if parsed_url.netloc == "click.linksynergy.com":
+        if netloc == "click.linksynergy.com":
             query_params = parse_qs(parsed_url.query)
 
             if "RD_PARM1" in query_params:
@@ -505,11 +521,17 @@ class Scraper:
                 title = item.h5.string
                 content = self.fetch_page(item.a["href"]).content
                 soup = self.parse_html(content)
-                link = soup.find(
+                link_element = soup.find(
                     "a",
                     {"class": "masterstudy-button-affiliate__link"},
-                )["href"]
-                return title, link
+                )
+                if link_element and link_element.has_attr("href"):
+                    return title, link_element["href"]
+                logger.warning(
+                    "CourseVania course missing affiliate link for title '%s'",
+                    title,
+                )
+                return title, None
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=30) as executor:
                 future_course_details = [
@@ -519,10 +541,10 @@ class Scraper:
                     concurrent.futures.as_completed(future_course_details)
                 ):
                     title, link = future.result()
-                    if "udemy.com" in link:
+                    if link and "udemy.com" in link:
                         link = self.cleanup_link(link)
                         self.append_to_list(title, link)
-                    else:
+                    elif link:
                         logger.error(f"Unknown link format: {link}")
                     self.set_attr("progress", i + 1)
         except:
@@ -1422,7 +1444,109 @@ class Udemy:
         else:
             logger.error(r)
             logger.error(payload)
-            raise Exception("Bulk checkout failed")
+            logger.warning(
+                "Bulk checkout failed after multiple attempts, falling back to single-course checkout"
+            )
+            fallback_success = False
+            for course in list(self.valid_courses):
+                if self.discounted_checkout_single(course):
+                    fallback_success = True
+                else:
+                    self.expired_c += 1
+            if not fallback_success:
+                logger.error(
+                    "Fallback single-course checkout also failed for all courses"
+                )
+            return
+
+    def discounted_checkout_single(self, course: Course) -> bool:
+        self.course = course
+        payload = {
+            "checkout_environment": "Marketplace",
+            "checkout_event": "Submit",
+            "payment_info": {
+                "method_id": "0",
+                "payment_method": "free-method",
+                "payment_vendor": "Free",
+            },
+            "shopping_info": {
+                "items": [
+                    {
+                        "buyable": {"id": course.course_id, "type": "course"},
+                        "discountInfo": {"code": course.coupon_code},
+                        "price": {
+                            "amount": 0,
+                            "currency": self.currency.upper(),
+                        },
+                    }
+                ],
+                "is_cart": False,
+            },
+        }
+        headers = {
+            "User-Agent": "okhttp/4.10.0 UdemyAndroid 9.7.0(515) (phone)",
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "en-US",
+            "Referer": f"https://www.udemy.com/payment/checkout/express/course/{course.course_id}/?discountCode={course.coupon_code}",
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+            "x-checkout-is-mobile-app": "false",
+            "Origin": "https://www.udemy.com",
+            "Host": "www.udemy.com",
+            "DNT": "1",
+            "Sec-GPC": "1",
+            "Connection": "keep-alive",
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+            "Priority": "u=0",
+            "X-CSRF-Token": self.client.cookies.get(
+                "csrftoken", domain="www.udemy.com"
+            ),
+        }
+        response = self.client.post(
+            "https://www.udemy.com/payment/checkout-submit/",
+            json=payload,
+            headers=headers,
+        )
+        retry_after = response.headers.get("retry-after")
+        try:
+            result = response.json()
+        except Exception:
+            logger.error(
+                "Single checkout failed to decode response: {}", response.text
+            )
+            return False
+
+        if retry_after:
+            logger.warning(
+                "Single checkout throttled (retry-after={}). Skipping for now.",
+                retry_after,
+            )
+            return False
+
+        status = result.get("status")
+        message = result.get("message", "")
+        if status == "succeeded":
+            self.enrolled_courses[course.slug] = self.get_now_to_utc()
+            self.amount_saved_c += (
+                Decimal(str(course.price)) if course.price is not None else Decimal(0)
+            )
+            self.successfully_enrolled_c += 1
+            self.save_course()
+            logger.success(
+                f"Successfully enrolled in {course.title} via single checkout"
+            )
+            return True
+
+        if isinstance(message, str) and "item_already_subscribed" in message:
+            logger.info("Course already subscribed during single checkout")
+            self.already_enrolled_c += 1
+            self.enrolled_courses[course.slug] = self.get_now_to_utc()
+            return True
+
+        logger.error("Single checkout failed for {}: {}", course.title, result)
+        return False
 
     def free_checkout(self):
         self.client.get(

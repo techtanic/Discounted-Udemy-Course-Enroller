@@ -1,27 +1,73 @@
+from __future__ import annotations
+
 import threading
 import time
 import traceback
 import sys
 from datetime import datetime
 
-from rich.console import Console
-from rich.layout import Layout
-from rich.live import Live
-from rich.panel import Panel
-from rich.progress import (
-    Progress,
-    SpinnerColumn,
-    BarColumn,
-    TextColumn,
-    TimeRemainingColumn,
-)
-from rich.table import Table
-from rich.text import Text
-from rich import box
+import re
+
+RICH_AVAILABLE = True
+try:
+    from rich.console import Console  # type: ignore
+    from rich.layout import Layout  # type: ignore
+    from rich.live import Live  # type: ignore
+    from rich.panel import Panel  # type: ignore
+    from rich.progress import (  # type: ignore
+        Progress,
+        SpinnerColumn,
+        BarColumn,
+        TextColumn,
+        TimeRemainingColumn,
+    )
+    from rich.table import Table  # type: ignore
+    from rich.text import Text  # type: ignore
+    from rich import box  # type: ignore
+except ImportError:  # Rich isn’t available in this environment
+    RICH_AVAILABLE = False
+
 from base import VERSION, LoginException, Scraper, Udemy, scraper_dict, logger
 
 
-console = Console()
+if RICH_AVAILABLE:
+    console = Console()
+else:
+    ANSI_TAG_RE = re.compile(r"\[/?[^\]]+\]")
+
+    class SimpleStatus:
+        def __init__(self, console_ref, message):
+            self.console = console_ref
+            self.message = message
+
+        def __enter__(self):
+            self.console.print(self.message)
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    class SimpleConsole:
+        def _clean(self, value):
+            if isinstance(value, str):
+                return ANSI_TAG_RE.sub("", value)
+            return str(value)
+
+        def print(self, *args, sep=" ", end="\n", **kwargs):
+            cleaned = [self._clean(arg) for arg in args]
+            print(*cleaned, sep=sep, end=end, **{k: kwargs[k] for k in ("file", "flush") if k in kwargs})
+
+        def input(self, prompt=""):
+            return input(self._clean(prompt))
+
+        def status(self, message):
+            return SimpleStatus(self, message)
+
+    class _BoxFallback:
+        ROUNDED = None
+
+    box = _BoxFallback()
+    console = SimpleConsole()
 
 
 def handle_error(error_message, error=None, exit_program=True):
@@ -34,16 +80,24 @@ def handle_error(error_message, error=None, exit_program=True):
         error: The exception object (optional)
         exit_program: Whether to exit the program after displaying the error (default: True)
     """
-    console.print(
-        f"\n[bold white on red] ERROR [/bold white on red] [bold red]{error_message}[/bold red]"
-    )
+    if RICH_AVAILABLE:
+        console.print(
+            f"\n[bold white on red] ERROR [/bold white on red] [bold red]{error_message}[/bold red]"
+        )
+    else:
+        console.print(f"\nERROR: {error_message}")
 
     if error:
         error_details = str(error)
         trace = traceback.format_exc()
-        console.print(f"[red]Details: {error_details}[/red]")
-        console.print("[yellow]Full traceback:[/yellow]")
-        console.print(Panel(trace, border_style="red"))
+        if RICH_AVAILABLE:
+            console.print(f"[red]Details: {error_details}[/red]")
+            console.print("[yellow]Full traceback:[/yellow]")
+            console.print(Panel(trace, border_style="red"))
+        else:
+            console.print(f"Details: {error_details}")
+            console.print("Full traceback:")
+            console.print(trace)
 
         logger.exception(f"{error_message} - Details: {error_details}")
 
@@ -167,6 +221,19 @@ def create_course_panel(udemy: Udemy, total_courses: int) -> Panel:
 def create_scraping_thread(site: str):
 
     code_name = scraper_dict[site]
+    if not RICH_AVAILABLE or not getattr(udemy, "progress", None):
+        try:
+            getattr(scraper, code_name)()
+            logger.debug(
+                f"Courses Found {code_name}: {len(getattr(scraper, f'{code_name}_data'))}"
+            )
+            if getattr(scraper, f"{code_name}_error"):
+                raise Exception(f"Error in: {site}")
+        except Exception:
+            error = getattr(scraper, f"{code_name}_error", traceback.format_exc())
+            handle_error(f"Error in {site}", error=error, exit_program=True)
+        return
+
     task_id = udemy.progress.add_task(site, total=100)
     try:
         threading.Thread(target=getattr(scraper, code_name), daemon=True).start()
@@ -209,13 +276,18 @@ if __name__ == "__main__":
         udemy.load_settings()
         login_title, main_title = udemy.check_for_update()
 
-        console.print(
-            Panel.fit(
-                f"[bold blue]Discounted Udemy Course Enroller[/bold blue] [cyan]{VERSION}[/cyan]",
-                title="Welcome",
-                border_style="cyan",
+        if RICH_AVAILABLE:
+            console.print(
+                Panel.fit(
+                    f"[bold blue]Discounted Udemy Course Enroller[/bold blue] [cyan]{VERSION}[/cyan]",
+                    title="Welcome",
+                    border_style="cyan",
+                )
             )
-        )
+        else:
+            console.print(
+                f"Discounted Udemy Course Enroller {VERSION} (basic console mode — install 'rich' for enhanced UI)"
+            )
 
         if login_title.__contains__("Update"):
             console.print(f"[bold yellow]{login_title}[/bold yellow]")
@@ -284,66 +356,108 @@ if __name__ == "__main__":
         )
         logger.info("Scraping courses from selected sites")
 
-        udemy.progress = Progress(
-            SpinnerColumn(finished_text="🟢"),
-            TextColumn("[bold blue]{task.description}"),
-            BarColumn(),
-            TextColumn("{task.percentage:.0f}%"),
-            TimeRemainingColumn(elapsed_when_finished=True),
-        )
-        with udemy.progress:
+        if RICH_AVAILABLE:
+            udemy.progress = Progress(
+                SpinnerColumn(finished_text="🟢"),
+                TextColumn("[bold blue]{task.description}"),
+                BarColumn(),
+                TextColumn("{task.percentage:.0f}%"),
+                TimeRemainingColumn(elapsed_when_finished=True),
+            )
+            with udemy.progress:
+                udemy.scraped_data = scraper.get_scraped_courses(create_scraping_thread)
+        else:
+            udemy.progress = None
             udemy.scraped_data = scraper.get_scraped_courses(create_scraping_thread)
         total_courses = len(udemy.scraped_data)
-        console.print(f"[green]Found {total_courses} courses to process[/green]")
-
-        layout = create_layout()
-        layout["header"].update(create_header())
-        layout["footer"].update(create_footer())
-        layout["main"]["course_info"].update(create_course_panel(udemy, total_courses))
-        layout["main"]["stats"].update(create_stats_panel(udemy))
+        if RICH_AVAILABLE:
+            console.print(f"[green]Found {total_courses} courses to process[/green]")
+        else:
+            console.print(f"Found {total_courses} courses to process")
 
         udemy.total_courses_processed = 0
         udemy.total_courses = total_courses
 
-        with Live(layout, screen=False, transient=True) as live:
+        if RICH_AVAILABLE:
+            layout = create_layout()
+            layout["header"].update(create_header())
+            layout["footer"].update(create_footer())
+            layout["main"]["course_info"].update(
+                create_course_panel(udemy, total_courses)
+            )
+            layout["main"]["stats"].update(create_stats_panel(udemy))
+
+            with Live(layout, screen=False, transient=True) as live:
+
+                def update_progress():
+                    layout["main"]["course_info"].update(
+                        create_course_panel(udemy, total_courses)
+                    )
+                    layout["main"]["stats"].update(create_stats_panel(udemy))
+                    live.update(layout)
+
+                udemy.update_progress = update_progress
+
+                try:
+                    udemy.start_new_enroll()
+                except KeyboardInterrupt:
+                    console.print("[bold yellow]Process interrupted by user[/bold yellow]")
+                except Exception as e:
+                    handle_error(
+                        "An unexpected error occurred", error=e, exit_program=False
+                    )
+            console.print(
+                Panel.fit(
+                    f"[bold blue]Enrollment Results[/bold blue]", border_style="cyan"
+                )
+            )
+
+            table = Table(box=box.ROUNDED)
+            table.add_column("Stat", style="cyan")
+            table.add_column("Value", style="yellow")
+
+            table.add_row(
+                "Successfully Enrolled",
+                f"[green]{udemy.successfully_enrolled_c}[/green]",
+            )
+            table.add_row(
+                "Amount Saved",
+                f"[green]{round(udemy.amount_saved_c, 2)} {udemy.currency.upper()}[/green]",
+            )
+            table.add_row("Already Enrolled", f"[cyan]{udemy.already_enrolled_c}[/cyan]")
+            table.add_row("Excluded Courses", f"[yellow]{udemy.excluded_c}[/yellow]")
+            table.add_row("Expired Courses", f"[red]{udemy.expired_c}[/red]")
+
+            console.print(table)
+        else:
+            last_logged = {"value": -1}
 
             def update_progress():
-                layout["main"]["course_info"].update(
-                    create_course_panel(udemy, total_courses)
-                )
-                layout["main"]["stats"].update(create_stats_panel(udemy))
-                live.update(layout)
+                current = udemy.total_courses_processed
+                if current != last_logged["value"]:
+                    last_logged["value"] = current
+                    console.print(
+                        f"Processing course {current}/{udemy.total_courses}",
+                        end="\r",
+                    )
 
             udemy.update_progress = update_progress
 
             try:
                 udemy.start_new_enroll()
             except KeyboardInterrupt:
-                console.print("[bold yellow]Process interrupted by user[/bold yellow]")
+                console.print("Process interrupted by user\n")
             except Exception as e:
-                handle_error(
-                    "An unexpected error occurred", error=e, exit_program=False
-                )
-        console.print(
-            Panel.fit(f"[bold blue]Enrollment Results[/bold blue]", border_style="cyan")
-        )
+                handle_error("An unexpected error occurred", error=e, exit_program=False)
 
-        table = Table(box=box.ROUNDED)
-        table.add_column("Stat", style="cyan")
-        table.add_column("Value", style="yellow")
-
-        table.add_row(
-            "Successfully Enrolled", f"[green]{udemy.successfully_enrolled_c}[/green]"
-        )
-        table.add_row(
-            "Amount Saved",
-            f"[green]{round(udemy.amount_saved_c, 2)} {udemy.currency.upper()}[/green]",
-        )
-        table.add_row("Already Enrolled", f"[cyan]{udemy.already_enrolled_c}[/cyan]")
-        table.add_row("Excluded Courses", f"[yellow]{udemy.excluded_c}[/yellow]")
-        table.add_row("Expired Courses", f"[red]{udemy.expired_c}[/red]")
-
-        console.print(table)
+            console.print("\nEnrollment Results:")
+            console.print(
+                f"  Successfully Enrolled: {udemy.successfully_enrolled_c}\n"
+                f"  Amount Saved: {round(udemy.amount_saved_c, 2)} {udemy.currency.upper()}\n"
+                f"  Already Enrolled: {udemy.already_enrolled_c}\n"
+                f"  Excluded Courses: {udemy.excluded_c}\n"
+                f"  Expired Courses: {udemy.expired_c}"
+            )
 
     except Exception as e:
         handle_error("A critical error occurred", error=e, exit_program=True)
